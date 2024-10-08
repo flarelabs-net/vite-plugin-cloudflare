@@ -1,0 +1,18 @@
+diff --git a/runtime/node/timers/internal/scheduler.mjs b/runtime/node/timers/internal/scheduler.mjs
+index f359d41d219a61b6288baa7737a1d3ae96da7689..e12cd3460c457170ed4bece650ccc9ed1e8f6907 100644
+--- a/runtime/node/timers/internal/scheduler.mjs
++++ b/runtime/node/timers/internal/scheduler.mjs
+@@ -1,9 +1,10 @@
+-import { setTimeout, setImmediate } from "node:timers/promises";
++import { setTimeoutFallbackPromises } from "./set-timeout.mjs";
++import { setImmediateFallbackPromises } from "./set-immediate.mjs";
+ export class Scheduler {
+   wait(delay, options) {
+-    return setTimeout(delay, void 0, options);
++    return setTimeoutFallbackPromises(delay, void 0, options);
+   }
+   yield() {
+-    return setImmediate();
++    return setImmediateFallbackPromises();
+   }
+ }

@@ -5,6 +5,7 @@ import { Log, LogLevel, Response as MiniflareResponse } from 'miniflare';
 import * as vite from 'vite';
 import { unstable_getMiniflareWorkerOptions } from 'wrangler';
 import { getModuleFallbackHandler, getResolveId } from './module-fallback';
+import { getNodeCompatModules } from './node-compat';
 import { invariant, WORKERD_CUSTOM_IMPORT_PATH } from './shared';
 import type { CloudflareDevEnvironment } from './cloudflare-environment';
 import type { NormalizedPluginConfig } from './plugin-config';
@@ -167,7 +168,14 @@ export function getMiniflareOptions(
 		},
 		...getPersistence(normalizedPluginConfig.persistPath),
 		workers: workers.map((workerOptions) => {
+			const { nodeModules, nodeWrappers } = getNodeCompatModules(
+				workerOptions.compatibilityDate,
+				workerOptions.compatibilityFlags,
+				workerOptions.modulesRoot,
+			);
+
 			const wrappers = [
+				...nodeWrappers,
 				`import { createWorkerEntrypointWrapper, createDurableObjectWrapper } from '${RUNNER_PATH}';`,
 				`export default createWorkerEntrypointWrapper('default');`,
 			];
@@ -222,6 +230,7 @@ export function getMiniflareOptions(
 						path: path.join(miniflareModulesRoot, WORKERD_CUSTOM_IMPORT_PATH),
 						contents: 'module.exports = path => import(path)',
 					},
+					...nodeModules,
 				],
 				serviceBindings: {
 					...workerOptions.serviceBindings,

@@ -25,6 +25,11 @@ catalogs:
       specifier: ^3.80.4
       version: 3.80.4
 
+patchedDependencies:
+  unenv-nightly:
+    hash: 7cbxqs5uouarp47wq7ymxwtvhy
+    path: patches/unenv-nightly.patch
+
 importers:
 
   .:
@@ -103,6 +108,9 @@ importers:
       cjs-module-lexer:
         specifier: ^1.4.1
         version: 1.4.1
+      esbuild:
+        specifier: ^0.24.0
+        version: 0.24.0
       miniflare:
         specifier: catalog:default
         version: 3.20241004.0
@@ -116,6 +124,9 @@ importers:
       '@vite-plugin-cloudflare/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
+      import-meta-resolve:
+        specifier: ^4.1.0
+        version: 4.1.0
       tsup:
         specifier: ^8.3.0
         version: 8.3.0(postcss@8.4.47)(typescript@5.6.2)
@@ -124,7 +135,7 @@ importers:
         version: 5.6.2
       unenv:
         specifier: npm:unenv-nightly@2.0.0-20240924-181319-d5e42d9
-        version: unenv-nightly@2.0.0-20240924-181319-d5e42d9
+        version: unenv-nightly@2.0.0-20240924-181319-d5e42d9(patch_hash=7cbxqs5uouarp47wq7ymxwtvhy)
       vite:
         specifier: catalog:default
         version: 6.0.0-beta.2(@types/node@22.5.5)
@@ -1624,6 +1635,9 @@ packages:
   ignore@5.3.2:
     resolution: {integrity: sha512-hsBTNUqQTDwkWtcdYI2i06Y/nUBEsNEDJKjWdigLvegy8kDuJAS8uRlpkkcQpyEXL0Z/pjDy5HBmMjRCJ2gq+g==}
     engines: {node: '>= 4'}
+
+  import-meta-resolve@4.1.0:
+    resolution: {integrity: sha512-I6fiaX09Xivtk+THaMfAwnA3MVA5Big1WHF1Dfx9hFuvNIWpXnorlkzhcQf6ehrqQiiZECRt1poOAkPmer3ruw==}
 
   is-binary-path@2.1.0:
     resolution: {integrity: sha512-ZMERYes6pDydyuGidse7OsHxtbI7WVeUEozgR/g7rd0xUimYNlvZRE/K2MgZTjWy725IfelLeVcEM97mmtRGXw==}
@@ -3438,6 +3452,8 @@ snapshots:
 
   ignore@5.3.2: {}
 
+  import-meta-resolve@4.1.0: {}
+
   is-binary-path@2.1.0:
     dependencies:
       binary-extensions: 2.3.0
@@ -3913,14 +3929,14 @@ snapshots:
     dependencies:
       '@fastify/busboy': 2.1.1
 
-  unenv-nightly@2.0.0-20240924-181319-d5e42d9:
+  unenv-nightly@2.0.0-20240924-181319-d5e42d9(patch_hash=7cbxqs5uouarp47wq7ymxwtvhy):
     dependencies:
       defu: 6.1.4
       ohash: 1.1.4
       pathe: 1.1.2
       ufo: 1.5.4
 
-  unenv-nightly@2.0.0-20241009-125958-e8ea22f:
+  unenv-nightly@2.0.0-20241009-125958-e8ea22f(patch_hash=7cbxqs5uouarp47wq7ymxwtvhy):
     dependencies:
       defu: 6.1.4
       ohash: 1.1.4
@@ -4045,7 +4061,7 @@ snapshots:
       resolve.exports: 2.0.2
       selfsigned: 2.4.1
       source-map: 0.6.1
-      unenv: unenv-nightly@2.0.0-20241009-125958-e8ea22f
+      unenv: unenv-nightly@2.0.0-20241009-125958-e8ea22f(patch_hash=7cbxqs5uouarp47wq7ymxwtvhy)
       workerd: 1.20241004.0
       xxhash-wasm: 1.0.2
     optionalDependencies:
