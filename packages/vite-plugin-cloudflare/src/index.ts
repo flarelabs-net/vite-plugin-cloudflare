@@ -135,10 +135,6 @@ export function cloudflare<
 
 					return {
 						...workerOptions,
-						compatibilityFlags: [
-							...(workerOptions.compatibilityFlags ?? []),
-							'nodejs_compat',
-						],
 						unsafeUseModuleFallbackService: true,
 						modules: [
 							{
