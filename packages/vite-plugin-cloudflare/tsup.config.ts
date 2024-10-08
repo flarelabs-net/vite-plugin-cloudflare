@@ -18,4 +18,11 @@ export default defineConfig([
 		noExternal: ['vite/module-runner'],
 		tsconfig: 'tsconfig.runner.json',
 	},
+	{
+		entry: ['src/workerd-custom-import.cts'],
+		outDir: 'dist',
+		format: ['cjs'],
+		platform: 'node',
+		noExternal: [/.*/],
+	},
 ]);

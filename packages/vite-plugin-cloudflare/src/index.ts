@@ -11,6 +11,11 @@ import type {
 	CloudflareEnvironmentOptions,
 	CloudflareDevEnvironment,
 } from './cloudflare-environment';
+import {
+	getModuleFallbackCallback,
+	type ResolveIdFunction,
+} from './module-fallback';
+import { createIdResolver } from 'vite';
 
 const wrapperPath = '__VITE_WRAPPER_PATH__';
 const runnerPath = fileURLToPath(new URL('./runner/index.js', import.meta.url));
@@ -83,6 +88,36 @@ export function cloudflare<
 				}
 			}
 
+			const esmResolveId = createIdResolver(viteConfig, {});
+
+			// for `require` calls we want a resolver that prioritized node/cjs modules
+			const cjsResolveId = createIdResolver(viteConfig, {
+				conditions: ['node'],
+				mainFields: ['main'],
+				webCompatible: false,
+				isRequire: true,
+				extensions: ['.cjs', '.cts', '.js', '.ts', '.jsx', '.tsx', '.json'],
+			});
+
+			const resolveId: ResolveIdFunction = (
+				id,
+				importer,
+				{ resolveMethod } = {
+					resolveMethod: 'import',
+				},
+			) => {
+				const resolveIdFn =
+					resolveMethod === 'import' ? esmResolveId : cjsResolveId;
+
+				const firstWorkerName = Object.keys(pluginConfig.workers)[0]!;
+
+				const devEnv = viteDevServer.environments[
+					firstWorkerName
+				] as CloudflareDevEnvironment;
+
+				return resolveIdFn(devEnv, id, importer);
+			};
+
 			const miniflare = new Miniflare({
 				workers: workers.map((workerOptions) => {
 					const wrappers = [
@@ -100,6 +135,11 @@ export function cloudflare<
 
 					return {
 						...workerOptions,
+						compatibilityFlags: [
+							...(workerOptions.compatibilityFlags ?? []),
+							'nodejs_compat',
+						],
+						unsafeUseModuleFallbackService: true,
 						modules: [
 							{
 								type: 'ESModule',
@@ -110,37 +150,57 @@ export function cloudflare<
 								type: 'ESModule',
 								path: runnerPath,
 							},
+							{
+								// we declare the workerd-custom-import as a CommonJS module, thanks to this
+								// require is made available in the module and we are able to handle cjs imports, etc...
+								type: 'CommonJS',
+								path: fileURLToPath(
+									new URL('workerd-custom-import.cjs', import.meta.url),
+								),
+							},
 						],
 						serviceBindings: {
 							...workerOptions.serviceBindings,
 							__VITE_FETCH_MODULE__: async (request) => {
-								const args = (await request.json()) as [
-									string,
-									string,
-									FetchFunctionOptions,
-								];
+								const [moduleId, imported, options] =
+									(await request.json()) as [
+										string,
+										string,
+										FetchFunctionOptions,
+									];
+
+								if (moduleId.startsWith('cloudflare:')) {
+									const result = {
+										externalize: moduleId,
+										type: 'builtin',
+									} satisfies vite.FetchResult;
+
+									return new MiniflareResponse(JSON.stringify(result));
+								}
 
 								const devEnvironment = viteDevServer.environments[
 									workerOptions.name
 								] as CloudflareDevEnvironment;
 
 								try {
-									const result = await devEnvironment.fetchModule(...args);
+									const result = await devEnvironment.fetchModule(
+										moduleId,
+										imported,
+										options,
+									);
 
 									return new MiniflareResponse(JSON.stringify(result));
 								} catch (error) {
-									// TODO: check error handling
-									const result = {
-										externalize: args[0],
-										type: 'builtin',
-									} satisfies vite.FetchResult;
-
-									return new MiniflareResponse(JSON.stringify(result));
+									throw new Error(
+										`Unexpected Error, failed to get module: ${moduleId}`,
+									);
 								}
 							},
 						},
 					};
 				}),
+				unsafeUseModuleFallbackService: true,
+				unsafeModuleFallbackService: getModuleFallbackCallback(resolveId),
 			});
 
 			await Promise.all(
