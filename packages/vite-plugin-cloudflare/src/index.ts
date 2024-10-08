@@ -5,16 +5,17 @@ import { unstable_getMiniflareWorkerOptions } from 'wrangler';
 import { fileURLToPath } from 'node:url';
 import * as path from 'node:path';
 import { createCloudflareEnvironment } from './cloudflare-environment';
+import { getModuleFallbackHandler } from './module-fallback';
+import { getNodeCompatModules } from './node-compat';
 import type { FetchFunctionOptions } from 'vite/module-runner';
 import type { WorkerOptions } from 'miniflare';
 import type {
 	CloudflareEnvironmentOptions,
 	CloudflareDevEnvironment,
 } from './cloudflare-environment';
-import { getModuleFallbackHandler } from './module-fallback';
 import type { ResolveIdFunction } from './module-fallback';
 
-const wrapperPath = '__VITE_WRAPPER_PATH__';
+const wrapperPath = '__VITE_WORKER_ENTRY_POINT__';
 const runnerPath = fileURLToPath(new URL('./runner/index.js', import.meta.url));
 const workerdCustomImportPath = '/__workerd-custom-import.cjs';
 
@@ -53,7 +54,14 @@ export function cloudflare<
 					return {
 						...workerOptions,
 						name,
-						modulesRoot: '/',
+						// We want module names to be their absolute path without the leading	slash
+						// (i.e. the modules root should be the root directory). On Windows, we'd
+						// like paths to include the drive letter (i.e. `/C:/a/b/c/index.mjs`).
+						// Internally, Miniflare uses `path.relative(modulesRoot, path)` to compute
+						// module names. Setting `modulesRoot` to a drive letter and prepending this
+						// to paths ensures correct names. This requires us to specify `contents`
+						// with module definitions though, as the new paths don't exist.
+						modulesRoot: process.platform === 'win32' ? 'Z:\\' : '/',
 						unsafeEvalBinding: '__VITE_UNSAFE_EVAL__',
 						bindings: {
 							...workerOptions.bindings,
@@ -64,7 +72,7 @@ export function cloudflare<
 				},
 			);
 
-			const workerEntrypointNames = Object.fromEntries(
+			const workerEntrypointNames = Object.fromEntries<Set<string>>(
 				workers.map((workerOptions) => [workerOptions.name, new Set<string>()]),
 			);
 
@@ -122,7 +130,13 @@ export function cloudflare<
 
 			const miniflare = new Miniflare({
 				workers: workers.map((workerOptions) => {
+					const { nodeModules, nodeWrappers } = getNodeCompatModules(
+						workerOptions.compatibilityDate,
+						workerOptions.compatibilityFlags,
+						workerOptions.modulesRoot,
+					);
 					const wrappers = [
+						...nodeWrappers,
 						`import { createWorkerEntrypointWrapper } from '${runnerPath}';`,
 						`export default createWorkerEntrypointWrapper('default');`,
 					];
@@ -141,7 +155,11 @@ export function cloudflare<
 						modules: [
 							{
 								type: 'ESModule',
-								path: wrapperPath,
+								path: path.join(
+									viteConfig.base,
+									workerOptions.name,
+									wrapperPath,
+								),
 								contents: wrappers.join('\n'),
 							},
 							{
@@ -155,6 +173,7 @@ export function cloudflare<
 								path: workerdCustomImportPath,
 								contents: 'module.exports = path => import(path)',
 							},
+							...nodeModules,
 						],
 						serviceBindings: {
 							...workerOptions.serviceBindings,

@@ -5,11 +5,6 @@ import type { WrapperEnv } from './env';
 
 let moduleRunner: ModuleRunner;
 
-// TODO: node modules using process.env don't find `process` in the global scope for some reason
-//       for now we just create a `process` in the global scope but a proper solution needs to be
-//       implemented (see: https://github.com/flarelabs-net/vite-plugin-cloudflare/issues/22)
-(globalThis as Record<string, unknown>).process = { env: {} };
-
 export async function createModuleRunner(
 	env: WrapperEnv,
 	webSocket: WebSocket,
