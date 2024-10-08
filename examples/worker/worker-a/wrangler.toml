@@ -4,3 +4,10 @@ services = [
 	{ binding = "WORKER_B", service = "worker_b" },
 	{ binding = "NAMED_ENTRYPOINT", service = "worker_b", entrypoint = "NamedEntrypoint" },
 ]
+
+[durable_objects]
+bindings = [{ name = "DURABLE_OBJECT", class_name = "Counter" }]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["Counter"]
