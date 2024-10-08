@@ -114,6 +114,16 @@ export function cloudflare<
 				}
 			}
 
+			const durableObjectClassNames = Object.fromEntries(
+				workers.map((workerOptions) => [workerOptions.name, new Set<string>()]),
+			);
+
+			for (const worker of workers) {
+				if (worker.durableObjects === undefined) {
+					continue;
+				}
+			}
+
 			const esmResolveId = vite.createIdResolver(viteConfig, {});
 
 			// for `require` calls we want a resolver that prioritized node/cjs modules

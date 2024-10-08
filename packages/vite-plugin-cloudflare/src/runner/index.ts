@@ -1,4 +1,4 @@
-import { WorkerEntrypoint } from 'cloudflare:workers';
+import { WorkerEntrypoint, DurableObject } from 'cloudflare:workers';
 import { createModuleRunner, getWorkerEntrypointExport } from './module-runner';
 import { INIT_PATH } from '../shared';
 import type { WrapperEnv } from './env';
@@ -208,6 +208,65 @@ export function createWorkerEntrypointWrapper(
 					`Expected ${entrypoint} export of ${entryPath} to be an object or a class. Got ${entrypointValue}.`,
 				);
 			}
+		};
+	}
+
+	return Wrapper;
+}
+
+function getDurableObjectRpcProperty(
+	this: DurableObject<WrapperEnv>,
+	className: string,
+	key: string,
+) {}
+
+export function createDurableObjectWrapper(
+	className: string,
+): typeof DurableObject<WrapperEnv> {
+	class Wrapper extends DurableObject<WrapperEnv> {
+		constructor(ctx: DurableObjectState, env: WrapperEnv) {
+			super(ctx, env);
+
+			return new Proxy(this, {
+				get(target, key, receiver) {
+					const value = Reflect.get(target, key, receiver);
+
+					if (value !== undefined) {
+						return value;
+					}
+
+					if (
+						key === 'self' ||
+						typeof key === 'symbol' ||
+						(WORKER_ENTRYPOINT_KEYS as readonly string[]).includes(key)
+					) {
+						return;
+					}
+				},
+			});
+		}
+	}
+
+	for (const key of DURABLE_OBJECT_KEYS) {
+		Wrapper.prototype[key] = async function (
+			this: Wrapper,
+			...args: unknown[]
+		) {
+			const entryPath = this.env.__VITE_ENTRY_PATH__;
+			const entrypointValue = await getWorkerEntrypointExport(
+				entryPath,
+				className,
+			);
+			const userEnv = stripInternalEnv(this.env);
+			const maybeFn = (entrypointValue as Record<string, unknown>)[key];
+
+			if (typeof maybeFn !== 'function') {
+				throw new Error(
+					`Expected ${className} export of ${entryPath} to define a \`${key}()\` function`,
+				);
+			}
+
+			return maybeFn.apply(entrypointValue, args);
 		};
 	}
 
