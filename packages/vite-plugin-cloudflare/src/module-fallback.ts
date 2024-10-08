@@ -1,6 +1,9 @@
 import { readFile, stat } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { init as initCjsModuleLexer, parse } from 'cjs-module-lexer';
+import { build } from 'esbuild';
+import { resolve as importMetaResolve } from 'import-meta-resolve';
 import { Request, Response } from 'miniflare';
 import * as vite from 'vite';
 
@@ -44,6 +47,18 @@ export function getModuleFallbackHandler(
 	async function moduleFallbackHandler(request: Request): Promise<Response> {
 		const { resolveMethod, referrer, specifier, rawSpecifier } =
 			extractModuleFallbackValues(request);
+
+		if (rawSpecifier.startsWith('unenv/')) {
+			const nodeJsCompatModule = await bundleDependency(rawSpecifier);
+			if (nodeJsCompatModule) {
+				return new Response(
+					JSON.stringify({
+						name: specifier,
+						nodeJsCompatModule,
+					}),
+				);
+			}
+		}
 
 		let resolvedId = await resolveId(
 			rawSpecifier,
@@ -407,4 +422,23 @@ function isCommonJS(code: string): boolean {
 	}
 
 	return false;
+}
+
+async function bundleDependency(specifier: string) {
+	// Can't use the standard `import.meta.resolve()` here.
+	// That function doesn't exist when run in `vm.runInThisContext()`
+	// i.e. inside a Vitest test.
+	const entryFile = fileURLToPath(
+		importMetaResolve(specifier, import.meta.url),
+	);
+	const transpiled = await build({
+		entryPoints: [entryFile],
+		bundle: true,
+		write: false,
+		format: 'cjs',
+		target: 'esnext',
+		platform: 'node',
+	});
+
+	return transpiled.outputFiles[0]?.text;
 }

@@ -20,12 +20,14 @@
 	"dependencies": {
 		"@hattip/adapter-node": "^0.0.48",
 		"cjs-module-lexer": "^1.4.1",
+		"esbuild": "^0.24.0",
 		"miniflare": "catalog:default"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "catalog:default",
 		"@types/node": "^22.5.5",
 		"@vite-plugin-cloudflare/typescript-config": "workspace:*",
+		"import-meta-resolve": "^4.1.0",
 		"tsup": "^8.3.0",
 		"typescript": "catalog:default",
 		"unenv": "npm:unenv-nightly@2.0.0-20240924-181319-d5e42d9",
