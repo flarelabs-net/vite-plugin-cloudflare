@@ -122,6 +122,15 @@ export function cloudflare<
 				if (worker.durableObjects === undefined) {
 					continue;
 				}
+
+				// TODO: add support for `scriptName`
+				for (const value of Object.values(worker.durableObjects)) {
+					if (typeof value === 'string') {
+						durableObjectClassNames[worker.name]?.add(value);
+					} else if (typeof value === 'object') {
+						durableObjectClassNames[worker.name]?.add(value.className);
+					}
+				}
 			}
 
 			const esmResolveId = vite.createIdResolver(viteConfig, {});
@@ -170,6 +179,14 @@ export function cloudflare<
 					].sort()) {
 						wrappers.push(
 							`export const ${entrypointName} = createWorkerEntrypointWrapper('${entrypointName}');`,
+						);
+					}
+
+					for (const className of [
+						...(durableObjectClassNames[workerOptions.name] ?? []),
+					].sort()) {
+						wrappers.push(
+							`export const ${className} = createDurableObjectWrapper('${className}');`,
 						);
 					}
 

@@ -9,6 +9,12 @@ interface WorkerEntrypointConstructor<T = unknown> {
 	): WorkerEntrypoint<T>;
 }
 
+interface DurableObjectConstructor<T = unknown> {
+	new (
+		...args: ConstructorParameters<typeof DurableObject<T>>
+	): DurableObject<T>;
+}
+
 const WORKER_ENTRYPOINT_KEYS = [
 	'fetch',
 	'tail',
@@ -148,7 +154,7 @@ export function createWorkerEntrypointWrapper(
 	}
 
 	for (const key of WORKER_ENTRYPOINT_KEYS) {
-		Wrapper.prototype[key] = async function (this: Wrapper, arg) {
+		Wrapper.prototype[key] = async function (arg) {
 			const entryPath = this.env.__VITE_ENTRY_PATH__;
 
 			if (key === 'fetch') {
@@ -220,10 +226,15 @@ function getDurableObjectRpcProperty(
 	key: string,
 ) {}
 
+const kInstance = Symbol('kInstance');
+const kEnsureInstance = Symbol('kEnsureInstance');
+
 export function createDurableObjectWrapper(
 	className: string,
 ): typeof DurableObject<WrapperEnv> {
 	class Wrapper extends DurableObject<WrapperEnv> {
+		[kInstance]?: { ctor: DurableObjectConstructor; instance: DurableObject };
+
 		constructor(ctx: DurableObjectState, env: WrapperEnv) {
 			super(ctx, env);
 
@@ -245,20 +256,38 @@ export function createDurableObjectWrapper(
 				},
 			});
 		}
+
+		async [kEnsureInstance]() {
+			const entryPath = this.env.__VITE_ENTRY_PATH__;
+			const ctor = (await getWorkerEntrypointExport(
+				entryPath,
+				className,
+			)) as DurableObjectConstructor;
+
+			if (typeof ctor !== 'function') {
+				throw new Error(
+					`${entryPath} does not export a ${className} Durable Object`,
+				);
+			}
+
+			if (!this[kInstance] || this[kInstance].ctor !== ctor) {
+				const userEnv = stripInternalEnv(this.env);
+				const instance = new ctor(this.ctx, userEnv);
+
+				this[kInstance] = { ctor, instance };
+
+				await this.ctx.blockConcurrencyWhile(async () => {});
+			}
+
+			return this[kInstance];
+		}
 	}
 
 	for (const key of DURABLE_OBJECT_KEYS) {
-		Wrapper.prototype[key] = async function (
-			this: Wrapper,
-			...args: unknown[]
-		) {
+		Wrapper.prototype[key] = async function (...args: unknown[]) {
 			const entryPath = this.env.__VITE_ENTRY_PATH__;
-			const entrypointValue = await getWorkerEntrypointExport(
-				entryPath,
-				className,
-			);
-			const userEnv = stripInternalEnv(this.env);
-			const maybeFn = (entrypointValue as Record<string, unknown>)[key];
+			const { instance } = await this[kEnsureInstance]();
+			const maybeFn = instance[key];
 
 			if (typeof maybeFn !== 'function') {
 				throw new Error(
@@ -266,7 +295,7 @@ export function createDurableObjectWrapper(
 				);
 			}
 
-			return maybeFn.apply(entrypointValue, args);
+			return (maybeFn as (...args: unknown[]) => any).apply(instance, args);
 		};
 	}
 
