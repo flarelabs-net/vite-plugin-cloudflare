@@ -16,9 +16,7 @@ import type { ResolveIdFunction } from './module-fallback';
 
 const wrapperPath = '__VITE_WRAPPER_PATH__';
 const runnerPath = fileURLToPath(new URL('./runner/index.js', import.meta.url));
-const workerdCustomImportPath = fileURLToPath(
-	new URL('./runner/workerd-custom-import.cjs', import.meta.url),
-);
+const workerdCustomImportPath = '/__workerd-custom-import.cjs';
 
 export function cloudflare<
 	T extends Record<string, CloudflareEnvironmentOptions>,
@@ -155,6 +153,7 @@ export function cloudflare<
 								// require is made available in the module and we are able to handle cjs imports, etc...
 								type: 'CommonJS',
 								path: workerdCustomImportPath,
+								contents: 'module.exports = path => import(path)',
 							},
 						],
 						serviceBindings: {

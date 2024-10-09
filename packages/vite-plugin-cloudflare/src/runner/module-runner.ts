@@ -19,7 +19,7 @@ export async function createModuleRunner(
 	}
 
 	// we store the custom import file path in a variable to skip esbuild's import resolution
-	const workerdReqImport = './workerd-custom-import.cjs';
+	const workerdReqImport = '/__workerd-custom-import.cjs';
 	const { default: workerdCustomImport } = await (import(
 		workerdReqImport
 	) as Promise<{ default: (...args: unknown[]) => Promise<unknown> }>);

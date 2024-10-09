@@ -1,7 +1,0 @@
-{
-	"extends": "@vite-plugin-cloudflare/typescript-config/worker.json",
-	"include": ["src/runner/workerd-custom-import.cts"],
-	"compilerOptions": {
-		"types": ["node"]
-	}
-}

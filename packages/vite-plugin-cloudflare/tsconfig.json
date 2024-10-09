@@ -3,6 +3,5 @@
 	"references": [
 		{ "path": "./tsconfig.plugin.json" },
 		{ "path": "./tsconfig.runner.json" },
-		{ "path": "./tsconfig.workerd-custom-import.json" },
 	]
 }
