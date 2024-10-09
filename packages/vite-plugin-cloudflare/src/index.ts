@@ -195,7 +195,6 @@ export function cloudflare<
 						},
 					};
 				}),
-				unsafeUseModuleFallbackService: true,
 				unsafeModuleFallbackService: getModuleFallbackHandler(resolveId),
 			});
 
