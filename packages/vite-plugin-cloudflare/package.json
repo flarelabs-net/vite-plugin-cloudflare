@@ -20,7 +20,7 @@
 	"dependencies": {
 		"@hattip/adapter-node": "^0.0.48",
 		"cjs-module-lexer": "^1.4.1",
-		"miniflare": "^3.20241004.0"
+		"miniflare": "catalog:default"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "catalog:default",
@@ -28,6 +28,7 @@
 		"@vite-plugin-cloudflare/typescript-config": "workspace:*",
 		"tsup": "^8.3.0",
 		"typescript": "catalog:default",
+		"unenv": "npm:unenv-nightly@2.0.0-20240924-181319-d5e42d9",
 		"vite": "catalog:default",
 		"vitest": "catalog:default",
 		"wrangler": "catalog:default"
