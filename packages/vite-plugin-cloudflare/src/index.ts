@@ -15,7 +15,6 @@ import {
 	getModuleFallbackCallback,
 	type ResolveIdFunction,
 } from './module-fallback';
-import { createIdResolver } from 'vite';
 
 const wrapperPath = '__VITE_WRAPPER_PATH__';
 const runnerPath = fileURLToPath(new URL('./runner/index.js', import.meta.url));
@@ -88,10 +87,10 @@ export function cloudflare<
 				}
 			}
 
-			const esmResolveId = createIdResolver(viteConfig, {});
+			const esmResolveId = vite.createIdResolver(viteConfig, {});
 
 			// for `require` calls we want a resolver that prioritized node/cjs modules
-			const cjsResolveId = createIdResolver(viteConfig, {
+			const cjsResolveId = vite.createIdResolver(viteConfig, {
 				conditions: ['node'],
 				mainFields: ['main'],
 				webCompatible: false,
