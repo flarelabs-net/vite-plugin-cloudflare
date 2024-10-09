@@ -111,7 +111,10 @@ export function cloudflare<
 				const resolveIdFn =
 					resolveMethod === 'import' ? esmResolveId : cjsResolveId;
 
-				const firstWorkerName = Object.keys(pluginConfig.workers)[0]!;
+				// TODO: we only have a single module resolution strategy shared across all workers
+				//       (generated using the first worker's dev environment)
+				//       we should investigate and ideally have potential different resolutions per worker
+				//       see: https://github.com/flarelabs-net/vite-plugin-cloudflare/issues/19
 
 				const devEnv = viteDevServer.environments[
 					firstWorkerName
