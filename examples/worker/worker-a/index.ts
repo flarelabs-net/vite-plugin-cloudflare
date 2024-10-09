@@ -1,5 +1,6 @@
 export default {
 	async fetch(request, env, ctx) {
+		console.log(globalThis.process.getBuiltinModule);
 		const url = new URL(request.url);
 		const fetchResponse = await env.WORKER_B.fetch(request);
 		const fetchResult = await fetchResponse.json();

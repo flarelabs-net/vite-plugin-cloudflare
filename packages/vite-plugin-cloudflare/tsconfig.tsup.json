@@ -1,0 +1,7 @@
+{
+	"extends": "@vite-plugin-cloudflare/typescript-config/worker.json",
+	"include": ["tsup.config.ts"],
+	"compilerOptions": {
+		"types": ["@types/node"]
+	}
+}
