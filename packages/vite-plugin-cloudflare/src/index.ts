@@ -166,15 +166,6 @@ export function cloudflare<
 										FetchFunctionOptions,
 									];
 
-								if (moduleId.startsWith('cloudflare:')) {
-									const result = {
-										externalize: moduleId,
-										type: 'builtin',
-									} satisfies vite.FetchResult;
-
-									return new MiniflareResponse(JSON.stringify(result));
-								}
-
 								const devEnvironment = viteDevServer.environments[
 									workerOptions.name
 								] as CloudflareDevEnvironment;
@@ -188,6 +179,14 @@ export function cloudflare<
 
 									return new MiniflareResponse(JSON.stringify(result));
 								} catch (error) {
+									if (moduleId.startsWith('cloudflare:')) {
+										const result = {
+											externalize: moduleId,
+											type: 'module',
+										} satisfies vite.FetchResult;
+
+										return new MiniflareResponse(JSON.stringify(result));
+									}
 									throw new Error(
 										`Unexpected Error, failed to get module: ${moduleId}`,
 									);
