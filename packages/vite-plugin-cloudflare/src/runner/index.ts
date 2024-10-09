@@ -1,5 +1,5 @@
 import { WorkerEntrypoint, DurableObject } from 'cloudflare:workers';
-import { createModuleRunner, getWorkerEntrypointExport } from './module-runner';
+import { createModuleRunner, getWorkerEntryExport } from './module-runner';
 import { INIT_PATH } from '../shared';
 import type { WrapperEnv } from './env';
 
@@ -24,6 +24,7 @@ const WORKER_ENTRYPOINT_KEYS = [
 	'test',
 ] as const;
 
+// Should we add `name` here as it would conflict with `stub.name`?
 const DURABLE_OBJECT_KEYS = [
 	'fetch',
 	'alarm',
@@ -45,10 +46,10 @@ function stripInternalEnv(internalEnv: WrapperEnv) {
 }
 
 function getRpcProperty(
-	ctor: WorkerEntrypointConstructor,
-	instance: WorkerEntrypoint,
+	ctor: WorkerEntrypointConstructor | DurableObjectConstructor,
+	instance: WorkerEntrypoint | DurableObject,
 	key: string,
-) {
+): unknown {
 	const prototypeHasKey = Reflect.has(ctor.prototype, key);
 
 	if (!prototypeHasKey) {
@@ -77,7 +78,7 @@ async function getWorkerEntrypointRpcProperty(
 	key: string,
 ) {
 	const entryPath = this.env.__VITE_ENTRY_PATH__;
-	const ctor = (await getWorkerEntrypointExport(
+	const ctor = (await getWorkerEntryExport(
 		entryPath,
 		entrypoint,
 	)) as WorkerEntrypointConstructor;
@@ -172,10 +173,7 @@ export function createWorkerEntrypointWrapper(
 				}
 			}
 
-			const entrypointValue = await getWorkerEntrypointExport(
-				entryPath,
-				entrypoint,
-			);
+			const entrypointValue = await getWorkerEntryExport(entryPath, entrypoint);
 			const userEnv = stripInternalEnv(this.env);
 
 			if (typeof entrypointValue === 'object' && entrypointValue !== null) {
@@ -220,20 +218,50 @@ export function createWorkerEntrypointWrapper(
 	return Wrapper;
 }
 
-function getDurableObjectRpcProperty(
-	this: DurableObject<WrapperEnv>,
-	className: string,
-	key: string,
-) {}
+interface DurableObjectInstance {
+	ctor: DurableObjectConstructor;
+	instance: DurableObject;
+}
+
+interface DurableObjectWrapper extends DurableObject<WrapperEnv> {
+	[kInstance]?: DurableObjectInstance;
+	[kEnsureInstance](): Promise<DurableObjectInstance>;
+}
 
 const kInstance = Symbol('kInstance');
 const kEnsureInstance = Symbol('kEnsureInstance');
 
+async function getDurableObjectRpcProperty(
+	this: DurableObjectWrapper,
+	className: string,
+	key: string,
+) {
+	const entryPath = this.env.__VITE_ENTRY_PATH__;
+	const { ctor, instance } = await this[kEnsureInstance]();
+
+	if (!(instance instanceof DurableObject)) {
+		throw new Error(
+			`Expected ${className} export of ${entryPath} to be a subclass of \`DurableObject\` for RPC.`,
+		);
+	}
+
+	const value = getRpcProperty(ctor, instance, key);
+
+	if (typeof value === 'function') {
+		return value.bind(this);
+	}
+
+	return value;
+}
+
 export function createDurableObjectWrapper(
 	className: string,
-): typeof DurableObject<WrapperEnv> {
-	class Wrapper extends DurableObject<WrapperEnv> {
-		[kInstance]?: { ctor: DurableObjectConstructor; instance: DurableObject };
+): DurableObjectConstructor<WrapperEnv> {
+	class Wrapper
+		extends DurableObject<WrapperEnv>
+		implements DurableObjectWrapper
+	{
+		[kInstance]?: DurableObjectInstance;
 
 		constructor(ctx: DurableObjectState, env: WrapperEnv) {
 			super(ctx, env);
@@ -253,13 +281,21 @@ export function createDurableObjectWrapper(
 					) {
 						return;
 					}
+
+					const property = getDurableObjectRpcProperty.call(
+						receiver,
+						className,
+						key,
+					);
+
+					return getRpcPropertyCallableThenable(key, property);
 				},
 			});
 		}
 
 		async [kEnsureInstance]() {
 			const entryPath = this.env.__VITE_ENTRY_PATH__;
-			const ctor = (await getWorkerEntrypointExport(
+			const ctor = (await getWorkerEntryExport(
 				entryPath,
 				className,
 			)) as DurableObjectConstructor;
