@@ -95,7 +95,13 @@ async function getWorkerEntrypointRpcProperty(
 		throw new TypeError(expectedWorkerEntrypointMessage);
 	}
 
-	return getRpcProperty(ctor, instance, key);
+	const value = getRpcProperty(ctor, instance, key);
+
+	if (typeof value === 'function') {
+		return value.bind(instance);
+	}
+
+	return value;
 }
 
 function getRpcPropertyCallableThenable(
