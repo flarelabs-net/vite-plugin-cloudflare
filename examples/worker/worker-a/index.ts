@@ -6,6 +6,10 @@ export class Counter extends DurableObject {
 	override fetch(request: Request) {
 		return Response.json({ count: this.#count++ });
 	}
+
+	something() {
+		return 'Cloudflare';
+	}
 }
 
 export default {
@@ -14,8 +18,14 @@ export default {
 		const stub = env.DURABLE_OBJECT.get(id);
 
 		const response = await stub.fetch(request);
+		const result = await response.json();
 
-		return response;
+		const name = await stub.something();
+
+		return Response.json({
+			result,
+			name,
+		});
 		// const url = new URL(request.url);
 		// const fetchResponse = await env.WORKER_B.fetch(request);
 		// const fetchResult = await fetchResponse.json();
