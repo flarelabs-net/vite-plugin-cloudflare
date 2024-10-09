@@ -218,6 +218,9 @@ export function createWorkerEntrypointWrapper(
 	return Wrapper;
 }
 
+const kInstance = Symbol('kInstance');
+const kEnsureInstance = Symbol('kEnsureInstance');
+
 interface DurableObjectInstance {
 	ctor: DurableObjectConstructor;
 	instance: DurableObject;
@@ -227,9 +230,6 @@ interface DurableObjectWrapper extends DurableObject<WrapperEnv> {
 	[kInstance]?: DurableObjectInstance;
 	[kEnsureInstance](): Promise<DurableObjectInstance>;
 }
-
-const kInstance = Symbol('kInstance');
-const kEnsureInstance = Symbol('kEnsureInstance');
 
 async function getDurableObjectRpcProperty(
 	this: DurableObjectWrapper,
@@ -248,7 +248,7 @@ async function getDurableObjectRpcProperty(
 	const value = getRpcProperty(ctor, instance, key);
 
 	if (typeof value === 'function') {
-		return value.bind(this);
+		return value.bind(instance);
 	}
 
 	return value;
