@@ -73,7 +73,7 @@ describe('module resolution', async () => {
 	});
 
 	describe('Cloudflare specific module resolution', () => {
-		test('imports from `cloudflare:*`', async () => {
+		test('internal imports from `cloudflare:*`', async () => {
 			const response = await worker.dispatchFetch(
 				new Request(new URL('/cloudflare-imports', UNKNOWN_HOST)),
 			);
@@ -83,6 +83,17 @@ describe('module resolution', async () => {
 				'(cloudflare:workers) WorkerEntrypoint.name': 'WorkerEntrypoint',
 				'(cloudflare:workers) DurableObject.name': 'DurableObject',
 				'(cloudflare:sockets) typeof connect': 'function',
+			});
+		});
+
+		test('external imports from `cloudflare:*`', async () => {
+			const response = await worker.dispatchFetch(
+				new Request(new URL('/external-cloudflare-imports', UNKNOWN_HOST)),
+			);
+			const result = await response.json();
+
+			expect(result).toEqual({
+				'(EXTERNAL) (cloudflare:workers) DurableObject.name': 'DurableObject',
 			});
 		});
 	});

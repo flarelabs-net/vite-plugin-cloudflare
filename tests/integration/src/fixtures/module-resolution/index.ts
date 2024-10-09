@@ -3,6 +3,7 @@ const allowedPaths = new Set([
 	'/require-no-ext',
 	'/require-json',
 	'/cloudflare-imports',
+	'/external-cloudflare-imports',
 
 	'/third-party/react',
 	'/third-party/remix',

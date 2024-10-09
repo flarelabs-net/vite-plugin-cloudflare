@@ -74,6 +74,9 @@ importers:
 
   tests/integration:
     devDependencies:
+      '@cloudflare-dev-module-resolution/cloudflare-imports':
+        specifier: workspace:*
+        version: link:packages/cloudflare-imports
       '@cloudflare-dev-module-resolution/requires':
         specifier: workspace:*
         version: link:packages/requires
@@ -110,6 +113,8 @@ importers:
       wrangler:
         specifier: ^3.78.8
         version: 3.78.8(@cloudflare/workers-types@4.20240919.0)
+
+  tests/integration/packages/cloudflare-imports: {}
 
   tests/integration/packages/requires: {}
 
