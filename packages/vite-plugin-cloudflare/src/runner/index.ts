@@ -56,7 +56,7 @@ function getRpcProperty(
 		const instanceHasKey = Reflect.has(instance, key);
 
 		if (instanceHasKey) {
-			throw new Error(
+			throw new TypeError(
 				[
 					`The RPC receiver's prototype does not implement '${key}', but the receiver instance does.`,
 					'Only properties and methods defined on the prototype can be accessed over RPC.',
@@ -66,7 +66,7 @@ function getRpcProperty(
 			);
 		}
 
-		throw new Error(`The RPC receiver does not implement '${key}'.`);
+		throw new TypeError(`The RPC receiver does not implement '${key}'.`);
 	}
 
 	return Reflect.get(ctor.prototype, key, instance);
@@ -86,13 +86,13 @@ async function getWorkerEntrypointRpcProperty(
 	const expectedWorkerEntrypointMessage = `Expected ${entrypoint} export of ${entryPath} to be a subclass of \`WorkerEntrypoint\` for RPC.`;
 
 	if (typeof ctor !== 'function') {
-		throw new Error(expectedWorkerEntrypointMessage);
+		throw new TypeError(expectedWorkerEntrypointMessage);
 	}
 
 	const instance = new ctor(this.ctx, userEnv);
 
 	if (!(instance instanceof WorkerEntrypoint)) {
-		throw new Error(expectedWorkerEntrypointMessage);
+		throw new TypeError(expectedWorkerEntrypointMessage);
 	}
 
 	return getRpcProperty(ctor, instance, key);
@@ -106,7 +106,7 @@ function getRpcPropertyCallableThenable(
 		const maybeFn = await property;
 
 		if (typeof maybeFn !== 'function') {
-			throw new Error(`'${key}' is not a function`);
+			throw new TypeError(`'${key}' is not a function.`);
 		}
 
 		return maybeFn(...args);
@@ -181,8 +181,8 @@ export function createWorkerEntrypointWrapper(
 				const maybeFn = (entrypointValue as Record<string, unknown>)[key];
 
 				if (typeof maybeFn !== 'function') {
-					throw new Error(
-						`Expected ${entrypoint} export of ${entryPath} to define a \`${key}()\` function`,
+					throw new TypeError(
+						`Expected ${entrypoint} export of ${entryPath} to define a \`${key}()\` function.`,
 					);
 				}
 
@@ -193,22 +193,22 @@ export function createWorkerEntrypointWrapper(
 				const instance = new ctor(this.ctx, userEnv);
 
 				if (!(instance instanceof WorkerEntrypoint)) {
-					throw new Error(
-						`Expected ${entrypoint} export of ${entryPath} to be a subclass of \`WorkerEntrypoint\``,
+					throw new TypeError(
+						`Expected ${entrypoint} export of ${entryPath} to be a subclass of \`WorkerEntrypoint\`.`,
 					);
 				}
 
 				const maybeFn = instance[key];
 
 				if (typeof maybeFn !== 'function') {
-					throw new Error(
-						`Expected ${entrypoint} export of ${entryPath} to define a \`${key}()\` method`,
+					throw new TypeError(
+						`Expected ${entrypoint} export of ${entryPath} to define a \`${key}()\` method.`,
 					);
 				}
 
 				return (maybeFn as (arg: unknown) => unknown).call(instance, arg);
 			} else {
-				return new Error(
+				return new TypeError(
 					`Expected ${entrypoint} export of ${entryPath} to be an object or a class. Got ${entrypointValue}.`,
 				);
 			}
@@ -240,7 +240,7 @@ async function getDurableObjectRpcProperty(
 	const { ctor, instance } = await this[kEnsureInstance]();
 
 	if (!(instance instanceof DurableObject)) {
-		throw new Error(
+		throw new TypeError(
 			`Expected ${className} export of ${entryPath} to be a subclass of \`DurableObject\` for RPC.`,
 		);
 	}
@@ -301,8 +301,8 @@ export function createDurableObjectWrapper(
 			)) as DurableObjectConstructor;
 
 			if (typeof ctor !== 'function') {
-				throw new Error(
-					`${entryPath} does not export a ${className} Durable Object`,
+				throw new TypeError(
+					`${entryPath} does not export a ${className} Durable Object.`,
 				);
 			}
 
@@ -326,8 +326,8 @@ export function createDurableObjectWrapper(
 			const maybeFn = instance[key];
 
 			if (typeof maybeFn !== 'function') {
-				throw new Error(
-					`Expected ${className} export of ${entryPath} to define a \`${key}()\` function`,
+				throw new TypeError(
+					`Expected ${className} export of ${entryPath} to define a \`${key}()\` function.`,
 				);
 			}
 
