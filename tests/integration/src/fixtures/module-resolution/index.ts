@@ -11,7 +11,7 @@ const allowedPaths = new Set([
 ]);
 
 export default {
-	async fetch(request: Request, env: any) {
+	async fetch(request) {
 		const url = new URL(request.url);
 		const path = url.pathname;
 
@@ -22,4 +22,4 @@ export default {
 
 		return new Response(`path not found: '${path}'`, { status: 404 });
 	},
-};
+} satisfies ExportedHandler;
