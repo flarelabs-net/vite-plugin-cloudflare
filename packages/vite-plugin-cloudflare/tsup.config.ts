@@ -19,10 +19,11 @@ export default defineConfig([
 		tsconfig: 'tsconfig.runner.json',
 	},
 	{
-		entry: ['src/workerd-custom-import.cts'],
-		outDir: 'dist',
+		entry: ['src/runner/workerd-custom-import.cts'],
+		outDir: 'dist/runner',
 		format: ['cjs'],
 		platform: 'node',
 		noExternal: [/.*/],
+		tsconfig: 'tsconfig.workerd-custom-import.json',
 	},
 ]);

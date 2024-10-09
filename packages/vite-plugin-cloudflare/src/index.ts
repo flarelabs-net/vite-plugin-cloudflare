@@ -18,9 +18,8 @@ import {
 
 const wrapperPath = '__VITE_WRAPPER_PATH__';
 const runnerPath = fileURLToPath(new URL('./runner/index.js', import.meta.url));
-const workerdCustomImportPath = new URL(
-	'workerd-custom-import.cjs',
-	import.meta.url,
+const workerdCustomImportPath = fileURLToPath(
+	new URL('./runner/workerd-custom-import.cjs', import.meta.url),
 );
 
 export function cloudflare<
@@ -153,7 +152,7 @@ export function cloudflare<
 								// we declare the workerd-custom-import as a CommonJS module, thanks to this
 								// require is made available in the module and we are able to handle cjs imports, etc...
 								type: 'CommonJS',
-								path: fileURLToPath(workerdCustomImportPath),
+								path: workerdCustomImportPath,
 							},
 						],
 						serviceBindings: {
