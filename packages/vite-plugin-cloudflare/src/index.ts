@@ -115,6 +115,7 @@ export function cloudflare<
 				//       (generated using the first worker's dev environment)
 				//       we should investigate and ideally have potential different resolutions per worker
 				//       see: https://github.com/flarelabs-net/vite-plugin-cloudflare/issues/19
+				const firstWorkerName = Object.keys(pluginConfig.workers)[0]!;
 
 				const devEnv = viteDevServer.environments[
 					firstWorkerName
