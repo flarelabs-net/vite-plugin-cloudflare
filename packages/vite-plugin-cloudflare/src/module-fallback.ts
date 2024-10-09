@@ -1,7 +1,6 @@
 import { Request, Response } from 'miniflare';
 
 import { readFile, stat } from 'node:fs/promises';
-import { URL } from 'url';
 
 import { init as initCjsModuleLexer, parse } from 'cjs-module-lexer';
 import { dirname, resolve } from 'node:path';
