@@ -7,8 +7,11 @@ settings:
 catalogs:
   default:
     '@cloudflare/workers-types':
-      specifier: ^4.20240919.0
+      specifier: ^4.20241004.0
       version: 4.20241011.0
+    miniflare:
+      specifier: ^3.20241004.0
+      version: 3.20241004.0
     typescript:
       specifier: ^5.6.2
       version: 5.6.2
@@ -101,7 +104,7 @@ importers:
         specifier: ^1.4.1
         version: 1.4.1
       miniflare:
-        specifier: ^3.20241004.0
+        specifier: catalog:default
         version: 3.20241004.0
     devDependencies:
       '@cloudflare/workers-types':
@@ -119,6 +122,9 @@ importers:
       typescript:
         specifier: catalog:default
         version: 5.6.2
+      unenv:
+        specifier: npm:unenv-nightly@2.0.0-20240924-181319-d5e42d9
+        version: unenv-nightly@2.0.0-20240924-181319-d5e42d9
       vite:
         specifier: catalog:default
         version: 6.0.0-beta.2(@types/node@22.5.5)
@@ -2156,6 +2162,9 @@ packages:
     resolution: {integrity: sha512-72RFADWFqKmUb2hmmvNODKL3p9hcB6Gt2DOQMis1SEBaV6a4MH8soBvzg+95CYhCKPFedut2JY9bMfrDl9D23g==}
     engines: {node: '>=14.0'}
 
+  unenv-nightly@2.0.0-20240924-181319-d5e42d9:
+    resolution: {integrity: sha512-KvapvZH1PTMiwseXACi5Krk1POng9UYf4jB5QRvMJo1JJGP1XBLrthlMKzyLhXlm1RugfuRkY8agKVdP2xDJPg==}
+
   unenv-nightly@2.0.0-20241009-125958-e8ea22f:
     resolution: {integrity: sha512-hRxmKz1iSVRmuFx/vBdPsx7rX4o7Cas9vdjDNeUeWpQTK2LzU3Xy3Jz0zbo7MJX0bpqo/LEFCA+GPwsbl6zKEQ==}
 
@@ -3903,6 +3912,13 @@ snapshots:
   undici@5.28.4:
     dependencies:
       '@fastify/busboy': 2.1.1
+
+  unenv-nightly@2.0.0-20240924-181319-d5e42d9:
+    dependencies:
+      defu: 6.1.4
+      ohash: 1.1.4
+      pathe: 1.1.2
+      ufo: 1.5.4
 
   unenv-nightly@2.0.0-20241009-125958-e8ea22f:
     dependencies:
