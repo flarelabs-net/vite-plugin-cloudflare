@@ -62,6 +62,9 @@ importers:
       typescript:
         specifier: ^5.6.2
         version: 5.6.2
+      unenv:
+        specifier: npm:unenv-nightly@2.0.0-20240924-181319-d5e42d9
+        version: unenv-nightly@2.0.0-20240924-181319-d5e42d9
       vite:
         specifier: 6.0.0-beta.2
         version: 6.0.0-beta.2(@types/node@22.5.5)
@@ -2005,6 +2008,9 @@ packages:
   unenv-nightly@2.0.0-20240919-125358-9a64854:
     resolution: {integrity: sha512-XjsgUTrTHR7iw+k/SRTNjh6EQgwpC9voygnoCJo5kh4hKqsSDHUW84MhL9EsHTNfLctvVBHaSw8e2k3R2fKXsQ==}
 
+  unenv-nightly@2.0.0-20240924-181319-d5e42d9:
+    resolution: {integrity: sha512-KvapvZH1PTMiwseXACi5Krk1POng9UYf4jB5QRvMJo1JJGP1XBLrthlMKzyLhXlm1RugfuRkY8agKVdP2xDJPg==}
+
   unicorn-magic@0.1.0:
     resolution: {integrity: sha512-lRfVq8fE8gz6QMBuDM6a+LO3IAzTi05H6gCVaUpir2E1Rwpo4ZUog45KpNXKC/Mn3Yb9UDuHumeFTo9iV/D9FQ==}
     engines: {node: '>=18'}
@@ -3728,6 +3734,13 @@ snapshots:
       '@fastify/busboy': 2.1.1
 
   unenv-nightly@2.0.0-20240919-125358-9a64854:
+    dependencies:
+      defu: 6.1.4
+      ohash: 1.1.4
+      pathe: 1.1.2
+      ufo: 1.5.4
+
+  unenv-nightly@2.0.0-20240924-181319-d5e42d9:
     dependencies:
       defu: 6.1.4
       ohash: 1.1.4
