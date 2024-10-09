@@ -11,10 +11,8 @@ import type {
 	CloudflareEnvironmentOptions,
 	CloudflareDevEnvironment,
 } from './cloudflare-environment';
-import {
-	getModuleFallbackCallback,
-	type ResolveIdFunction,
-} from './module-fallback';
+import { getModuleFallbackCallback } from './module-fallback';
+import type { ResolveIdFunction } from './module-fallback';
 
 const wrapperPath = '__VITE_WRAPPER_PATH__';
 const runnerPath = fileURLToPath(new URL('./runner/index.js', import.meta.url));
