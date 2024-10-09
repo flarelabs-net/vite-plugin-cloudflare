@@ -13,85 +13,85 @@ export type ResolveIdFunction = (
 	},
 ) => Promise<string | undefined>;
 
-export function getModuleFallbackCallback(
+export function getModuleFallbackHandler(
 	resolveId: ResolveIdFunction,
 ): ModuleFallbackHandler {
-	return patchModuleFallbackHandler(
-		async (request: Request): Promise<Response> => {
-			const { resolveMethod, referrer, specifier, rawSpecifier } =
-				extractModuleFallbackValues(request);
+	return patchModuleFallbackHandler(moduleFallbackHandler);
 
-			let resolvedId = await resolveId(
-				rawSpecifier,
-				await withJsFileExtension(referrer),
-				{
-					resolveMethod,
-				},
-			);
+	async function moduleFallbackHandler(request: Request): Promise<Response> {
+		const { resolveMethod, referrer, specifier, rawSpecifier } =
+			extractModuleFallbackValues(request);
 
-			if (!resolvedId) {
-				return new Response(null, { status: 404 });
-			}
+		let resolvedId = await resolveId(
+			rawSpecifier,
+			await withJsFileExtension(referrer),
+			{
+				resolveMethod,
+			},
+		);
 
-			if (resolvedId.includes('?'))
-				resolvedId = resolvedId.slice(0, resolvedId.lastIndexOf('?'));
+		if (!resolvedId) {
+			return new Response(null, { status: 404 });
+		}
 
-			const redirectTo =
-				!rawSpecifier.startsWith('./') &&
-				!rawSpecifier.startsWith('../') &&
-				resolvedId !== rawSpecifier &&
-				resolvedId !== specifier
-					? resolvedId
-					: undefined;
+		if (resolvedId.includes('?'))
+			resolvedId = resolvedId.slice(0, resolvedId.lastIndexOf('?'));
 
-			if (redirectTo) {
-				return new Response(null, {
-					headers: { location: redirectTo },
-					status: 301,
-				});
-			}
+		const redirectTo =
+			!rawSpecifier.startsWith('./') &&
+			!rawSpecifier.startsWith('../') &&
+			resolvedId !== rawSpecifier &&
+			resolvedId !== specifier
+				? resolvedId
+				: undefined;
 
-			let code: string;
+		if (redirectTo) {
+			return new Response(null, {
+				headers: { location: redirectTo },
+				status: 301,
+			});
+		}
 
-			try {
-				code = await readFile(resolvedId, 'utf8');
-			} catch {
-				return new Response(`Failed to read file ${resolvedId}`, {
-					status: 404,
-				});
-			}
+		let code: string;
 
-			const moduleInfo = await collectModuleInfo(code, resolvedId);
+		try {
+			code = await readFile(resolvedId, 'utf8');
+		} catch {
+			return new Response(`Failed to read file ${resolvedId}`, {
+				status: 404,
+			});
+		}
 
-			let mod = {};
+		const moduleInfo = await collectModuleInfo(code, resolvedId);
 
-			switch (moduleInfo.moduleType) {
-				case 'cjs':
-					mod = {
-						commonJsModule: code,
-						namedExports: moduleInfo.namedExports,
-					};
-					break;
-				case 'esm':
-					mod = {
-						esModule: code,
-					};
-					break;
-				case 'json':
-					mod = {
-						json: code,
-					};
-					break;
-			}
+		let mod = {};
 
-			return new Response(
-				JSON.stringify({
-					name: specifier,
-					...mod,
-				}),
-			);
-		},
-	);
+		switch (moduleInfo.moduleType) {
+			case 'cjs':
+				mod = {
+					commonJsModule: code,
+					namedExports: moduleInfo.namedExports,
+				};
+				break;
+			case 'esm':
+				mod = {
+					esModule: code,
+				};
+				break;
+			case 'json':
+				mod = {
+					json: code,
+				};
+				break;
+		}
+
+		return new Response(
+			JSON.stringify({
+				name: specifier,
+				...mod,
+			}),
+		);
+	}
 }
 
 /**

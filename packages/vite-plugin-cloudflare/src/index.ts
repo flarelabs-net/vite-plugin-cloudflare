@@ -11,7 +11,7 @@ import type {
 	CloudflareEnvironmentOptions,
 	CloudflareDevEnvironment,
 } from './cloudflare-environment';
-import { getModuleFallbackCallback } from './module-fallback';
+import { getModuleFallbackHandler } from './module-fallback';
 import type { ResolveIdFunction } from './module-fallback';
 
 const wrapperPath = '__VITE_WRAPPER_PATH__';
@@ -198,7 +198,7 @@ export function cloudflare<
 					};
 				}),
 				unsafeUseModuleFallbackService: true,
-				unsafeModuleFallbackService: getModuleFallbackCallback(resolveId),
+				unsafeModuleFallbackService: getModuleFallbackHandler(resolveId),
 			});
 
 			await Promise.all(
