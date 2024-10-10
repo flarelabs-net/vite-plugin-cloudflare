@@ -6,6 +6,8 @@ import { fileURLToPath } from 'node:url';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import { createCloudflareEnvironment } from './cloudflare-environment';
+import { getWorkerEntrypointNames, getDurableObjectClassNames } from './utils';
+import { invariant } from './shared';
 import type { FetchFunctionOptions } from 'vite/module-runner';
 import type { WorkerOptions } from 'miniflare';
 import type {
@@ -92,46 +94,8 @@ export function cloudflare<
 				},
 			);
 
-			const workerEntrypointNames = Object.fromEntries(
-				workers.map((workerOptions) => [workerOptions.name, new Set<string>()]),
-			);
-
-			for (const worker of workers) {
-				if (worker.serviceBindings === undefined) {
-					continue;
-				}
-
-				for (const value of Object.values(worker.serviceBindings)) {
-					if (
-						typeof value === 'object' &&
-						'name' in value &&
-						typeof value.name === 'string' &&
-						value.entrypoint !== undefined &&
-						value.entrypoint !== 'default'
-					) {
-						workerEntrypointNames[value.name]?.add(value.entrypoint);
-					}
-				}
-			}
-
-			const durableObjectClassNames = Object.fromEntries(
-				workers.map((workerOptions) => [workerOptions.name, new Set<string>()]),
-			);
-
-			for (const worker of workers) {
-				if (worker.durableObjects === undefined) {
-					continue;
-				}
-
-				// TODO: add support for `scriptName`
-				for (const value of Object.values(worker.durableObjects)) {
-					if (typeof value === 'string') {
-						durableObjectClassNames[worker.name]?.add(value);
-					} else if (typeof value === 'object') {
-						durableObjectClassNames[worker.name]?.add(value.className);
-					}
-				}
-			}
+			const workerEntrypointNames = getWorkerEntrypointNames(workers);
+			const durableObjectClassNames = getDurableObjectClassNames(workers);
 
 			const esmResolveId = vite.createIdResolver(viteConfig, {});
 
@@ -174,17 +138,25 @@ export function cloudflare<
 						`export default createWorkerEntrypointWrapper('default');`,
 					];
 
-					for (const entrypointName of [
-						...(workerEntrypointNames[workerOptions.name] ?? []),
-					].sort()) {
+					const entrypointNames = workerEntrypointNames[workerOptions.name];
+					invariant(
+						entrypointNames,
+						`WorkerEntrypoint names not found for worker ${workerOptions.name}`,
+					);
+
+					for (const entrypointName of [...entrypointNames].sort()) {
 						wrappers.push(
 							`export const ${entrypointName} = createWorkerEntrypointWrapper('${entrypointName}');`,
 						);
 					}
 
-					for (const className of [
-						...(durableObjectClassNames[workerOptions.name] ?? []),
-					].sort()) {
+					const classNames = durableObjectClassNames[workerOptions.name];
+					invariant(
+						classNames,
+						`DurableObject class names not found for worker ${workerOptions.name}`,
+					);
+
+					for (const className of [...classNames].sort()) {
 						wrappers.push(
 							`export const ${className} = createDurableObjectWrapper('${className}');`,
 						);
