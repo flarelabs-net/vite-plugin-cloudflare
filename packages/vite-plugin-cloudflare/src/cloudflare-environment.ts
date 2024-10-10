@@ -95,15 +95,10 @@ export class CloudflareDevEnvironment extends vite.DevEnvironment {
 			},
 		);
 
-		if (!response.ok) {
-			throw new Error('Failed to initialize module runner');
-		}
+		invariant(response.ok, 'Failed to initialize module runner');
 
 		const webSocket = response.webSocket;
-
-		if (!webSocket) {
-			throw new Error('Failed to establish a WebSocket');
-		}
+		invariant(webSocket, 'Failed to establish WebSocket');
 
 		webSocket.accept();
 
@@ -111,9 +106,7 @@ export class CloudflareDevEnvironment extends vite.DevEnvironment {
 	}
 
 	async dispatchFetch(request: Request) {
-		if (!this.#worker) {
-			throw new Error('Runner not initialized');
-		}
+		invariant(this.#worker, 'Runner not initialized');
 
 		return this.#worker.fetch(request.url, {
 			method: request.method,
