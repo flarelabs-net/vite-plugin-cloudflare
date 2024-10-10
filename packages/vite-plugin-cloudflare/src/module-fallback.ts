@@ -276,7 +276,10 @@ async function collectModuleInfo(
 		return { moduleType: 'json' };
 	}
 
-	if (!isCommonJS(moduleCode)) {
+	if (
+		moduleFilePath.endsWith('.mjs') ||
+		!(moduleFilePath.endsWith('.cjs') || isCommonJS(moduleCode))
+	) {
 		return { moduleType: 'esm' };
 	}
 
