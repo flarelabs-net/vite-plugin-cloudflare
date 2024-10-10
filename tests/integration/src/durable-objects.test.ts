@@ -7,7 +7,7 @@ import { assertIsFetchableDevEnvironment, UNKNOWN_HOST } from './utils';
 
 const root = fileURLToPath(new URL('.', import.meta.url));
 
-describe('durable objects', async () => {
+describe('durable objects', () => {
 	const fixtureRoot = path.join(root, './fixtures/durable-objects');
 
 	test('retains in-memory state', async () => {
@@ -80,7 +80,7 @@ describe('durable objects', async () => {
 		expect(resultB).toEqual({ name: 'A', count: 2 });
 	});
 
-	test('isolates Durable Objects', async () => {
+	test('isolates Durable Object instances', async () => {
 		const server = await vite.createServer({
 			plugins: [
 				cloudflare({

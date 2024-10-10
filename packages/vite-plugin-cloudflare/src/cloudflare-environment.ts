@@ -1,5 +1,5 @@
 import * as vite from 'vite';
-import { UNKNOWN_HOST, INIT_PATH } from './shared';
+import { UNKNOWN_HOST, INIT_PATH, invariant } from './shared';
 import type { ReplaceWorkersTypes, WebSocket, MessageEvent } from 'miniflare';
 import type { Fetcher } from '@cloudflare/workers-types/experimental';
 
@@ -12,6 +12,8 @@ export interface CloudflareEnvironmentOptions {
 interface WebSocketContainer {
 	webSocket?: WebSocket;
 }
+
+const webSocketError = 'The WebSocket is undefined';
 
 function createHotChannel(
 	webSocketContainer: WebSocketContainer,
@@ -27,7 +29,6 @@ function createHotChannel(
 		}
 	}
 
-	// TODO: modify to assert WebSocket
 	return {
 		send(...args: [string, unknown] | [vite.HotPayload]) {
 			let payload: vite.HotPayload;
@@ -42,10 +43,14 @@ function createHotChannel(
 				payload = args[0];
 			}
 
-			webSocketContainer.webSocket?.send(JSON.stringify(payload));
+			const webSocket = webSocketContainer.webSocket;
+			invariant(webSocket, webSocketError);
+
+			webSocket.send(JSON.stringify(payload));
 		},
 		on(event: string, listener: Function) {
 			const listeners = listenersMap.get(event) ?? new Set();
+
 			listeners.add(listener);
 			listenersMap.set(event, listeners);
 		},
@@ -53,10 +58,16 @@ function createHotChannel(
 			listenersMap.get(event)?.delete(listener);
 		},
 		listen() {
-			webSocketContainer.webSocket?.addEventListener('message', onMessage);
+			const webSocket = webSocketContainer.webSocket;
+			invariant(webSocket, webSocketError);
+
+			webSocket.addEventListener('message', onMessage);
 		},
 		close() {
-			webSocketContainer.webSocket?.removeEventListener('message', onMessage);
+			const webSocket = webSocketContainer.webSocket;
+			invariant(webSocket, webSocketError);
+
+			webSocket.removeEventListener('message', onMessage);
 		},
 	};
 }
