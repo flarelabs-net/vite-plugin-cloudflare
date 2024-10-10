@@ -1,6 +1,9 @@
+import type WorkerB from '../worker-b';
+import type { NamedEntrypoint } from '../worker-b';
+
 interface Env {
-	WORKER_B: Fetcher;
-	NAMED_ENTRYPOINT: Fetcher;
+	WORKER_B: Fetcher<WorkerB>;
+	NAMED_ENTRYPOINT: Fetcher<NamedEntrypoint>;
 }
 
 export default {
