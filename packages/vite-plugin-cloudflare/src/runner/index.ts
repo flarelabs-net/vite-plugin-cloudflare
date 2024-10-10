@@ -60,6 +60,27 @@ function getRpcProperty(
 	return Reflect.get(ctor.prototype, key, instance);
 }
 
+function getRpcPropertyCallableThenable(
+	key: string,
+	property: Promise<unknown>,
+): Promise<unknown> & ((...args: unknown[]) => Promise<unknown>) {
+	const fn = async function (...args: unknown[]) {
+		const maybeFn = await property;
+
+		if (typeof maybeFn !== 'function') {
+			throw new TypeError(`'${key}' is not a function.`);
+		}
+
+		return maybeFn(...args);
+	} as Promise<unknown> & ((...args: unknown[]) => Promise<unknown>);
+
+	fn.then = (onFulfilled, onRejected) => property.then(onFulfilled, onRejected);
+	fn.catch = (onRejected) => property.catch(onRejected);
+	fn.finally = (onFinally) => property.finally(onFinally);
+
+	return fn;
+}
+
 async function getWorkerEntrypointRpcProperty(
 	this: WorkerEntrypoint<WrapperEnv>,
 	entrypoint: string,
@@ -90,27 +111,6 @@ async function getWorkerEntrypointRpcProperty(
 	}
 
 	return value;
-}
-
-function getRpcPropertyCallableThenable(
-	key: string,
-	property: Promise<unknown>,
-): Promise<unknown> & ((...args: unknown[]) => Promise<unknown>) {
-	const fn = async function (...args: unknown[]) {
-		const maybeFn = await property;
-
-		if (typeof maybeFn !== 'function') {
-			throw new TypeError(`'${key}' is not a function.`);
-		}
-
-		return maybeFn(...args);
-	} as Promise<unknown> & ((...args: unknown[]) => Promise<unknown>);
-
-	fn.then = (onFulfilled, onRejected) => property.then(onFulfilled, onRejected);
-	fn.catch = (onRejected) => property.catch(onRejected);
-	fn.finally = (onFinally) => property.finally(onFinally);
-
-	return fn;
 }
 
 export function createWorkerEntrypointWrapper(
