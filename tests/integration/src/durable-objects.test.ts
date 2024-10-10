@@ -121,4 +121,41 @@ describe('durable objects', () => {
 		expect(resultA).toEqual({ name: 'A', count: 2 });
 		expect(resultB).toEqual({ name: 'B', count: 0 });
 	});
+
+	test('can use `scriptName` to bind to a Durable Object defined in another Worker', async () => {
+		const server = await vite.createServer({
+			plugins: [
+				cloudflare({
+					workers: {
+						worker_b: {
+							main: path.join(fixtureRoot, 'worker-b', 'index.ts'),
+							wranglerConfig: path.join(
+								fixtureRoot,
+								'worker-b',
+								'wrangler.toml',
+							),
+						},
+						worker_c: {
+							main: path.join(fixtureRoot, 'worker-c', 'index.ts'),
+							wranglerConfig: path.join(
+								fixtureRoot,
+								'worker-c',
+								'wrangler.toml',
+							),
+						},
+					},
+				}),
+			],
+		});
+
+		const workerC = server.environments.worker_c;
+		assertIsFetchableDevEnvironment(workerC);
+
+		const response = await workerC.dispatchFetch(
+			new Request(new URL('?name=A', UNKNOWN_HOST)),
+		);
+		const result = await response.json();
+
+		expect(result).toEqual({ name: 'A', count: 0 });
+	});
 });
