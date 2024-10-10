@@ -4,6 +4,7 @@ import { Miniflare, Response as MiniflareResponse } from 'miniflare';
 import { unstable_getMiniflareWorkerOptions } from 'wrangler';
 import { fileURLToPath } from 'node:url';
 import * as path from 'node:path';
+import * as fs from 'node:fs';
 import { createCloudflareEnvironment } from './cloudflare-environment';
 import type { FetchFunctionOptions } from 'vite/module-runner';
 import type { WorkerOptions } from 'miniflare';
@@ -13,10 +14,19 @@ import type {
 } from './cloudflare-environment';
 import { getModuleFallbackHandler } from './module-fallback';
 import type { ResolveIdFunction } from './module-fallback';
+import { WORKERD_CUSTOM_IMPORT_PATH } from './shared';
 
 const wrapperPath = '__VITE_WRAPPER_PATH__';
-const runnerPath = fileURLToPath(new URL('./runner/index.js', import.meta.url));
-const workerdCustomImportPath = '/__workerd-custom-import.cjs';
+const runnerPath = './runner/index.js';
+
+// We want module names to be their absolute path without the leading slash
+// (i.e. the modules root should be the root directory). On Windows, we need
+// paths to include the drive letter (i.e. `C:/a/b/c/index.mjs`).
+// Internally, Miniflare uses `path.relative(modulesRoot, path)` to compute
+// module names. Setting `modulesRoot` to a drive letter and prepending this
+// to paths ensures correct names. This requires us to specify `contents` in
+// the miniflare module definitions though, as the new paths don't exist.
+const miniflareModulesRoot = process.platform === 'win32' ? 'Z:\\' : '/';
 
 export function cloudflare<
 	T extends Record<string, CloudflareEnvironmentOptions>,
@@ -53,7 +63,7 @@ export function cloudflare<
 					return {
 						...workerOptions,
 						name,
-						modulesRoot: '/',
+						modulesRoot: miniflareModulesRoot,
 						unsafeEvalBinding: '__VITE_UNSAFE_EVAL__',
 						bindings: {
 							...workerOptions.bindings,
@@ -147,12 +157,16 @@ export function cloudflare<
 							{
 								type: 'ESModule',
 								path: runnerPath,
+								contents: fs.readFileSync(
+									fileURLToPath(new URL(runnerPath, import.meta.url)),
+									'utf8',
+								),
 							},
 							{
 								// we declare the workerd-custom-import as a CommonJS module, thanks to this
 								// require is made available in the module and we are able to handle cjs imports
 								type: 'CommonJS',
-								path: workerdCustomImportPath,
+								path: `${miniflareModulesRoot}${WORKERD_CUSTOM_IMPORT_PATH}`,
 								contents: 'module.exports = path => import(path)',
 							},
 						],
