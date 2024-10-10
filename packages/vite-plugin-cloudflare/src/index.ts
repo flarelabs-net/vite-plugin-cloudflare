@@ -166,7 +166,10 @@ export function cloudflare<
 								// we declare the workerd-custom-import as a CommonJS module, thanks to this
 								// require is made available in the module and we are able to handle cjs imports
 								type: 'CommonJS',
-								path: `${miniflareModulesRoot}${WORKERD_CUSTOM_IMPORT_PATH}`,
+								path: path.join(
+									miniflareModulesRoot,
+									WORKERD_CUSTOM_IMPORT_PATH,
+								),
 								contents: 'module.exports = path => import(path)',
 							},
 						],
