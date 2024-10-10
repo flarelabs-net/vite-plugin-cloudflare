@@ -1,5 +1,6 @@
 import { WorkerEntrypoint, DurableObject } from 'cloudflare:workers';
 import { createModuleRunner, getWorkerEntryExport } from './module-runner';
+import { stripInternalEnv } from './env';
 import { INIT_PATH } from '../shared';
 import type { WrapperEnv } from './env';
 
@@ -24,7 +25,6 @@ const WORKER_ENTRYPOINT_KEYS = [
 	'test',
 ] as const;
 
-// Should we add `name` here as it would conflict with `stub.name`?
 const DURABLE_OBJECT_KEYS = [
 	'fetch',
 	'alarm',
@@ -32,18 +32,6 @@ const DURABLE_OBJECT_KEYS = [
 	'webSocketClose',
 	'webSocketError',
 ] as const;
-
-function stripInternalEnv(internalEnv: WrapperEnv) {
-	const {
-		__VITE_ROOT__,
-		__VITE_ENTRY_PATH__,
-		__VITE_FETCH_MODULE__,
-		__VITE_UNSAFE_EVAL__,
-		...userEnv
-	} = internalEnv;
-
-	return userEnv;
-}
 
 function getRpcProperty(
 	ctor: WorkerEntrypointConstructor | DurableObjectConstructor,
@@ -76,7 +64,7 @@ async function getWorkerEntrypointRpcProperty(
 	this: WorkerEntrypoint<WrapperEnv>,
 	entrypoint: string,
 	key: string,
-) {
+): Promise<unknown> {
 	const entryPath = this.env.__VITE_ENTRY_PATH__;
 	const ctor = (await getWorkerEntryExport(
 		entryPath,
@@ -107,7 +95,7 @@ async function getWorkerEntrypointRpcProperty(
 function getRpcPropertyCallableThenable(
 	key: string,
 	property: Promise<unknown>,
-) {
+): Promise<unknown> & ((...args: unknown[]) => Promise<unknown>) {
 	const fn = async function (...args: unknown[]) {
 		const maybeFn = await property;
 
@@ -170,9 +158,7 @@ export function createWorkerEntrypointWrapper(
 
 				if (url.pathname === INIT_PATH) {
 					const { 0: client, 1: server } = new WebSocketPair();
-
 					server.accept();
-
 					createModuleRunner(this.env, server);
 
 					return new Response(null, { status: 101, webSocket: client });
@@ -241,7 +227,7 @@ async function getDurableObjectRpcProperty(
 	this: DurableObjectWrapper,
 	className: string,
 	key: string,
-) {
+): Promise<unknown> {
 	const entryPath = this.env.__VITE_ENTRY_PATH__;
 	const { ctor, instance } = await this[kEnsureInstance]();
 
@@ -318,6 +304,7 @@ export function createDurableObjectWrapper(
 
 				this[kInstance] = { ctor, instance };
 
+				// Wait for `blockConcurrencyWhile()`s in the constructor to complete
 				await this.ctx.blockConcurrencyWhile(async () => {});
 			}
 
