@@ -16,9 +16,6 @@ import { getModuleFallbackHandler } from './module-fallback';
 import type { ResolveIdFunction } from './module-fallback';
 import { WORKERD_CUSTOM_IMPORT_PATH } from './shared';
 
-const wrapperPath = '__VITE_WRAPPER_PATH__';
-const runnerPath = './runner/index.js';
-
 // We want module names to be their absolute path without the leading slash
 // (i.e. the modules root should be the root directory). On Windows, we need
 // paths to include the drive letter (i.e. `C:/a/b/c/index.mjs`).
@@ -27,6 +24,14 @@ const runnerPath = './runner/index.js';
 // to paths ensures correct names. This requires us to specify `contents` in
 // the miniflare module definitions though, as the new paths don't exist.
 const miniflareModulesRoot = process.platform === 'win32' ? 'Z:\\' : '/';
+
+const wrapperPath = path.join(miniflareModulesRoot, '__VITE_WRAPPER_PATH__');
+const rawRunnerPath = ['runner', 'index.js'];
+const runnerPath = path.join(miniflareModulesRoot, ...rawRunnerPath);
+const workerdCustomImportPath = path.join(
+	miniflareModulesRoot,
+	WORKERD_CUSTOM_IMPORT_PATH,
+);
 
 export function cloudflare<
 	T extends Record<string, CloudflareEnvironmentOptions>,
@@ -158,7 +163,9 @@ export function cloudflare<
 								type: 'ESModule',
 								path: runnerPath,
 								contents: fs.readFileSync(
-									fileURLToPath(new URL(runnerPath, import.meta.url)),
+									fileURLToPath(
+										new URL(path.join(...rawRunnerPath), import.meta.url),
+									),
 									'utf8',
 								),
 							},
@@ -166,10 +173,7 @@ export function cloudflare<
 								// we declare the workerd-custom-import as a CommonJS module, thanks to this
 								// require is made available in the module and we are able to handle cjs imports
 								type: 'CommonJS',
-								path: path.join(
-									miniflareModulesRoot,
-									WORKERD_CUSTOM_IMPORT_PATH,
-								),
+								path: workerdCustomImportPath,
 								contents: 'module.exports = path => import(path)',
 							},
 						],
