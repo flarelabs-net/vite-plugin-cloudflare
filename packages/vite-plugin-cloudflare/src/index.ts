@@ -5,6 +5,8 @@ import { unstable_getMiniflareWorkerOptions } from 'wrangler';
 import { fileURLToPath } from 'node:url';
 import * as path from 'node:path';
 import { createCloudflareEnvironment } from './cloudflare-environment';
+import { getWorkerEntrypointNames, getDurableObjectClassNames } from './utils';
+import { invariant } from './shared';
 import type { FetchFunctionOptions } from 'vite/module-runner';
 import type { WorkerOptions } from 'miniflare';
 import type {
@@ -64,27 +66,8 @@ export function cloudflare<
 				},
 			);
 
-			const workerEntrypointNames = Object.fromEntries(
-				workers.map((workerOptions) => [workerOptions.name, new Set<string>()]),
-			);
-
-			for (const worker of workers) {
-				if (worker.serviceBindings === undefined) {
-					continue;
-				}
-
-				for (const value of Object.values(worker.serviceBindings)) {
-					if (
-						typeof value === 'object' &&
-						'name' in value &&
-						typeof value.name === 'string' &&
-						value.entrypoint !== undefined &&
-						value.entrypoint !== 'default'
-					) {
-						workerEntrypointNames[value.name]?.add(value.entrypoint);
-					}
-				}
-			}
+			const workerEntrypointNames = getWorkerEntrypointNames(workers);
+			const durableObjectClassNames = getDurableObjectClassNames(workers);
 
 			const esmResolveId = vite.createIdResolver(viteConfig, {});
 
@@ -123,15 +106,31 @@ export function cloudflare<
 			const miniflare = new Miniflare({
 				workers: workers.map((workerOptions) => {
 					const wrappers = [
-						`import { createWorkerEntrypointWrapper } from '${runnerPath}';`,
+						`import { createWorkerEntrypointWrapper, createDurableObjectWrapper } from '${runnerPath}';`,
 						`export default createWorkerEntrypointWrapper('default');`,
 					];
 
-					for (const entrypointName of [
-						...(workerEntrypointNames[workerOptions.name] ?? []),
-					].sort()) {
+					const entrypointNames = workerEntrypointNames[workerOptions.name];
+					invariant(
+						entrypointNames,
+						`WorkerEntrypoint names not found for worker ${workerOptions.name}`,
+					);
+
+					for (const entrypointName of [...entrypointNames].sort()) {
 						wrappers.push(
 							`export const ${entrypointName} = createWorkerEntrypointWrapper('${entrypointName}');`,
+						);
+					}
+
+					const classNames = durableObjectClassNames[workerOptions.name];
+					invariant(
+						classNames,
+						`DurableObject class names not found for worker ${workerOptions.name}`,
+					);
+
+					for (const className of [...classNames].sort()) {
+						wrappers.push(
+							`export const ${className} = createDurableObjectWrapper('${className}');`,
 						);
 					}
 
