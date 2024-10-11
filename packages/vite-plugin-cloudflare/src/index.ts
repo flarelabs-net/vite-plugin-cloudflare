@@ -139,7 +139,7 @@ export function cloudflare<
 			const miniflare = new Miniflare({
 				workers: workers.map((workerOptions) => {
 					const wrappers = [
-						`import { createWorkerEntrypointWrapper } from '${relativeRunnerWorkerdPath}';`,
+						`import { createWorkerEntrypointWrapper, createDurableObjectWrapper } from '${relativeRunnerWorkerdPath}';`,
 						`export default createWorkerEntrypointWrapper('default');`,
 					];
 
