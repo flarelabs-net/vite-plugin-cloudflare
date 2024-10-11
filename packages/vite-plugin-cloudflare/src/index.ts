@@ -26,8 +26,8 @@ import { WORKERD_CUSTOM_IMPORT_PATH } from './shared';
 const miniflareModulesRoot = process.platform === 'win32' ? 'Z:\\' : '/';
 
 const wrapperPath = path.join(miniflareModulesRoot, '__VITE_WRAPPER_PATH__');
-const relativeRunnerPath = path.join('runner', 'index.js');
-const runnerPath = path.join(miniflareModulesRoot, relativeRunnerPath);
+const rawRunnerPath = ['runner', 'index.js'];
+const runnerPath = path.join(miniflareModulesRoot, ...rawRunnerPath);
 const workerdCustomImportPath = path.join(
 	miniflareModulesRoot,
 	WORKERD_CUSTOM_IMPORT_PATH,
@@ -164,7 +164,7 @@ export function cloudflare<
 								path: runnerPath,
 								contents: fs.readFileSync(
 									fileURLToPath(
-										new URL(path.join(relativeRunnerPath), import.meta.url),
+										new URL(path.join(...rawRunnerPath), import.meta.url),
 									),
 									'utf8',
 								),
