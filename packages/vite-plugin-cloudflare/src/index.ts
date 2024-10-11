@@ -26,8 +26,11 @@ import { WORKERD_CUSTOM_IMPORT_PATH } from './shared';
 const miniflareModulesRoot = process.platform === 'win32' ? 'Z:\\' : '/';
 
 const wrapperPath = path.join(miniflareModulesRoot, '__VITE_WRAPPER_PATH__');
-const rawRunnerPath = ['runner', 'index.js'];
-const runnerPath = path.join(miniflareModulesRoot, ...rawRunnerPath);
+const relativeRunnerPathSegments = ['runner', 'index.js'];
+const runnerPath = path.join(
+	miniflareModulesRoot,
+	...relativeRunnerPathSegments,
+);
 const workerdCustomImportPath = path.join(
 	miniflareModulesRoot,
 	WORKERD_CUSTOM_IMPORT_PATH,
@@ -138,10 +141,10 @@ export function cloudflare<
 			const miniflare = new Miniflare({
 				workers: workers.map((workerOptions) => {
 					const wrappers = [
-						// Note: this import relies on the `rawRunnerPath` array because using the full `runnerPath`
+						// Note: this import relies on the `relativeRunnerPathSegments` array because using the full `runnerPath`
 						//       in windows would not work since `runnerPath` would start with `Z:` and workerd would
 						//       not know how to properly handle such path
-						`import { createWorkerEntrypointWrapper } from '${['.', ...rawRunnerPath].join('/')}';`,
+						`import { createWorkerEntrypointWrapper } from '${['.', ...relativeRunnerPathSegments].join('/')}';`,
 						`export default createWorkerEntrypointWrapper('default');`,
 					];
 
@@ -167,7 +170,10 @@ export function cloudflare<
 								path: runnerPath,
 								contents: fs.readFileSync(
 									fileURLToPath(
-										new URL(path.join(...rawRunnerPath), import.meta.url),
+										new URL(
+											path.join(...relativeRunnerPathSegments),
+											import.meta.url,
+										),
 									),
 									'utf8',
 								),
