@@ -13,7 +13,7 @@ interface WebSocketContainer {
 	webSocket?: WebSocket;
 }
 
-const webSocketError = 'The WebSocket is undefined';
+const webSocketUndefinedError = 'The WebSocket is undefined';
 
 function createHotChannel(
 	webSocketContainer: WebSocketContainer,
@@ -44,7 +44,7 @@ function createHotChannel(
 			}
 
 			const webSocket = webSocketContainer.webSocket;
-			invariant(webSocket, webSocketError);
+			invariant(webSocket, webSocketUndefinedError);
 
 			webSocket.send(JSON.stringify(payload));
 		},
@@ -59,13 +59,13 @@ function createHotChannel(
 		},
 		listen() {
 			const webSocket = webSocketContainer.webSocket;
-			invariant(webSocket, webSocketError);
+			invariant(webSocket, webSocketUndefinedError);
 
 			webSocket.addEventListener('message', onMessage);
 		},
 		close() {
 			const webSocket = webSocketContainer.webSocket;
-			invariant(webSocket, webSocketError);
+			invariant(webSocket, webSocketUndefinedError);
 
 			webSocket.removeEventListener('message', onMessage);
 		},

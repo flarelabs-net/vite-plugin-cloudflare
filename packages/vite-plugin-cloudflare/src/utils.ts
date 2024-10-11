@@ -1,23 +1,19 @@
 import { invariant } from './shared';
 import type { WorkerOptions } from 'miniflare';
 
-function errorMessage(workerName: string) {
+function missingWorkerErrorMessage(workerName: string) {
 	return `${workerName} does not match a worker name.`;
 }
 
-export function getWorkerEntrypointNames(
+export function getWorkerToWorkerEntrypointNamesMap(
 	workers: Array<Pick<WorkerOptions, 'serviceBindings'> & { name: string }>,
 ) {
-	const workerEntrypointNames = Object.fromEntries(
+	const workerToWorkerEntrypointNamesMap = new Map(
 		workers.map((workerOptions) => [workerOptions.name, new Set<string>()]),
 	);
 
 	for (const worker of workers) {
-		if (worker.serviceBindings === undefined) {
-			continue;
-		}
-
-		for (const value of Object.values(worker.serviceBindings)) {
+		for (const value of Object.values(worker.serviceBindings ?? {})) {
 			if (
 				typeof value === 'object' &&
 				'name' in value &&
@@ -25,44 +21,46 @@ export function getWorkerEntrypointNames(
 				value.entrypoint !== undefined &&
 				value.entrypoint !== 'default'
 			) {
-				const entrypointNames = workerEntrypointNames[value.name];
-				invariant(entrypointNames, errorMessage(value.name));
+				const entrypointNames = workerToWorkerEntrypointNamesMap.get(
+					value.name,
+				);
+				invariant(entrypointNames, missingWorkerErrorMessage(value.name));
 
 				entrypointNames.add(value.entrypoint);
 			}
 		}
 	}
 
-	return workerEntrypointNames;
+	return workerToWorkerEntrypointNamesMap;
 }
 
-export function getDurableObjectClassNames(
+export function getWorkerToDurableObjectClassNamesMap(
 	workers: Array<Pick<WorkerOptions, 'durableObjects'> & { name: string }>,
 ) {
-	const durableObjectClassNames = Object.fromEntries(
+	const workerToDurableObjectClassNamesMap = new Map(
 		workers.map((workerOptions) => [workerOptions.name, new Set<string>()]),
 	);
 
 	for (const worker of workers) {
-		if (worker.durableObjects === undefined) {
-			continue;
-		}
-
-		for (const value of Object.values(worker.durableObjects)) {
+		for (const value of Object.values(worker.durableObjects ?? {})) {
 			if (typeof value === 'string') {
-				const classNames = durableObjectClassNames[worker.name];
-				invariant(classNames, errorMessage(worker.name));
+				const classNames = workerToDurableObjectClassNamesMap.get(worker.name);
+				invariant(classNames, missingWorkerErrorMessage(worker.name));
 
 				classNames.add(value);
 			} else if (typeof value === 'object') {
 				if (value.scriptName) {
-					const classNames = durableObjectClassNames[value.scriptName];
-					invariant(classNames, errorMessage(value.scriptName));
+					const classNames = workerToDurableObjectClassNamesMap.get(
+						value.scriptName,
+					);
+					invariant(classNames, missingWorkerErrorMessage(value.scriptName));
 
 					classNames.add(value.className);
 				} else {
-					const classNames = durableObjectClassNames[worker.name];
-					invariant(classNames, errorMessage(worker.name));
+					const classNames = workerToDurableObjectClassNamesMap.get(
+						worker.name,
+					);
+					invariant(classNames, missingWorkerErrorMessage(worker.name));
 
 					classNames.add(value.className);
 				}
@@ -70,5 +68,5 @@ export function getDurableObjectClassNames(
 		}
 	}
 
-	return durableObjectClassNames;
+	return workerToDurableObjectClassNamesMap;
 }

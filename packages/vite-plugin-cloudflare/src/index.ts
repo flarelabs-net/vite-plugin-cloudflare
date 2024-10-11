@@ -6,7 +6,10 @@ import { fileURLToPath } from 'node:url';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import { createCloudflareEnvironment } from './cloudflare-environment';
-import { getWorkerEntrypointNames, getDurableObjectClassNames } from './utils';
+import {
+	getWorkerToWorkerEntrypointNamesMap,
+	getWorkerToDurableObjectClassNamesMap,
+} from './utils';
 import { invariant } from './shared';
 import type { FetchFunctionOptions } from 'vite/module-runner';
 import type { WorkerOptions } from 'miniflare';
@@ -94,8 +97,10 @@ export function cloudflare<
 				},
 			);
 
-			const workerEntrypointNames = getWorkerEntrypointNames(workers);
-			const durableObjectClassNames = getDurableObjectClassNames(workers);
+			const workerToWorkerEntrypointNamesMap =
+				getWorkerToWorkerEntrypointNamesMap(workers);
+			const workerToDurableObjectClassNamesMap =
+				getWorkerToDurableObjectClassNamesMap(workers);
 
 			const esmResolveId = vite.createIdResolver(viteConfig, {});
 
@@ -138,7 +143,9 @@ export function cloudflare<
 						`export default createWorkerEntrypointWrapper('default');`,
 					];
 
-					const entrypointNames = workerEntrypointNames[workerOptions.name];
+					const entrypointNames = workerToWorkerEntrypointNamesMap.get(
+						workerOptions.name,
+					);
 					invariant(
 						entrypointNames,
 						`WorkerEntrypoint names not found for worker ${workerOptions.name}`,
@@ -150,7 +157,9 @@ export function cloudflare<
 						);
 					}
 
-					const classNames = durableObjectClassNames[workerOptions.name];
+					const classNames = workerToDurableObjectClassNamesMap.get(
+						workerOptions.name,
+					);
 					invariant(
 						classNames,
 						`DurableObject class names not found for worker ${workerOptions.name}`,
