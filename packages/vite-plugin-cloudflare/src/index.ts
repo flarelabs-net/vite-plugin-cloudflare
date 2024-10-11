@@ -26,11 +26,21 @@ import { WORKERD_CUSTOM_IMPORT_PATH } from './shared';
 const miniflareModulesRoot = process.platform === 'win32' ? 'Z:\\' : '/';
 
 const wrapperPath = path.join(miniflareModulesRoot, '__VITE_WRAPPER_PATH__');
+
 const relativeRunnerPathSegments = ['runner', 'index.js'];
 const runnerPath = path.join(
 	miniflareModulesRoot,
 	...relativeRunnerPathSegments,
 );
+
+/**
+ * Note: workerd requires standard unix paths, so without the potential `Z:` prefix (and not created with `path.join`
+ *       which in theory can use the windows path separator), that's why this path is constructed in the way it is
+ */
+const relativeRunnerWorkerdPath = ['.', ...relativeRunnerPathSegments].join(
+	'/',
+);
+
 const workerdCustomImportPath = path.join(
 	miniflareModulesRoot,
 	WORKERD_CUSTOM_IMPORT_PATH,
@@ -141,10 +151,7 @@ export function cloudflare<
 			const miniflare = new Miniflare({
 				workers: workers.map((workerOptions) => {
 					const wrappers = [
-						// Note: this import relies on the `relativeRunnerPathSegments` array because using the full `runnerPath`
-						//       in windows would not work since `runnerPath` would start with `Z:` and workerd would
-						//       not know how to properly handle such path
-						`import { createWorkerEntrypointWrapper } from '${['.', ...relativeRunnerPathSegments].join('/')}';`,
+						`import { createWorkerEntrypointWrapper } from '${relativeRunnerWorkerdPath}';`,
 						`export default createWorkerEntrypointWrapper('default');`,
 					];
 
