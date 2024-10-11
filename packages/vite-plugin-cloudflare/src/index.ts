@@ -138,6 +138,9 @@ export function cloudflare<
 			const miniflare = new Miniflare({
 				workers: workers.map((workerOptions) => {
 					const wrappers = [
+						// Note: this import relies on the `rawRunnerPath` array because using the full `runnerPath`
+						//       in windows would not work since `runnerPath` would start with `Z:` and workerd would
+						//       not know how to properly handle such path
 						`import { createWorkerEntrypointWrapper } from '${['.', ...rawRunnerPath].join('/')}';`,
 						`export default createWorkerEntrypointWrapper('default');`,
 					];
