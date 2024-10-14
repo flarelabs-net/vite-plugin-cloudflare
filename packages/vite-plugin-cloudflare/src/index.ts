@@ -81,10 +81,10 @@ export function cloudflare<
 			const workerToDurableObjectClassNamesMap =
 				getWorkerToDurableObjectClassNamesMap(workers);
 
-			// 	// TODO: we only have a single module resolution strategy shared across all workers
-			// 	//       (generated using the first worker's dev environment)
-			// 	//       we should investigate and ideally have potential different resolutions per worker
-			// 	//       see: https://github.com/flarelabs-net/vite-plugin-cloudflare/issues/19
+			// TODO: we only have a single module resolution strategy shared across all workers
+			//       (generated using the first worker's dev environment)
+			//       we should investigate and ideally have potential different resolutions per worker
+			//       see: https://github.com/flarelabs-net/vite-plugin-cloudflare/issues/19
 			const firstWorkerName = workers[0]?.name;
 			invariant(firstWorkerName, 'First worker name not found');
 			const devEnvironment = viteDevServer.environments[firstWorkerName];
