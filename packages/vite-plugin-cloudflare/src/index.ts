@@ -10,16 +10,14 @@ import {
 	getWorkerToWorkerEntrypointNamesMap,
 	getWorkerToDurableObjectClassNamesMap,
 } from './utils';
-import { invariant } from './shared';
+import { getResolveId, getModuleFallbackHandler } from './module-fallback';
+import { WORKERD_CUSTOM_IMPORT_PATH, invariant } from './shared';
 import type { FetchFunctionOptions } from 'vite/module-runner';
 import type { WorkerOptions } from 'miniflare';
 import type {
 	CloudflareEnvironmentOptions,
 	CloudflareDevEnvironment,
 } from './cloudflare-environment';
-import { getModuleFallbackHandler } from './module-fallback';
-import type { ResolveIdFunction } from './module-fallback';
-import { WORKERD_CUSTOM_IMPORT_PATH } from './shared';
 
 // We want module names to be their absolute path without the leading slash
 // (i.e. the modules root should be the root directory). On Windows, we need
@@ -85,39 +83,15 @@ export function cloudflare<
 			const workerToDurableObjectClassNamesMap =
 				getWorkerToDurableObjectClassNamesMap(workers);
 
-			const esmResolveId = vite.createIdResolver(viteConfig, {});
-
-			// for `require` calls we want a resolver that prioritized node/cjs modules
-			const cjsResolveId = vite.createIdResolver(viteConfig, {
-				conditions: ['node'],
-				mainFields: ['main'],
-				webCompatible: false,
-				isRequire: true,
-				extensions: ['.cjs', '.cts', '.js', '.ts', '.jsx', '.tsx', '.json'],
-			});
-
-			const resolveId: ResolveIdFunction = (
-				id,
-				importer,
-				{ resolveMethod } = {
-					resolveMethod: 'import',
-				},
-			) => {
-				const resolveIdFn =
-					resolveMethod === 'import' ? esmResolveId : cjsResolveId;
-
-				// TODO: we only have a single module resolution strategy shared across all workers
-				//       (generated using the first worker's dev environment)
-				//       we should investigate and ideally have potential different resolutions per worker
-				//       see: https://github.com/flarelabs-net/vite-plugin-cloudflare/issues/19
-				const firstWorkerName = Object.keys(pluginConfig.workers)[0]!;
-
-				const devEnv = viteDevServer.environments[
-					firstWorkerName
-				] as CloudflareDevEnvironment;
-
-				return resolveIdFn(devEnv, id, importer);
-			};
+			// 	// TODO: we only have a single module resolution strategy shared across all workers
+			// 	//       (generated using the first worker's dev environment)
+			// 	//       we should investigate and ideally have potential different resolutions per worker
+			// 	//       see: https://github.com/flarelabs-net/vite-plugin-cloudflare/issues/19
+			const firstWorkerName = workers[0]?.name;
+			invariant(firstWorkerName, 'First worker name not found');
+			const devEnvironment = viteDevServer.environments[firstWorkerName];
+			invariant(devEnvironment, 'First worker dev environment not found');
+			const resolveId = getResolveId(viteConfig, devEnvironment);
 
 			const miniflare = new Miniflare({
 				workers: workers.map((workerOptions) => {
