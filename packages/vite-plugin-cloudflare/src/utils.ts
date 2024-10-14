@@ -4,10 +4,19 @@ import type { SharedOptions, WorkerOptions } from 'miniflare';
 
 const DEFAULT_PERSIST_PATH = '.wrangler/state/v3';
 
+type PersistOptions = Pick<
+	SharedOptions,
+	| 'cachePersist'
+	| 'd1Persist'
+	| 'durableObjectsPersist'
+	| 'kvPersist'
+	| 'r2Persist'
+>;
+
 export function getPersistence(
 	persistTo: string | false | undefined,
 	root: string,
-): Partial<SharedOptions> {
+): PersistOptions {
 	if (persistTo === false) {
 		return {};
 	}
