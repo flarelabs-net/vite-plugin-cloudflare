@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, test } from 'vitest';
 import { fileURLToPath } from 'node:url';
 import * as path from 'node:path';
 import * as vite from 'vite';
@@ -6,40 +6,51 @@ import { cloudflare } from '@flarelabs-net/vite-plugin-cloudflare';
 import { assertIsFetchableDevEnvironment, UNKNOWN_HOST } from './utils';
 
 const root = fileURLToPath(new URL('./', import.meta.url));
+const fixtureRoot = path.join(root, 'fixtures', 'module-resolution');
+
+let server: vite.ViteDevServer;
+let customLogger: MockLogger;
 
 describe('module resolution', async () => {
-	const fixtureRoot = path.join(root, 'fixtures', 'module-resolution');
-	const server = await vite.createServer({
-		plugins: [
-			cloudflare({
-				workers: {
-					worker: {
-						main: path.join(fixtureRoot, 'index.ts'),
-						wranglerConfig: path.join(fixtureRoot, 'wrangler.toml'),
-						overrides: {
-							resolve: {
-								// We're testing module resolution for external modules, so let's treat everything as external
-								// (if we were not to do this all the packages in cloudflare-dev-module-resolution/packages
-								// wouldn't be treated as such)
-								external: true,
+	beforeEach(async () => {
+		customLogger = new MockLogger();
+		server = await vite.createServer({
+			customLogger,
+			plugins: [
+				cloudflare({
+					workers: {
+						worker: {
+							main: path.join(fixtureRoot, 'index.ts'),
+							wranglerConfig: path.join(fixtureRoot, 'wrangler.toml'),
+							overrides: {
+								resolve: {
+									// We're testing module resolution for external modules, so let's treat everything as external
+									// (if we were not to do this all the packages in cloudflare-dev-module-resolution/packages
+									// wouldn't be treated as such)
+									external: true,
+								},
 							},
 						},
 					},
-				},
-				persistTo: false,
-			}),
-		],
+					persistTo: false,
+				}),
+			],
+		});
 	});
-
-	const worker = server.environments.worker;
-	assertIsFetchableDevEnvironment(worker);
 
 	describe('basic module resolution', () => {
 		test('`require` js/cjs files with specifying their file extension', async () => {
-			const response = await worker.dispatchFetch(
+			const response = await getWorker(server).dispatchFetch(
 				new Request(new URL('/require-ext', UNKNOWN_HOST)),
 			);
 			const result = await response.json();
+
+			expect(getFallbackErrors(customLogger)).toMatchInlineSnapshot(`
+				[
+				  ".%2Fhello.cjs",
+				  ".%2Fworld.js",
+				]
+			`);
 
 			expect(result).toEqual({
 				'(requires/ext) hello.cjs (wrong-extension)': null,
@@ -49,7 +60,7 @@ describe('module resolution', async () => {
 		});
 
 		test('`require` js/cjs files without specifying their file extension', async () => {
-			const response = await worker.dispatchFetch(
+			const response = await getWorker(server).dispatchFetch(
 				new Request(new URL('/require-no-ext', UNKNOWN_HOST)),
 			);
 			const result = await response.json();
@@ -60,7 +71,7 @@ describe('module resolution', async () => {
 		});
 
 		test('`require` json files', async () => {
-			const response = await worker.dispatchFetch(
+			const response = await getWorker(server).dispatchFetch(
 				new Request(new URL('/require-json', UNKNOWN_HOST)),
 			);
 			const result = await response.json();
@@ -75,7 +86,7 @@ describe('module resolution', async () => {
 
 	describe('Cloudflare specific module resolution', () => {
 		test('internal imports from `cloudflare:*`', async () => {
-			const response = await worker.dispatchFetch(
+			const response = await getWorker(server).dispatchFetch(
 				new Request(new URL('/cloudflare-imports', UNKNOWN_HOST)),
 			);
 			const result = await response.json();
@@ -88,7 +99,7 @@ describe('module resolution', async () => {
 		});
 
 		test('external imports from `cloudflare:*`', async () => {
-			const response = await worker.dispatchFetch(
+			const response = await getWorker(server).dispatchFetch(
 				new Request(new URL('/external-cloudflare-imports', UNKNOWN_HOST)),
 			);
 			const result = await response.json();
@@ -108,7 +119,7 @@ describe('module resolution', async () => {
 	 */
 	describe('third party packages resolutions', () => {
 		test('react', async () => {
-			const response = await worker.dispatchFetch(
+			const response = await getWorker(server).dispatchFetch(
 				new Request(new URL('/third-party/react', UNKNOWN_HOST)),
 			);
 			const result = await response.json();
@@ -121,7 +132,7 @@ describe('module resolution', async () => {
 		});
 
 		test('@remix-run/cloudflare', async () => {
-			const response = await worker.dispatchFetch(
+			const response = await getWorker(server).dispatchFetch(
 				new Request(new URL('/third-party/remix', UNKNOWN_HOST)),
 			);
 			const result = await response.json();
@@ -134,7 +145,7 @@ describe('module resolution', async () => {
 		});
 
 		test('discord-api-types/v10', async () => {
-			const response = await worker.dispatchFetch(
+			const response = await getWorker(server).dispatchFetch(
 				new Request(new URL('/third-party/discord-api-types', UNKNOWN_HOST)),
 			);
 			const result = await response.json();
@@ -146,7 +157,7 @@ describe('module resolution', async () => {
 		});
 
 		test('slash-create', async () => {
-			const response = await worker.dispatchFetch(
+			const response = await getWorker(server).dispatchFetch(
 				new Request(new URL('/third-party/slash-create', UNKNOWN_HOST)),
 			);
 			const result = await response.json();
@@ -160,3 +171,47 @@ describe('module resolution', async () => {
 		});
 	});
 });
+
+function getWorker(server: vite.ViteDevServer) {
+	const worker = server.environments.worker;
+	assertIsFetchableDevEnvironment(worker);
+	return worker;
+}
+
+class MockLogger implements vite.Logger {
+	logs: string[][] = [];
+	hasWarned = false;
+
+	info(msg: string, options?: vite.LogOptions): void {
+		this.logs.push(['info', msg]);
+	}
+	warn(msg: string, options?: vite.LogOptions): void {
+		this.hasWarned = true;
+		this.logs.push(['warn', msg]);
+	}
+	warnOnce(msg: string, options?: vite.LogOptions): void {
+		this.hasWarned = true;
+		this.logs.push(['warnOnce', msg]);
+	}
+	error(msg: string, options?: vite.LogErrorOptions): void {
+		this.logs.push(['error', msg]);
+	}
+	clearScreen(type: vite.LogType): void {
+		this.logs.push(['clear screen']);
+	}
+	hasErrorLogged(error: Error | vite.Rollup.RollupError): boolean {
+		throw new Error('Not implemented');
+	}
+}
+
+function getFallbackErrors(logger: MockLogger) {
+	return logger.logs
+		.map(
+			(log) =>
+				log[0] === 'error' &&
+				log[1]?.match(
+					/Fallback service failed to fetch module;.+rawSpecifier=(.+)(:?&|\n)/,
+				)?.[1],
+		)
+		.filter(Boolean);
+}
