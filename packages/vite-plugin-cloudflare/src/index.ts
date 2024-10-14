@@ -28,9 +28,7 @@ import type {
 // the miniflare module definitions though, as the new paths don't exist.
 const miniflareModulesRoot = process.platform === 'win32' ? 'Z:\\' : '/';
 const WRAPPER_PATH = '__VITE_WORKER_ENTRY__';
-const RUNNER_PATH = fileURLToPath(
-	new URL('./runner/index.js', import.meta.url),
-);
+const RUNNER_PATH = './runner/index.js';
 
 export function cloudflare<
 	T extends Record<string, CloudflareEnvironmentOptions>,
@@ -140,7 +138,9 @@ export function cloudflare<
 							{
 								type: 'ESModule',
 								path: path.join(miniflareModulesRoot, RUNNER_PATH),
-								contents: fs.readFileSync(RUNNER_PATH),
+								contents: fs.readFileSync(
+									fileURLToPath(new URL(RUNNER_PATH, import.meta.url)),
+								),
 							},
 							{
 								// Declared as a CommonJS module so that `require` is made available and we are able to handle cjs imports
