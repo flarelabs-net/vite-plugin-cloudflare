@@ -1,13 +1,13 @@
 import * as vite from 'vite';
 import { UNKNOWN_HOST, INIT_PATH, invariant } from './shared';
-import type { ReplaceWorkersTypes, WebSocket, MessageEvent } from 'miniflare';
+import type {
+	ReplaceWorkersTypes,
+	WebSocket,
+	MessageEvent,
+	Miniflare,
+} from 'miniflare';
 import type { Fetcher } from '@cloudflare/workers-types/experimental';
-
-export interface CloudflareEnvironmentOptions {
-	main: string;
-	wranglerConfig?: string;
-	overrides?: vite.EnvironmentOptions;
-}
+import type { CloudflareEnvironmentOptions } from './types';
 
 interface WebSocketContainer {
 	webSocket?: WebSocket;
@@ -137,5 +137,21 @@ export function createCloudflareEnvironment(
 			webCompatible: true,
 		} satisfies vite.EnvironmentOptions,
 		options.overrides ?? {},
+	);
+}
+
+export function initRunners(
+	workerNames: string[],
+	miniflare: Miniflare,
+	viteDevServer: vite.ViteDevServer,
+): Promise<void[]> {
+	return Promise.all(
+		workerNames.map(async (workerName) => {
+			const worker = await miniflare.getWorker(workerName);
+
+			return (
+				viteDevServer.environments[workerName] as CloudflareDevEnvironment
+			).initRunner(worker);
+		}),
 	);
 }
