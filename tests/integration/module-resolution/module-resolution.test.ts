@@ -1,18 +1,22 @@
-import { beforeEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { fileURLToPath } from 'node:url';
 import * as path from 'node:path';
 import * as vite from 'vite';
 import { cloudflare } from '@flarelabs-net/vite-plugin-cloudflare';
-import { assertIsFetchableDevEnvironment, UNKNOWN_HOST } from './utils';
+import {
+	getFallbackErrors,
+	getWorker,
+	MockLogger,
+	UNKNOWN_HOST,
+} from '../test-helpers/src/utils';
 
 const root = fileURLToPath(new URL('./', import.meta.url));
-const fixtureRoot = path.join(root, 'fixtures', 'module-resolution');
 
 let server: vite.ViteDevServer;
 let customLogger: MockLogger;
 
 describe('module resolution', async () => {
-	beforeEach(async () => {
+	beforeEach(async ({ onTestFinished }) => {
 		customLogger = new MockLogger();
 		server = await vite.createServer({
 			customLogger,
@@ -20,8 +24,8 @@ describe('module resolution', async () => {
 				cloudflare({
 					workers: {
 						worker: {
-							main: path.join(fixtureRoot, 'index.ts'),
-							wranglerConfig: path.join(fixtureRoot, 'wrangler.toml'),
+							main: path.join(root, 'index.ts'),
+							wranglerConfig: path.join(root, 'wrangler.toml'),
 							overrides: {
 								resolve: {
 									// We're testing module resolution for external modules, so let's treat everything as external
@@ -36,6 +40,7 @@ describe('module resolution', async () => {
 				}),
 			],
 		});
+		onTestFinished(() => server.close());
 	});
 
 	describe('basic module resolution', () => {
@@ -171,47 +176,3 @@ describe('module resolution', async () => {
 		});
 	});
 });
-
-function getWorker(server: vite.ViteDevServer) {
-	const worker = server.environments.worker;
-	assertIsFetchableDevEnvironment(worker);
-	return worker;
-}
-
-class MockLogger implements vite.Logger {
-	logs: string[][] = [];
-	hasWarned = false;
-
-	info(msg: string, options?: vite.LogOptions): void {
-		this.logs.push(['info', msg]);
-	}
-	warn(msg: string, options?: vite.LogOptions): void {
-		this.hasWarned = true;
-		this.logs.push(['warn', msg]);
-	}
-	warnOnce(msg: string, options?: vite.LogOptions): void {
-		this.hasWarned = true;
-		this.logs.push(['warnOnce', msg]);
-	}
-	error(msg: string, options?: vite.LogErrorOptions): void {
-		this.logs.push(['error', msg]);
-	}
-	clearScreen(type: vite.LogType): void {
-		this.logs.push(['clear screen']);
-	}
-	hasErrorLogged(error: Error | vite.Rollup.RollupError): boolean {
-		throw new Error('Not implemented');
-	}
-}
-
-function getFallbackErrors(logger: MockLogger) {
-	return logger.logs
-		.map(
-			(log) =>
-				log[0] === 'error' &&
-				log[1]?.match(
-					/Fallback service failed to fetch module;.+rawSpecifier=(.+)(:?&|\n)/,
-				)?.[1],
-		)
-		.filter(Boolean);
-}
