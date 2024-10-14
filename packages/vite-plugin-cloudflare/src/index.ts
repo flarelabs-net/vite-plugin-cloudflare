@@ -29,26 +29,9 @@ import { WORKERD_CUSTOM_IMPORT_PATH } from './shared';
 // to paths ensures correct names. This requires us to specify `contents` in
 // the miniflare module definitions though, as the new paths don't exist.
 const miniflareModulesRoot = process.platform === 'win32' ? 'Z:\\' : '/';
-
-const wrapperPath = path.join(miniflareModulesRoot, '__VITE_WRAPPER_PATH__');
-
-const relativeRunnerPathSegments = ['runner', 'index.js'];
-const runnerPath = path.join(
-	miniflareModulesRoot,
-	...relativeRunnerPathSegments,
-);
-
-/**
- * Note: workerd requires standard unix paths, so without the potential `Z:` prefix (and not created with `path.join`
- *       which in theory can use the windows path separator), that's why this path is constructed in the way it is
- */
-const relativeRunnerWorkerdPath = ['.', ...relativeRunnerPathSegments].join(
-	'/',
-);
-
-const workerdCustomImportPath = path.join(
-	miniflareModulesRoot,
-	WORKERD_CUSTOM_IMPORT_PATH,
+const WRAPPER_PATH = '__VITE_WORKER_ENTRY__';
+const RUNNER_PATH = fileURLToPath(
+	new URL('./runner/index.js', import.meta.url),
 );
 
 export function cloudflare<
@@ -139,7 +122,7 @@ export function cloudflare<
 			const miniflare = new Miniflare({
 				workers: workers.map((workerOptions) => {
 					const wrappers = [
-						`import { createWorkerEntrypointWrapper, createDurableObjectWrapper } from '${relativeRunnerWorkerdPath}';`,
+						`import { createWorkerEntrypointWrapper, createDurableObjectWrapper } from '${RUNNER_PATH}';`,
 						`export default createWorkerEntrypointWrapper('default');`,
 					];
 
@@ -177,27 +160,21 @@ export function cloudflare<
 						modules: [
 							{
 								type: 'ESModule',
-								path: wrapperPath,
+								path: path.join(miniflareModulesRoot, WRAPPER_PATH),
 								contents: wrappers.join('\n'),
 							},
 							{
 								type: 'ESModule',
-								path: runnerPath,
-								contents: fs.readFileSync(
-									fileURLToPath(
-										new URL(
-											path.join(...relativeRunnerPathSegments),
-											import.meta.url,
-										),
-									),
-									'utf8',
-								),
+								path: path.join(miniflareModulesRoot, RUNNER_PATH),
+								contents: fs.readFileSync(RUNNER_PATH),
 							},
 							{
-								// we declare the workerd-custom-import as a CommonJS module, thanks to this
-								// require is made available in the module and we are able to handle cjs imports
+								// Declared as a CommonJS module so that `require` is made available and we are able to handle cjs imports
 								type: 'CommonJS',
-								path: workerdCustomImportPath,
+								path: path.join(
+									miniflareModulesRoot,
+									WORKERD_CUSTOM_IMPORT_PATH,
+								),
 								contents: 'module.exports = path => import(path)',
 							},
 						],
