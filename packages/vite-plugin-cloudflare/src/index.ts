@@ -40,17 +40,19 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 			await initRunners(normalizedPluginConfig, miniflare, viteDevServer);
 
 			viteDevServer.watcher.on('all', async (_, path) => {
-				if (wranglerConfigPaths.has(path)) {
-					await miniflare.setOptions(
-						getMiniflareOptions(
-							normalizedPluginConfig,
-							viteConfig,
-							viteDevServer,
-						),
-					);
-
-					await initRunners(normalizedPluginConfig, miniflare, viteDevServer);
+				if (!wranglerConfigPaths.has(path)) {
+					return;
 				}
+
+				await miniflare.setOptions(
+					getMiniflareOptions(
+						normalizedPluginConfig,
+						viteConfig,
+						viteDevServer,
+					),
+				);
+
+				await initRunners(normalizedPluginConfig, miniflare, viteDevServer);
 			});
 
 			const middleware =
