@@ -1,7 +1,4 @@
 {
 	"extends": "@vite-plugin-cloudflare/typescript-config/base.json",
-	"include": ["*.test.ts"],
-	"compilerOptions": {
-		"noEmit": true
-	}
+	"include": ["*.test.ts"]
 }
