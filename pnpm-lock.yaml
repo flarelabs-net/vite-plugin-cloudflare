@@ -25,22 +25,21 @@ catalogs:
 importers:
 
   .:
-    dependencies:
+    devDependencies:
       '@ianvs/prettier-plugin-sort-imports':
         specifier: ^4.3.1
         version: 4.3.1(prettier@3.3.3)
-      prettier-plugin-packagejson:
-        specifier: ^2.5.3
-        version: 2.5.3(prettier@3.3.3)
-    devDependencies:
       prettier:
         specifier: ^3.3.3
         version: 3.3.3
+      prettier-plugin-packagejson:
+        specifier: ^2.5.3
+        version: 2.5.3(prettier@3.3.3)
 
   examples/durable-object:
     devDependencies:
       '@cloudflare/workers-types':
-        specifier: ^4.20241004.0
+        specifier: catalog:default
         version: 4.20241011.0
       '@flarelabs-net/vite-plugin-cloudflare':
         specifier: workspace:*
@@ -76,7 +75,7 @@ importers:
   examples/worker:
     devDependencies:
       '@cloudflare/workers-types':
-        specifier: ^4.20241004.0
+        specifier: catalog:default
         version: 4.20241011.0
       '@flarelabs-net/vite-plugin-cloudflare':
         specifier: workspace:*
@@ -85,10 +84,10 @@ importers:
         specifier: workspace:*
         version: link:../../packages/typescript-config
       vite:
-        specifier: 6.0.0-beta.2
+        specifier: catalog:default
         version: 6.0.0-beta.2(@types/node@22.5.5)
       wrangler:
-        specifier: ^3.80.4
+        specifier: catalog:default
         version: 3.80.4(@cloudflare/workers-types@4.20241011.0)
 
   packages/typescript-config: {}

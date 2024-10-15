@@ -7,24 +7,20 @@
 		"directory": "packages/vite-plugin-cloudflare"
 	},
 	"license": "MIT",
+	"sideEffects": false,
 	"type": "module",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"sideEffects": false,
 	"scripts": {
 		"build": "tsup",
-		"watch": "tsup --watch",
+		"check:types": "tsc --build",
 		"test": "vitest run --passWithNoTests",
-		"types:check": "tsc --build"
-	},
-	"peerDependencies": {
-		"vite": "catalog:default",
-		"wrangler": "^3.80.4"
+		"watch": "tsup --watch"
 	},
 	"dependencies": {
 		"@hattip/adapter-node": "^0.0.48",
-		"miniflare": "^3.20241004.0",
-		"cjs-module-lexer": "^1.4.1"
+		"cjs-module-lexer": "^1.4.1",
+		"miniflare": "^3.20241004.0"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "catalog:default",
@@ -34,6 +30,10 @@
 		"typescript": "catalog:default",
 		"vite": "catalog:default",
 		"vitest": "catalog:default",
+		"wrangler": "catalog:default"
+	},
+	"peerDependencies": {
+		"vite": "catalog:default",
 		"wrangler": "catalog:default"
 	}
 }

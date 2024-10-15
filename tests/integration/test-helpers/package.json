@@ -3,7 +3,7 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"types:check": "tsc"
+		"check:types": "tsc"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "catalog:default",
