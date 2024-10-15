@@ -7,7 +7,7 @@
 		"types:check": "tsc --build"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20241004.0",
+		"@cloudflare/workers-types": "catalog:default",
 		"@cloudflare-dev-module-resolution/cloudflare-imports": "file:./packages/cloudflare-imports",
 		"@cloudflare-dev-module-resolution/requires": "file:./packages/requires",
 		"@flarelabs-net/vite-plugin-cloudflare": "workspace:*",
@@ -17,9 +17,9 @@
 		"discord-api-types": "0.37.98",
 		"react": "18.3.1",
 		"slash-create": "6.2.1",
-		"typescript": "^5.6.2",
-		"vite": "6.0.0-beta.2",
-		"vitest": "^2.1.2",
-		"wrangler": "^3.80.4"
+		"typescript": "catalog:default",
+		"vite": "catalog:default",
+		"vitest": "catalog:default",
+		"wrangler": "catalog:default"
 	}
 }

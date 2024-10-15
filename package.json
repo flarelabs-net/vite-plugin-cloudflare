@@ -11,7 +11,6 @@
 		"postinstall": "pnpm -r build"
 	},
 	"devDependencies": {
-		"prettier": "^3.3.3",
-		"syncpack": "^13.0.0"
+		"prettier": "^3.3.3"
 	}
 }
