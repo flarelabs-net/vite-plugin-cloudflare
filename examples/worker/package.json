@@ -12,6 +12,8 @@
 		"@vite-plugin-cloudflare/typescript-config": "workspace:*",
 		"vite": "catalog:default",
 		"wrangler": "catalog:default",
-		"zod": "^3.23.8"
+		"zod": "^3.23.8",
+		"react": "^18.3.1",
+		"@types/react": "^18.3.1"
 	}
 }

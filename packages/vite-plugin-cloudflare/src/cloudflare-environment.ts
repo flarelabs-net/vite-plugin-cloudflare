@@ -126,6 +126,12 @@ export function createCloudflareEnvironment(
 				createEnvironment(name, config) {
 					return new CloudflareDevEnvironment(name, config);
 				},
+				optimizeDeps: {
+					// Note: vite starts crawling the dependencies from the optimizeDeps entries
+					//       which by default only contains `index.html`, on the server we do need
+					//       to provide such entries ourselves
+					entries: [options.main],
+				}
 			},
 			build: {
 				createEnvironment(name, config) {

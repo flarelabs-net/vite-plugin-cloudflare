@@ -80,9 +80,15 @@ importers:
       '@flarelabs-net/vite-plugin-cloudflare':
         specifier: workspace:*
         version: link:../../packages/vite-plugin-cloudflare
+      '@types/react':
+        specifier: ^18.3.1
+        version: 18.3.11
       '@vite-plugin-cloudflare/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
       vite:
         specifier: /Users/dario/Repos/my-repos/vite/packages/vite
         version: link:../../../my-repos/vite/packages/vite
