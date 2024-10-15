@@ -5,13 +5,14 @@ import {
 	createCloudflareEnvironment,
 	initRunners,
 } from './cloudflare-environment';
+import { normalizePluginConfig } from './plugin-config';
 import { getMiniflareOptions } from './miniflare-options';
+import type { WorkerOptions, PluginConfig } from './plugin-config';
 import type { CloudflareDevEnvironment } from './cloudflare-environment';
-import type { CloudflareEnvironmentOptions, PluginConfig } from './types';
 
-export function cloudflare<
-	T extends Record<string, CloudflareEnvironmentOptions>,
->(pluginConfig: PluginConfig<T>): vite.Plugin {
+export function cloudflare<T extends Record<string, WorkerOptions>>(
+	pluginConfig: PluginConfig<T>,
+): vite.Plugin {
 	let viteConfig: vite.ResolvedConfig;
 
 	return {
@@ -29,13 +30,28 @@ export function cloudflare<
 			viteConfig = resolvedConfig;
 		},
 		async configureServer(viteDevServer) {
+			const { normalizedPluginConfig, wranglerConfigPaths } =
+				normalizePluginConfig(pluginConfig, viteConfig);
+
 			const miniflare = new Miniflare(
-				getMiniflareOptions(pluginConfig, viteConfig, viteDevServer),
+				getMiniflareOptions(normalizedPluginConfig, viteConfig, viteDevServer),
 			);
 
-			const workerNames = Object.keys(pluginConfig.workers);
+			await initRunners(normalizedPluginConfig, miniflare, viteDevServer);
 
-			await initRunners(workerNames, miniflare, viteDevServer);
+			viteDevServer.watcher.on('all', async (_, path) => {
+				if (wranglerConfigPaths.has(path)) {
+					await miniflare.setOptions(
+						getMiniflareOptions(
+							normalizedPluginConfig,
+							viteConfig,
+							viteDevServer,
+						),
+					);
+
+					await initRunners(normalizedPluginConfig, miniflare, viteDevServer);
+				}
+			});
 
 			const middleware =
 				pluginConfig.entryWorker &&

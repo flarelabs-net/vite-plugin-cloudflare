@@ -8,10 +8,8 @@ import { invariant, WORKERD_CUSTOM_IMPORT_PATH } from './shared';
 import { getResolveId, getModuleFallbackHandler } from './module-fallback';
 import type { SharedOptions, WorkerOptions, MiniflareOptions } from 'miniflare';
 import type { FetchFunctionOptions } from 'vite/module-runner';
-import type { CloudflareEnvironmentOptions, PluginConfig } from './types';
+import type { NormalizedPluginConfig } from './plugin-config';
 import type { CloudflareDevEnvironment } from './cloudflare-environment';
-
-const DEFAULT_PERSIST_PATH = '.wrangler/state/v3';
 
 type PersistOptions = Pick<
 	SharedOptions,
@@ -22,22 +20,17 @@ type PersistOptions = Pick<
 	| 'r2Persist'
 >;
 
-export function getPersistence(
-	persistTo: string | false | undefined,
-	root: string,
-): PersistOptions {
-	if (persistTo === false) {
+export function getPersistence(persistPath: string | false): PersistOptions {
+	if (persistPath === false) {
 		return {};
 	}
 
-	const rootPersistPath = path.resolve(root, persistTo ?? DEFAULT_PERSIST_PATH);
-
 	return {
-		cachePersist: path.join(rootPersistPath, 'cache'),
-		d1Persist: path.join(rootPersistPath, 'd1'),
-		durableObjectsPersist: path.join(rootPersistPath, 'do'),
-		kvPersist: path.join(rootPersistPath, 'kv'),
-		r2Persist: path.join(rootPersistPath, 'r2'),
+		cachePersist: path.join(persistPath, 'cache'),
+		d1Persist: path.join(persistPath, 'd1'),
+		durableObjectsPersist: path.join(persistPath, 'do'),
+		kvPersist: path.join(persistPath, 'kv'),
+		r2Persist: path.join(persistPath, 'r2'),
 	};
 }
 
@@ -122,37 +115,30 @@ const miniflareModulesRoot = process.platform === 'win32' ? 'Z:\\' : '/';
 const WRAPPER_PATH = '__VITE_WORKER_ENTRY__';
 const RUNNER_PATH = './runner/index.js';
 
-export function getMiniflareOptions<
-	T extends Record<string, CloudflareEnvironmentOptions>,
->(
-	pluginConfig: PluginConfig<T>,
+export function getMiniflareOptions(
+	normalizedPluginConfig: NormalizedPluginConfig,
 	viteConfig: vite.ResolvedConfig,
 	viteDevServer: vite.ViteDevServer,
 ): MiniflareOptions {
-	const workers = Object.entries(pluginConfig.workers).map(
-		([name, options]) => {
-			const miniflareOptions = unstable_getMiniflareWorkerOptions(
-				path.resolve(
-					viteConfig.root,
-					options.wranglerConfig ?? './wrangler.toml',
-				),
-			);
+	const workers = normalizedPluginConfig.workers.map((worker) => {
+		const miniflareOptions = unstable_getMiniflareWorkerOptions(
+			worker.wranglerConfigPath,
+		);
 
-			const { ratelimits, ...workerOptions } = miniflareOptions.workerOptions;
+		const { ratelimits, ...workerOptions } = miniflareOptions.workerOptions;
 
-			return {
-				...workerOptions,
-				name,
-				modulesRoot: miniflareModulesRoot,
-				unsafeEvalBinding: '__VITE_UNSAFE_EVAL__',
-				bindings: {
-					...workerOptions.bindings,
-					__VITE_ROOT__: viteConfig.root,
-					__VITE_ENTRY_PATH__: options.main,
-				},
-			} satisfies Partial<WorkerOptions>;
-		},
-	);
+		return {
+			...workerOptions,
+			name: worker.name,
+			modulesRoot: miniflareModulesRoot,
+			unsafeEvalBinding: '__VITE_UNSAFE_EVAL__',
+			bindings: {
+				...workerOptions.bindings,
+				__VITE_ROOT__: viteConfig.root,
+				__VITE_ENTRY_PATH__: worker.entryPath,
+			},
+		} satisfies Partial<WorkerOptions>;
+	});
 
 	const workerToWorkerEntrypointNamesMap =
 		getWorkerToWorkerEntrypointNamesMap(workers);
@@ -170,7 +156,7 @@ export function getMiniflareOptions<
 	const resolveId = getResolveId(viteConfig, devEnvironment);
 
 	return {
-		...getPersistence(pluginConfig.persistTo, viteConfig.root),
+		...getPersistence(normalizedPluginConfig.persistPath),
 		workers: workers.map((workerOptions) => {
 			const wrappers = [
 				`import { createWorkerEntrypointWrapper, createDurableObjectWrapper } from '${RUNNER_PATH}';`,
