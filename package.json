@@ -2,13 +2,17 @@
 	"name": "vite-plugin-cloudflare",
 	"license": "MIT",
 	"scripts": {
-		"types:check": "pnpm -r types:check",
-		"prettier:check": "prettier --check .",
-		"prettier:fix": "prettier --write .",
-		"check": "pnpm run types:check && pnpm run prettier:check",
+		"check": "pnpm run check:types && pnpm run check:prettier",
+		"check:prettier": "prettier --check .",
+		"check:types": "pnpm -r types:check",
 		"fix": "pnpm run prettier:fix",
-		"test": "pnpm -r test",
-		"postinstall": "pnpm -r build"
+		"fix:prettier": "prettier --write .",
+		"postinstall": "pnpm -r build",
+		"test": "pnpm -r test"
+	},
+	"dependencies": {
+		"@ianvs/prettier-plugin-sort-imports": "^4.3.1",
+		"prettier-plugin-packagejson": "^2.5.3"
 	},
 	"devDependencies": {
 		"prettier": "^3.3.3"
