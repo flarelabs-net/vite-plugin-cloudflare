@@ -11,6 +11,7 @@
 		"@flarelabs-net/vite-plugin-cloudflare": "workspace:*",
 		"@vite-plugin-cloudflare/typescript-config": "workspace:*",
 		"vite": "catalog:default",
-		"wrangler": "catalog:default"
+		"wrangler": "catalog:default",
+		"zod": "^3.23.8"
 	}
 }
