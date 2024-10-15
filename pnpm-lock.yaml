@@ -86,9 +86,15 @@ importers:
       '@vite-plugin-cloudflare/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
+      discord-api-types:
+        specifier: ^0.37.102
+        version: 0.37.102
       react:
         specifier: ^18.3.1
         version: 18.3.1
+      slash-create:
+        specifier: ^6.3.0
+        version: 6.3.0
       vite:
         specifier: /Users/dario/Repos/my-repos/vite/packages/vite
         version: link:../../../my-repos/vite/packages/vite
@@ -1112,6 +1118,9 @@ packages:
     resolution: {integrity: sha512-WkrWp9GR4KXfKGYzOLmTuGVi1UWFfws377n9cc55/tb6DuqyF6pcQ5AbiHEshaDpY9v6oaSr2XCDidGmMwdzIA==}
     engines: {node: '>=8'}
 
+  discord-api-types@0.37.102:
+    resolution: {integrity: sha512-5+m5twqG8n77rLhKuh2c/971UWszEL/c3KbdvVLUBTPXuS8PbYC/7W7NYhwP02qowjj6CHoKYZbD0ppOUCsT6g==}
+
   discord-api-types@0.37.98:
     resolution: {integrity: sha512-xsH4UwmnCQl4KjAf01/p9ck9s+/vDqzHbUxPOBzo8fcVUa/hQG6qInD7Cr44KAuCM+xCxGJFSAUx450pBrX0+g==}
 
@@ -1603,6 +1612,18 @@ packages:
 
   slash-create@6.2.1:
     resolution: {integrity: sha512-ootudSRNVVeOdTgD4WLWwLOhw31Tfgi3243du3UiqDpGcAUJQNJ4dSBRcf44pmlmT7T/8YppHU1bS847S1iYbg==}
+    engines: {node: '>=16'}
+    peerDependencies:
+      express: ^4
+      fastify: ^3 || ^4
+    peerDependenciesMeta:
+      express:
+        optional: true
+      fastify:
+        optional: true
+
+  slash-create@6.3.0:
+    resolution: {integrity: sha512-v8f4q8DIFu1TpqS9ynSP3kBfB6zhGa1mCA94P9iIx9UmkDy4kYguG9Lpn6NIZpt9AScspSsc7D6glwDtz9oCfQ==}
     engines: {node: '>=16'}
     peerDependencies:
       express: ^4
@@ -2583,6 +2604,8 @@ snapshots:
     dependencies:
       path-type: 4.0.0
 
+  discord-api-types@0.37.102: {}
+
   discord-api-types@0.37.98: {}
 
   eastasianwidth@0.2.0: {}
@@ -3042,6 +3065,13 @@ snapshots:
   signal-exit@4.1.0: {}
 
   slash-create@6.2.1:
+    dependencies:
+      eventemitter3: 5.0.1
+      lodash.isequal: 4.5.0
+      tweetnacl: 1.0.3
+      undici: 5.28.4
+
+  slash-create@6.3.0:
     dependencies:
       eventemitter3: 5.0.1
       lodash.isequal: 4.5.0
