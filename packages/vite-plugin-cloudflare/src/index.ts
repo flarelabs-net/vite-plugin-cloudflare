@@ -1,3 +1,4 @@
+import * as path from 'node:path';
 import { createMiddleware } from '@hattip/adapter-node';
 import { Miniflare } from 'miniflare';
 import * as vite from 'vite';
@@ -19,11 +20,31 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 		name: 'vite-plugin-cloudflare',
 		config() {
 			return {
+				appType: 'custom',
+				builder: {
+					async buildApp(builder) {
+						const environments = Object.keys(pluginConfig.workers).map(
+							(name) => builder.environments[name],
+						);
+
+						await Promise.all(
+							environments.map(
+								(environment) => environment && builder.build(environment),
+							),
+						);
+					},
+				},
 				environments: Object.fromEntries(
 					Object.entries(pluginConfig.workers).map(([name, options]) => {
 						return [name, createCloudflareEnvironment(options)];
 					}),
 				),
+			};
+		},
+		configEnvironment(name, options) {
+			options.build = {
+				...options.build,
+				outDir: path.join('dist', name),
 			};
 		},
 		configResolved(resolvedConfig) {
