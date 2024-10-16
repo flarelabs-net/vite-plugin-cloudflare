@@ -8,6 +8,7 @@ import {
 } from './cloudflare-environment';
 import { getMiniflareOptions } from './miniflare-options';
 import { normalizePluginConfig } from './plugin-config';
+import { invariant } from './shared';
 import type { CloudflareDevEnvironment } from './cloudflare-environment';
 import type { PluginConfig, WorkerOptions } from './plugin-config';
 
@@ -24,13 +25,16 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 				builder: {
 					async buildApp(builder) {
 						const environments = Object.keys(pluginConfig.workers).map(
-							(name) => builder.environments[name],
+							(name) => {
+								const environment = builder.environments[name];
+								invariant(environment, `${name} environment not found`);
+
+								return environment;
+							},
 						);
 
 						await Promise.all(
-							environments.map(
-								(environment) => environment && builder.build(environment),
-							),
+							environments.map((environment) => builder.build(environment)),
 						);
 					},
 				},
