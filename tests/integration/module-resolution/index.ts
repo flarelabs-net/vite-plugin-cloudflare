@@ -11,6 +11,10 @@ const allowedPaths = new Set([
 	'/third-party/slash-create',
 ]);
 
+// Needed by the react 3rd party library
+// Turning on nodejs_compat v2 causes the `slash-create` library to fail
+globalThis.process = { env: {} } as (typeof globalThis)['process'];
+
 export default {
 	async fetch(request) {
 		const url = new URL(request.url);
