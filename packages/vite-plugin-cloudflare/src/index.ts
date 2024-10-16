@@ -58,24 +58,13 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 			const { normalizedPluginConfig, wranglerConfigPaths } =
 				normalizePluginConfig(pluginConfig, viteConfig);
 
-			let error: Error | undefined;
-			let miniflare: Miniflare;
+			let error: unknown;
 
-			try {
-				miniflare = new Miniflare(
-					getMiniflareOptions(
-						normalizedPluginConfig,
-						viteConfig,
-						viteDevServer,
-					),
-				);
+			const miniflare = new Miniflare(
+				getMiniflareOptions(normalizedPluginConfig, viteConfig, viteDevServer),
+			);
 
-				await initRunners(normalizedPluginConfig, miniflare, viteDevServer);
-			} catch (err) {
-				if (err instanceof Error) {
-					error = err;
-				}
-			}
+			await initRunners(normalizedPluginConfig, miniflare, viteDevServer);
 
 			viteDevServer.watcher.on('all', async (_, path) => {
 				if (!wranglerConfigPaths.has(path)) {
@@ -94,14 +83,10 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 					await initRunners(normalizedPluginConfig, miniflare, viteDevServer);
 
 					error = undefined;
-
 					viteDevServer.environments.client.hot.send({ type: 'full-reload' });
 				} catch (err) {
-					if (err instanceof Error) {
-						error = err;
-
-						viteDevServer.environments.client.hot.send({ type: 'full-reload' });
-					}
+					error = err;
+					viteDevServer.environments.client.hot.send({ type: 'full-reload' });
 				}
 			});
 
