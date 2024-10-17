@@ -127,11 +127,14 @@ export function createCloudflareEnvironment(
 					return new CloudflareDevEnvironment(name, config);
 				},
 				optimizeDeps: {
+					// Note: ssr pre-bundling is opt-in, and we need to enabled it by setting
+					//       noDiscovery to false
+					noDiscovery: false,
 					// Note: vite starts crawling the dependencies from the optimizeDeps entries
 					//       which by default only contains `index.html`, on the server we do need
 					//       to provide such entries ourselves
 					entries: [options.main],
-				}
+				},
 			},
 			build: {
 				createEnvironment(name, config) {
