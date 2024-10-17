@@ -126,6 +126,11 @@ export function createCloudflareEnvironment(
 				createEnvironment(name, config) {
 					return new CloudflareDevEnvironment(name, config);
 				},
+				optimizeDeps: {
+					// Note: ssr pre-bundling is opt-in, and we need to enabled it by setting
+					//       noDiscovery to false
+					noDiscovery: false,
+				},
 			},
 			build: {
 				createEnvironment(name, config) {
@@ -133,6 +138,10 @@ export function createCloudflareEnvironment(
 				},
 				ssr: true,
 				rollupOptions: {
+					// Note: vite starts dev pre-bundling crawling from either optimizeDeps.entries or rollupOptions.input
+					//       so the input value here serves both as the build input as well as the starting point for
+					//       dev pre-bundling crawling (were we not to set this input field we'd have to appropriately set
+					//       optimizeDeps.entries in the dev config)
 					input: options.main,
 					external: [
 						'cloudflare:email',

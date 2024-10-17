@@ -11,6 +11,11 @@
 		"@flarelabs-net/vite-plugin-cloudflare": "workspace:*",
 		"@vite-plugin-cloudflare/typescript-config": "workspace:*",
 		"vite": "catalog:default",
-		"wrangler": "catalog:default"
+		"wrangler": "catalog:default",
+		"zod": "^3.23.8",
+		"react": "^18.3.1",
+		"@types/react": "^18.3.1",
+		"slash-create": "^6.3.0",
+		"discord-api-types": "^0.37.102"
 	}
 }

@@ -28,11 +28,7 @@ export function getResolveId(
 	});
 
 	return function resolveId(id, importer, options) {
-		const resolveMethod = options?.resolveMethod ?? 'import';
-		const resolveIdFn =
-			resolveMethod === 'import' ? esmResolveId : cjsResolveId;
-
-		return resolveIdFn(devEnvironment, id, importer);
+		throw new Error('Not implemented');
 	};
 }
 
