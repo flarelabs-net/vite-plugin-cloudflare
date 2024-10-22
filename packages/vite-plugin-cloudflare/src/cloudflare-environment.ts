@@ -135,6 +135,7 @@ export function createCloudflareEnvironment(
 					// Note: ssr pre-bundling is opt-in, and we need to enabled it by setting
 					//       noDiscovery to false
 					noDiscovery: false,
+					exclude: [...getWorkerdBuiltIns()],
 				},
 			},
 			build: {
@@ -175,4 +176,74 @@ export function initRunners(
 			).initRunner(worker);
 		}),
 	);
+}
+
+function getWorkerdBuiltIns() {
+	// source: https://github.com/sindresorhus/builtin-modules/blob/main/builtin-modules.json
+	const nodePlainBuiltIns = [
+		'assert',
+		'assert/strict',
+		'async_hooks',
+		'buffer',
+		'child_process',
+		'cluster',
+		'console',
+		'constants',
+		'crypto',
+		'dgram',
+		'diagnostics_channel',
+		'dns',
+		'dns/promises',
+		'domain',
+		'events',
+		'fs',
+		'fs/promises',
+		'http',
+		'http2',
+		'https',
+		'inspector',
+		'inspector/promises',
+		'module',
+		'net',
+		'os',
+		'path',
+		'path/posix',
+		'path/win32',
+		'perf_hooks',
+		'process',
+		'punycode',
+		'querystring',
+		'readline',
+		'readline/promises',
+		'repl',
+		'stream',
+		'stream/consumers',
+		'stream/promises',
+		'stream/web',
+		'string_decoder',
+		'timers',
+		'timers/promises',
+		'tls',
+		'trace_events',
+		'tty',
+		'url',
+		'util',
+		'util/types',
+		'v8',
+		'vm',
+		'wasi',
+		'worker_threads',
+		'zlib',
+	];
+	const nodeBuiltIns = [
+		...nodePlainBuiltIns,
+		...nodePlainBuiltIns.map((mod) => `node:${mod}`),
+	];
+
+	const cloudflareBuiltIns = ['cloudflare:workers', 'cloudflare:sockets'];
+
+	// Note: we always include the node built-ins even if the worker is not under nodejs_compat, this makes it so
+	//       that vite does not error on pre-bundling. If the worker is not under nodejs_compat then an error should
+	//       occur later on in any case
+	return [...nodeBuiltIns, ...cloudflareBuiltIns];
 }

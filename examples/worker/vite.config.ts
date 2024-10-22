@@ -14,11 +14,6 @@ export default defineConfig({
 				worker: {
 					main: './src/index.ts',
 					wranglerConfig: './src/wrangler.toml',
-					overrides: {
-						// Note: this sets esbuild's platform to node, allowing it to accept
-						//       imports such as module, node:module, buffer, node:buffer, etc...
-						webCompatible: false,
-					},
 				},
 			},
 			entryWorker: 'worker',
