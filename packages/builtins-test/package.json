@@ -1,0 +1,11 @@
+{
+	"name": "@cloudflare-dev-module-resolution/builtins",
+	"version": "1.0.0",
+	"description": "a packages which requires/imports builtin modules",
+	"exports": {
+		"./cjs": {
+			"default": "./cjs.js",
+			"types": "./cjs.d.ts"
+		}
+	}
+}

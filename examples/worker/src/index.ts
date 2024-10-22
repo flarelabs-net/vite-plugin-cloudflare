@@ -1,17 +1,18 @@
-import { OK } from 'zod';
-import React, { version as ReactVersion } from 'react';
+import { maxLength } from '@cloudflare-dev-module-resolution/builtins/cjs';
 import { RPCErrorCodes, Utils } from 'discord-api-types/v10';
+import React, { version as ReactVersion } from 'react';
 import { Collection, SlashCreator, VERSION } from 'slash-create/web';
+import { OK } from 'zod';
 
 const slashCreatorInstance = new SlashCreator({
 	applicationID: 'xxx',
 });
 
 const myCollection = new Collection([['a number', 54321]]);
-
 export default {
 	async fetch() {
 		return Response.json({
+			userAgent: navigator.userAgent,
 			'zod.OK.name': OK.name,
 			'typeof React': typeof React,
 			'react version': ReactVersion,
@@ -24,6 +25,7 @@ export default {
 			),
 			'(discord-api-types/v10) RPCErrorCodes.InvalidUser':
 				RPCErrorCodes.InvalidUser,
+			'node:buffer MAX_LENGTH': maxLength,
 		});
 	},
 };

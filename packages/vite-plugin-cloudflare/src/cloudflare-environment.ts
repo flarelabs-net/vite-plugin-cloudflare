@@ -120,10 +120,16 @@ export class CloudflareDevEnvironment extends vite.DevEnvironment {
 export function createCloudflareEnvironment(
 	options: WorkerOptions,
 ): vite.EnvironmentOptions {
+	console.log(
+		`\x1b[35m ===> ${JSON.stringify({ overrides: options.overrides })} \x1b[0m`,
+	);
+
 	return vite.mergeConfig(
 		{
 			resolve: {
-				external: true,
+				// Note: in order for ssr pre-bundling to take effect we need to ask vite to treat all
+				//       dependencies as not external
+				noExternal: true,
 			},
 			dev: {
 				createEnvironment(name, config) {

@@ -74,6 +74,9 @@ importers:
 
   examples/worker:
     devDependencies:
+      '@cloudflare-dev-module-resolution/builtins':
+        specifier: workspace:*
+        version: link:../../packages/builtins-test
       '@cloudflare/workers-types':
         specifier: catalog:default
         version: 4.20241011.0
@@ -104,6 +107,8 @@ importers:
       zod:
         specifier: ^3.23.8
         version: 3.23.8
+
+  packages/builtins-test: {}
 
   packages/typescript-config: {}
 
@@ -159,8 +164,8 @@ importers:
         specifier: catalog:default
         version: 5.6.2
       vite:
-        specifier: catalog:default
-        version: 6.0.0-beta.2(@types/node@22.5.5)
+        specifier: /Users/dario/Repos/my-repos/vite/packages/vite
+        version: link:../../../../my-repos/vite/packages/vite
       vitest:
         specifier: catalog:default
         version: 2.1.2(@types/node@22.5.5)

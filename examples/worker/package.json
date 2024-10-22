@@ -16,6 +16,7 @@
 		"react": "^18.3.1",
 		"@types/react": "^18.3.1",
 		"slash-create": "^6.3.0",
-		"discord-api-types": "^0.37.102"
+		"discord-api-types": "^0.37.102",
+		"@cloudflare-dev-module-resolution/builtins": "workspace:*"
 	}
 }
