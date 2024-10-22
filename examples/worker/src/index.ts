@@ -1,3 +1,4 @@
+import buffer from 'buffer';
 import { maxLength } from '@cloudflare-dev-module-resolution/builtins/cjs';
 import { RPCErrorCodes, Utils } from 'discord-api-types/v10';
 import React, { version as ReactVersion } from 'react';
@@ -25,7 +26,8 @@ export default {
 			),
 			'(discord-api-types/v10) RPCErrorCodes.InvalidUser':
 				RPCErrorCodes.InvalidUser,
-			'node:buffer MAX_LENGTH': maxLength,
+			'(from dependency) node:buffer MAX_LENGTH': maxLength,
+			'(from userland) node:buffer MAX_LENGTH': buffer.constants.MAX_LENGTH,
 		});
 	},
 };
