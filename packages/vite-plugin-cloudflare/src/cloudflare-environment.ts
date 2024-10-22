@@ -122,6 +122,9 @@ export function createCloudflareEnvironment(
 ): vite.EnvironmentOptions {
 	return vite.mergeConfig(
 		{
+			resolve: {
+				external: true,
+			},
 			dev: {
 				createEnvironment(name, config) {
 					return new CloudflareDevEnvironment(name, config);
