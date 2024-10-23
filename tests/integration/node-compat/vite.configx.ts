@@ -10,7 +10,7 @@ export default defineConfig({
 					wranglerConfig: './worker/wrangler.toml',
 				},
 			},
-			entryWorker: 'worker',
+			persistTo: false,
 		}),
 	],
 });

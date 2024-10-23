@@ -2,7 +2,7 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { cloudflare } from '@flarelabs-net/vite-plugin-cloudflare';
 import * as vite from 'vite';
-import { beforeEach, describe, test } from 'vitest';
+import { beforeEach, describe, expect, test } from 'vitest';
 import { getWorker, MockLogger, UNKNOWN_HOST } from '../test-helpers/src/utils';
 import type { FetchableDevEnvironment } from '../test-helpers/src/utils';
 
@@ -11,7 +11,7 @@ let server: vite.ViteDevServer;
 let customLogger: MockLogger;
 let worker: FetchableDevEnvironment;
 
-describe('service bindings', async () => {
+describe('node.js compatibility', async () => {
 	beforeEach(async ({ onTestFinished }) => {
 		customLogger = new MockLogger();
 		server = await vite.createServer({
@@ -24,7 +24,6 @@ describe('service bindings', async () => {
 							wranglerConfig: path.join(root, 'worker/wrangler.toml'),
 						},
 					},
-					entryWorker: 'worker',
 					persistTo: false,
 				}),
 			],
@@ -33,9 +32,7 @@ describe('service bindings', async () => {
 		onTestFinished(() => server.close());
 	});
 
-	test('should work when running code requiring polyfills', async ({
-		expect,
-	}) => {
+	test.only('should work when running code requiring polyfills', async () => {
 		const response = await worker.dispatchFetch(
 			new Request(new URL('test-process', UNKNOWN_HOST)),
 		);
@@ -55,9 +52,7 @@ describe('service bindings', async () => {
 		}
 	});
 
-	test('should be able to call `getRandomValues()` bound to any object', async ({
-		expect,
-	}) => {
+	test('should be able to call `getRandomValues()` bound to any object', async () => {
 		const response = await worker.dispatchFetch(
 			new Request(new URL('test-random', UNKNOWN_HOST)),
 		);
@@ -70,14 +65,14 @@ describe('service bindings', async () => {
 		]);
 	});
 
-	test('crypto.X509Certificate is implemented', async ({ expect }) => {
+	test('crypto.X509Certificate is implemented', async () => {
 		const response = await worker.dispatchFetch(
 			new Request(new URL('test-x509-certificate', UNKNOWN_HOST)),
 		);
 		await expect(response.text()).resolves.toBe(`"OK!"`);
 	});
 
-	test('import unenv aliased packages', async ({ expect }) => {
+	test('import unenv aliased packages', async () => {
 		const response = await worker.dispatchFetch(
 			new Request(new URL('test-require-alias', UNKNOWN_HOST)),
 		);

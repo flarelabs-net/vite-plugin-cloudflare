@@ -1,5 +1,5 @@
 {
-	"name": "@tests/integration-basic-functionality",
+	"name": "@tests/integration-node-compat",
 	"private": true,
 	"type": "module",
 	"scripts": {

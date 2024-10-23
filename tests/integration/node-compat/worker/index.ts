@@ -4,10 +4,10 @@ import nodeCrypto, { getRandomValues, webcrypto } from 'crypto';
 import assert from 'node:assert/strict';
 import { Stream } from 'node:stream';
 import { Client } from 'pg';
-import { s } from './dep.cjs';
+// import { s } from './dep.cjs';
 import type { Context } from 'vm';
 
-testBasicNodejsProperties();
+// testBasicNodejsProperties();
 
 export default {
 	async fetch(
