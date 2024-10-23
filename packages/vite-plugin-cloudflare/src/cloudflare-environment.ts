@@ -1,4 +1,5 @@
 import * as vite from 'vite';
+import { nodeBuiltIns } from './node-builtin-modules';
 import { INIT_PATH, invariant, UNKNOWN_HOST } from './shared';
 import type { NormalizedPluginConfig, WorkerOptions } from './plugin-config';
 import type { Fetcher } from '@cloudflare/workers-types/experimental';
@@ -134,6 +135,7 @@ export function createCloudflareEnvironment(
 				optimizeDeps: {
 					// Note: ssr pre-bundling is opt-in, and we need to enabled it by setting noDiscovery to false
 					noDiscovery: false,
+					exclude: [...nodeBuiltIns],
 				},
 			},
 			build: {

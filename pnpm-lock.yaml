@@ -179,9 +179,9 @@ importers:
 
   tests/integration/module-resolution:
     devDependencies:
-      '@cloudflare-dev-module-resolution/cloudflare-imports':
-        specifier: file:./packages/cloudflare-imports
-        version: file:tests/integration/module-resolution/packages/cloudflare-imports
+      '@cloudflare-dev-module-resolution/imports':
+        specifier: file:./packages/imports
+        version: file:tests/integration/module-resolution/packages/imports
       '@cloudflare-dev-module-resolution/requires':
         specifier: file:./packages/requires
         version: file:tests/integration/module-resolution/packages/requires
@@ -347,8 +347,8 @@ packages:
     resolution: {integrity: sha512-JWtuCu8VQsMladxVz/P4HzHUGCAwpuqacmowgXFs5XjxIgKuNjnLokQzuVjlTvIzODaDmpjT3oxcC48vyk9EWg==}
     engines: {node: '>=6.9.0'}
 
-  '@cloudflare-dev-module-resolution/cloudflare-imports@file:tests/integration/module-resolution/packages/cloudflare-imports':
-    resolution: {directory: tests/integration/module-resolution/packages/cloudflare-imports, type: directory}
+  '@cloudflare-dev-module-resolution/imports@file:tests/integration/module-resolution/packages/imports':
+    resolution: {directory: tests/integration/module-resolution/packages/imports, type: directory}
 
   '@cloudflare-dev-module-resolution/requires@file:tests/integration/module-resolution/packages/requires':
     resolution: {directory: tests/integration/module-resolution/packages/requires, type: directory}
@@ -2270,7 +2270,7 @@ snapshots:
       '@babel/helper-validator-identifier': 7.25.7
       to-fast-properties: 2.0.0
 
-  '@cloudflare-dev-module-resolution/cloudflare-imports@file:tests/integration/module-resolution/packages/cloudflare-imports': {}
+  '@cloudflare-dev-module-resolution/imports@file:tests/integration/module-resolution/packages/imports': {}
 
   '@cloudflare-dev-module-resolution/requires@file:tests/integration/module-resolution/packages/requires': {}
 

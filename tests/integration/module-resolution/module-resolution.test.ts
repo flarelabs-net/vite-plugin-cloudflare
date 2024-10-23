@@ -69,6 +69,22 @@ describe('module resolution', async () => {
 		});
 	});
 
+	test('node built-ins (both from userland and external dependencies)', async () => {
+		const response = await getWorker(server).dispatchFetch(
+			new Request(new URL('/node-builtins', UNKNOWN_HOST)),
+		);
+		const result = await response.json();
+
+		expect(result).toEqual({
+			'(internal import) buffer.constants.MAX_LENGTH': 2147483647,
+			'(internal import) node:buffer.constants.MAX_LENGTH': 2147483647,
+			'(external require) buffer.constants.MAX_LENGTH': 2147483647,
+			'(external require) node:buffer.constants.MAX_LENGTH': 2147483647,
+			'(external import) buffer.constants.MAX_LENGTH': 2147483647,
+			'(external import) node:buffer.constants.MAX_LENGTH': 2147483647,
+		});
+	});
+
 	describe('Cloudflare specific module resolution', () => {
 		test('internal imports from `cloudflare:*`', async () => {
 			const response = await getWorker(server).dispatchFetch(
