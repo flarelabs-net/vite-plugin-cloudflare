@@ -51,7 +51,7 @@ describe('module resolution', async () => {
 			const result = await response.json();
 
 			expect(result).toEqual({
-				'(requires/no-ext) helloWorld': 'hello (.js) world (<NOT_IMPORTED>)',
+				'(requires/no-ext) helloWorld': 'hello (.js) world (.cjs)',
 			});
 		});
 

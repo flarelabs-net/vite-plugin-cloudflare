@@ -136,6 +136,20 @@ export function createCloudflareEnvironment(
 					// Note: ssr pre-bundling is opt-in, and we need to enabled it by setting noDiscovery to false
 					noDiscovery: false,
 					exclude: [...nodeBuiltIns],
+					esbuildOptions: {
+						resolveExtensions: [
+							'.mjs',
+							'.js',
+							'.mts',
+							'.ts',
+							'.jsx',
+							'.tsx',
+							'.json',
+							'.cjs',
+							'.cts',
+							'.ctx',
+						],
+					},
 				},
 			},
 			build: {
