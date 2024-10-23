@@ -11,7 +11,21 @@ export function getNodeCompatModules(
 	compatibilityFlags: string[] = [],
 	modulesRoot: string,
 ) {
-	if (getNodeCompat(compatibilityDate, compatibilityFlags).mode !== 'v2') {
+	const nodeCompatMode = getNodeCompat(
+		compatibilityDate,
+		compatibilityFlags,
+	).mode;
+	if (nodeCompatMode !== 'v2') {
+		if (nodeCompatMode === 'legacy') {
+			throw new Error(
+				'Unsupported Node.js compat mode (legacy). Remove the `node_compat` setting and add the `nodejs_compat` flag instead.',
+			);
+		}
+		if (nodeCompatMode === 'v1') {
+			throw new Error(
+				`Unsupported Node.js compat mode (v1). Only the v2 mode is supported, either change your compat date to "2024-09-23" or later, or set the "nodejs_compat_v2" compatibility flag`,
+			);
+		}
 		return { nodeModules: [], nodeWrappers: [] };
 	}
 
@@ -29,10 +43,10 @@ export function getNodeCompatModules(
 		.map(([importSpecifier, modulePath]) => {
 			modulePath = modulePath.replace(/proxy-cjs$/, 'proxy');
 			return {
-				type: 'ESModule',
+				type: 'ESModule' as const,
 				path: path.join(modulesRoot, importSpecifier),
 				contents: `export { default } from '${modulePath}';`,
-			} as const;
+			};
 		});
 
 	return { nodeModules, nodeWrappers };

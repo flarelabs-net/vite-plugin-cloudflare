@@ -1,0 +1,23 @@
+{
+	"name": "@tests/integration-basic-functionality",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"check:types": "tsc --build",
+		"postinstall": "wrangler types --x-include-runtime -c worker/wrangler.toml",
+		"test": "vitest run"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "catalog:default",
+		"@flarelabs-net/vite-plugin-cloudflare": "workspace:*",
+		"@types/node": "catalog:default",
+		"@types/pg": "^8.11.2",
+		"@vite-plugin-cloudflare/typescript-config": "workspace:*",
+		"pg": "^8.13.0",
+		"pg-cloudflare": "^1.1.1",
+		"typescript": "catalog:default",
+		"vite": "catalog:default",
+		"vitest": "catalog:default",
+		"wrangler": "catalog:default"
+	}
+}
