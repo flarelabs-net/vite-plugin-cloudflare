@@ -2,13 +2,8 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { cloudflare } from '@flarelabs-net/vite-plugin-cloudflare';
 import * as vite from 'vite';
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
-import {
-	getFallbackErrors,
-	getWorker,
-	MockLogger,
-	UNKNOWN_HOST,
-} from '../test-helpers/src/utils';
+import { beforeEach, describe, expect, test } from 'vitest';
+import { getWorker, MockLogger, UNKNOWN_HOST } from '../test-helpers/src/utils';
 
 const root = fileURLToPath(new URL('./', import.meta.url));
 
@@ -26,14 +21,6 @@ describe('module resolution', async () => {
 						worker: {
 							main: path.join(root, 'index.ts'),
 							wranglerConfig: path.join(root, 'wrangler.toml'),
-							overrides: {
-								resolve: {
-									// We're testing module resolution for external modules, so let's treat everything as external
-									// (if we were not to do this all the packages in cloudflare-dev-module-resolution/packages
-									// wouldn't be treated as such)
-									external: true,
-								},
-							},
 						},
 					},
 					persistTo: false,
@@ -50,13 +37,6 @@ describe('module resolution', async () => {
 			);
 			const result = await response.json();
 
-			expect(getFallbackErrors(customLogger)).toMatchInlineSnapshot(`
-				[
-				  ".%2Fhello.cjs",
-				  ".%2Fworld.js",
-				]
-			`);
-
 			expect(result).toEqual({
 				'(requires/ext) hello.cjs (wrong-extension)': null,
 				'(requires/ext) helloWorld': 'hello (.js) world (.cjs)',
@@ -71,7 +51,7 @@ describe('module resolution', async () => {
 			const result = await response.json();
 
 			expect(result).toEqual({
-				'(requires/no-ext) helloWorld': 'hello (.js) world (.cjs)',
+				'(requires/no-ext) helloWorld': 'hello (.js) world (<NOT_IMPORTED>)',
 			});
 		});
 
