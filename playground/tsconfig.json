@@ -1,0 +1,8 @@
+{
+	"compilerOptions": {
+		"esModuleInterop": true,
+		"paths": {
+			"~utils": ["./__test-utils__/index.ts"]
+		}
+	}
+}

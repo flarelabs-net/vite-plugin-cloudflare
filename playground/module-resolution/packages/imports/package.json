@@ -1,0 +1,16 @@
+{
+	"name": "@vite-plugin-cloudflare/playground_module-resolution_imports",
+	"version": "1.0.0",
+	"description": "a packages with various imports",
+	"type": "module",
+	"exports": {
+		"./cloudflare-builtins": {
+			"default": "./cloudflare-builtins.js",
+			"types": "./cloudflare-builtins.d.ts"
+		},
+		"./node-builtins": {
+			"default": "./node-builtins.js",
+			"types": "./node-builtins.d.ts"
+		}
+	}
+}
