@@ -1,6 +1,8 @@
-import { builtinModules } from 'node:module';
 import * as path from 'node:path';
+import { getNodeCompat } from 'miniflare';
+import { cloudflare, env, nodeless } from 'unenv';
 import * as vite from 'vite';
+import { unstable_getMiniflareWorkerOptions } from 'wrangler';
 import { INIT_PATH, invariant, UNKNOWN_HOST } from './shared';
 import type { NormalizedPluginConfig, WorkerOptions } from './plugin-config';
 import type { Fetcher } from '@cloudflare/workers-types/experimental';
@@ -10,6 +12,7 @@ import type {
 	ReplaceWorkersTypes,
 	WebSocket,
 } from 'miniflare';
+import type { SourcelessWorkerOptions } from 'wrangler';
 
 interface WebSocketContainer {
 	webSocket?: WebSocket;
@@ -120,15 +123,30 @@ export class CloudflareDevEnvironment extends vite.DevEnvironment {
 }
 
 export function createCloudflareEnvironmentOptions(
+	rootPath: string,
 	name: string,
 	options: WorkerOptions,
 ): vite.EnvironmentOptions {
+	const wranglerConfigPath = path.resolve(
+		rootPath,
+		options.wranglerConfig ?? './wrangler.toml',
+	);
+	const { workerOptions } =
+		unstable_getMiniflareWorkerOptions(wranglerConfigPath);
+
+	const nodeCompat = isNodeCompat(workerOptions);
+
+	const { external, inject, alias } = nodeCompat
+		? env(nodeless, cloudflare)
+		: {};
+
 	return vite.mergeConfig(
 		{
 			resolve: {
 				// Note: in order for ssr pre-bundling to take effect we need to ask vite to treat all
 				//       dependencies as not external
 				noExternal: true,
+				conditions: ['workerd'],
 			},
 			dev: {
 				createEnvironment(name, config) {
@@ -137,10 +155,9 @@ export function createCloudflareEnvironmentOptions(
 				optimizeDeps: {
 					// Note: ssr pre-bundling is opt-in, and we need to enabled it by setting noDiscovery to false
 					noDiscovery: false,
-					exclude: [
-						...builtinModules.concat(builtinModules.map((m) => `node:${m}`)),
-					],
+					exclude: external,
 					esbuildOptions: {
+						alias,
 						resolveExtensions: [
 							'.mjs',
 							'.js',
@@ -175,7 +192,7 @@ export function createCloudflareEnvironmentOptions(
 					],
 				},
 			},
-			webCompatible: true,
+			webCompatible: !isNodeCompat,
 		} satisfies vite.EnvironmentOptions,
 		options.overrides ?? {},
 	);
@@ -195,4 +212,28 @@ export function initRunners(
 			).initRunner(worker);
 		}),
 	);
+}
+
+function isNodeCompat({
+	compatibilityDate,
+	compatibilityFlags,
+}: SourcelessWorkerOptions): boolean {
+	const nodeCompatMode = getNodeCompat(
+		compatibilityDate,
+		compatibilityFlags ?? [],
+	).mode;
+	if (nodeCompatMode === 'v2') {
+		return true;
+	}
+	if (nodeCompatMode === 'legacy') {
+		throw new Error(
+			'Unsupported Node.js compat mode (legacy). Remove the `node_compat` setting and add the `nodejs_compat` flag instead.',
+		);
+	}
+	if (nodeCompatMode === 'v1') {
+		throw new Error(
+			`Unsupported Node.js compat mode (v1). Only the v2 mode is supported, either change your compat date to "2024-09-23" or later, or set the "nodejs_compat_v2" compatibility flag`,
+		);
+	}
+	return false;
 }
