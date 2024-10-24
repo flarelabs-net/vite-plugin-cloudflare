@@ -13,7 +13,7 @@ catalogs:
       specifier: ^5.6.2
       version: 5.6.2
     vite:
-      specifier: https://pkg.pr.new/vite@main
+      specifier: 6.0.0-beta.4
       version: 6.0.0-beta.4
     vitest:
       specifier: ^2.1.2
@@ -49,7 +49,7 @@ importers:
         version: link:../../packages/typescript-config
       vite:
         specifier: catalog:default
-        version: https://pkg.pr.new/vite@main(@types/node@22.5.5)
+        version: 6.0.0-beta.4(@types/node@22.5.5)
       wrangler:
         specifier: catalog:default
         version: 3.80.4(@cloudflare/workers-types@4.20241011.0)
@@ -67,7 +67,7 @@ importers:
         version: link:../../packages/typescript-config
       vite:
         specifier: catalog:default
-        version: https://pkg.pr.new/vite@main(@types/node@22.5.5)
+        version: 6.0.0-beta.4(@types/node@22.5.5)
       wrangler:
         specifier: catalog:default
         version: 3.80.4(@cloudflare/workers-types@4.20241011.0)
@@ -85,7 +85,7 @@ importers:
         version: link:../../packages/typescript-config
       vite:
         specifier: catalog:default
-        version: https://pkg.pr.new/vite@main(@types/node@22.5.5)
+        version: 6.0.0-beta.4(@types/node@22.5.5)
       wrangler:
         specifier: catalog:default
         version: 3.80.4(@cloudflare/workers-types@4.20241011.0)
@@ -121,7 +121,7 @@ importers:
         version: 5.6.2
       vite:
         specifier: catalog:default
-        version: https://pkg.pr.new/vite@main(@types/node@22.5.5)
+        version: 6.0.0-beta.4(@types/node@22.5.5)
       vitest:
         specifier: catalog:default
         version: 2.1.2(@types/node@22.5.5)
@@ -145,7 +145,7 @@ importers:
         version: 5.6.2
       vite:
         specifier: catalog:default
-        version: https://pkg.pr.new/vite@main(@types/node@22.5.5)
+        version: 6.0.0-beta.4(@types/node@22.5.5)
       vitest:
         specifier: catalog:default
         version: 2.1.2(@types/node@22.5.5)
@@ -169,7 +169,7 @@ importers:
         version: 5.6.2
       vite:
         specifier: catalog:default
-        version: https://pkg.pr.new/vite@main(@types/node@22.5.5)
+        version: 6.0.0-beta.4(@types/node@22.5.5)
       vitest:
         specifier: catalog:default
         version: 2.1.2(@types/node@22.5.5)
@@ -214,7 +214,7 @@ importers:
         version: 5.6.2
       vite:
         specifier: catalog:default
-        version: https://pkg.pr.new/vite@main(@types/node@22.5.5)
+        version: 6.0.0-beta.4(@types/node@22.5.5)
       vitest:
         specifier: catalog:default
         version: 2.1.2(@types/node@22.5.5)
@@ -238,7 +238,7 @@ importers:
         version: 5.6.2
       vite:
         specifier: catalog:default
-        version: https://pkg.pr.new/vite@main(@types/node@22.5.5)
+        version: 6.0.0-beta.4(@types/node@22.5.5)
       vitest:
         specifier: catalog:default
         version: 2.1.2(@types/node@22.5.5)
@@ -262,7 +262,7 @@ importers:
         version: 5.6.2
       vite:
         specifier: catalog:default
-        version: https://pkg.pr.new/vite@main(@types/node@22.5.5)
+        version: 6.0.0-beta.4(@types/node@22.5.5)
       vitest:
         specifier: catalog:default
         version: 2.1.2(@types/node@22.5.5)
@@ -2204,9 +2204,8 @@ packages:
       terser:
         optional: true
 
-  vite@https://pkg.pr.new/vite@main:
-    resolution: {tarball: https://pkg.pr.new/vite@main}
-    version: 6.0.0-beta.4
+  vite@6.0.0-beta.4:
+    resolution: {integrity: sha512-UMpoMylOlC7L5o915NsrXQRp8Uiuebwx9j/CTx9Q6/quSjgYQemBUs+XADWgr0hWeO0JksspQoCv3SroBpmaNQ==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
     peerDependencies:
@@ -3946,7 +3945,7 @@ snapshots:
       '@types/node': 22.5.5
       fsevents: 2.3.3
 
-  vite@https://pkg.pr.new/vite@main(@types/node@22.5.5):
+  vite@6.0.0-beta.4(@types/node@22.5.5):
     dependencies:
       esbuild: 0.24.0
       postcss: 8.4.47
