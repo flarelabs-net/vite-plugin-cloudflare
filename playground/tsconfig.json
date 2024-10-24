@@ -1,0 +1,9 @@
+{
+	"include": ["**/__tests__/**/*.ts"],
+	"compilerOptions": {
+		"esModuleInterop": true,
+		"paths": {
+			"~utils": ["./__test-utils__/index.ts"]
+		}
+	}
+}
