@@ -224,19 +224,17 @@ export function getMiniflareOptions(
 								imported,
 								options,
 							);
-
-							return new MiniflareResponse(JSON.stringify(result));
+							return MiniflareResponse.json(result);
 						} catch (error) {
 							if (moduleId.startsWith('cloudflare:')) {
-								const result = {
+								return MiniflareResponse.json({
 									externalize: moduleId,
 									type: 'module',
-								} satisfies vite.FetchResult;
-
-								return new MiniflareResponse(JSON.stringify(result));
+								});
 							}
-							throw new Error(
-								`Unexpected Error, failed to get module: ${moduleId}`,
+							return new MiniflareResponse(
+								`Unexpected Error, failed to get module: ${moduleId}\n${error}`,
+								{ status: 404 },
 							);
 						}
 					},

@@ -27,7 +27,7 @@ export async function createModuleRunner(
 					);
 
 					if (!response.ok) {
-						// TODO: add error handling
+						throw new Error(await response.text());
 					}
 
 					const result = await response.json();
