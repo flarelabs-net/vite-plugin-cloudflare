@@ -1,4 +1,3 @@
-import { fileURLToPath } from 'node:url';
 import { cloudflare } from '@flarelabs-net/vite-plugin-cloudflare';
 import { defineConfig } from 'vite';
 
