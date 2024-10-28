@@ -12,6 +12,7 @@ export default defineConfig({
 				},
 			},
 			entryWorker: 'worker',
+			persistTo: false
 		}),
 	],
 });
