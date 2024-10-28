@@ -1,5 +1,5 @@
 {
-	"name": "@vite-plugin-cloudflare/playground_module-resolution_imports",
+	"name": "@playground/module-resolution-imports",
 	"version": "1.0.0",
 	"description": "a packages with various imports",
 	"type": "module",

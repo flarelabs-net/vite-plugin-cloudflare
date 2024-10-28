@@ -1,5 +1,5 @@
 {
-	"name": "@vite-plugin-cloudflare/playground_module-resolution_requires",
+	"name": "@playground/module-resolution-requires",
 	"version": "1.0.0",
 	"description": "a packages which has require calls of different types each used in its own entrypoint",
 	"exports": {

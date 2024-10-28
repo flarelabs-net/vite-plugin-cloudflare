@@ -23,7 +23,7 @@ describe.runIf(!isBuild)('module resolution', async () => {
 			const result = await getJsonResponse('/require-json');
 			expect(result).toEqual({
 				'(requires/json) package name':
-					'@vite-plugin-cloudflare/playground_module-resolution_requires',
+					'@playground/module-resolution-requires',
 				'(requires/json) package version': '1.0.0',
 			});
 		});

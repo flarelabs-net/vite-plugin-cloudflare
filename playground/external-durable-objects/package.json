@@ -1,5 +1,5 @@
 {
-	"name": "@vite-plugin-cloudflare/playground_external-durable-objects",
+	"name": "@playground/external-durable-objects",
 	"private": true,
 	"type": "module",
 	"scripts": {

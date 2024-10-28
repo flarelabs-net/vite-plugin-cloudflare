@@ -1,5 +1,5 @@
 {
-	"name": "@vite-plugin-cloudflare/playground_worker",
+	"name": "@playground/worker",
 	"private": true,
 	"type": "module",
 	"scripts": {

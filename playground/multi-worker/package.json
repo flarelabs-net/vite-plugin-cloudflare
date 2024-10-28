@@ -1,5 +1,5 @@
 {
-	"name": "@vite-plugin-cloudflare/playground_multi-worker",
+	"name": "@playground/multi-worker",
 	"private": true,
 	"type": "module",
 	"scripts": {

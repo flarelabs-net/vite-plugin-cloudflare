@@ -1,5 +1,5 @@
 {
-	"name": "@vite-plugin-cloudflare/playground_module-resolution",
+	"name": "@playground/module-resolution",
 	"private": true,
 	"type": "module",
 	"scripts": {
