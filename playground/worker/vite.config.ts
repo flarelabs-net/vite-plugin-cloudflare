@@ -12,7 +12,7 @@ export default defineConfig({
 				},
 			},
 			entryWorker: 'worker',
-			persistTo: false
+			persistTo: false,
 		}),
 	],
 });
