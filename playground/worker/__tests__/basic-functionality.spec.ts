@@ -2,7 +2,7 @@ import { getTextResponse, isBuild, serverLogs } from '~utils';
 import { expect, test } from 'vitest';
 
 test.runIf(!isBuild)('basic hello-world functionality', async () => {
-	expect(await getTextResponse()).toMatchInlineSnapshot(`"Hello World!"`);
+	expect(await getTextResponse()).toEqual('Hello World!');
 });
 
 test.runIf(!isBuild)('basic dev logging', async () => {

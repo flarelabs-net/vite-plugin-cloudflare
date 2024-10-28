@@ -15,7 +15,7 @@ describe('stripInternalEnv', () => {
 			},
 		};
 		const result = stripInternalEnv(env);
-		expect(result).toMatchInlineSnapshot(`{}`);
+		expect(result).toEqual({});
 	});
 
 	test('with extra env fields', () => {
@@ -33,13 +33,11 @@ describe('stripInternalEnv', () => {
 			MY_KV: {},
 		};
 		const result = stripInternalEnv(env);
-		expect(result).toMatchInlineSnapshot(`
-			{
-			  "MY_KV": {},
-			  "test": "this is a test",
-			  "test1": "this is a test (1)",
-			}
-		`);
+		expect(result).toEqual({
+			MY_KV: {},
+			test: 'this is a test',
+			test1: 'this is a test (1)',
+		});
 	});
 
 	test('with nested fields that share the same name as (top level) internal ones', () => {
@@ -58,13 +56,11 @@ describe('stripInternalEnv', () => {
 			},
 		};
 		const result = stripInternalEnv(env);
-		expect(result).toMatchInlineSnapshot(`
-			{
-			  "myJson": {
-			    "__VITE_ENTRY_PATH__": "",
-			    "__VITE_ROOT__": "",
-			  },
-			}
-		`);
+		expect(result).toEqual({
+			myJson: {
+				__VITE_ENTRY_PATH__: '',
+				__VITE_ROOT__: '',
+			},
+		});
 	});
 });
