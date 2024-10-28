@@ -7,7 +7,7 @@ export default defineConfig({
 		cloudflare({
 			workers: {
 				worker: {
-					main: fileURLToPath(new URL('./src/index.ts', import.meta.url)),
+					main: './src/index.ts',
 					wranglerConfig: './src/wrangler.toml',
 				},
 			},
