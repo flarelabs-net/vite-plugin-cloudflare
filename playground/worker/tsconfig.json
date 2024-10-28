@@ -1,5 +1,4 @@
 {
 	"extends": ["@vite-plugin-cloudflare/typescript-config/worker.json"],
 	"include": ["**/*"],
-	"exclude": ["**/__tests__/**/*"]
 }
