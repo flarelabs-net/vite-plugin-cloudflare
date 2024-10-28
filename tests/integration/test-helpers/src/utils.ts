@@ -31,22 +31,36 @@ export class MockLogger implements vite.Logger {
 	logs: string[][] = [];
 	hasWarned = false;
 
+	private doLog(
+		mode: 'info' | 'warn' | 'warnOnce' | 'error' | 'clear screen',
+		msg?: string,
+	) {
+		const output: string[] = [mode];
+		if (msg !== undefined) {
+			output.push(msg.trim());
+		}
+		if (process.env.DEBUG) {
+			console.log(output);
+		}
+		this.logs.push(output);
+	}
+
 	info(msg: string, options?: vite.LogOptions): void {
-		this.logs.push(['info', msg]);
+		this.doLog('info', msg);
 	}
 	warn(msg: string, options?: vite.LogOptions): void {
 		this.hasWarned = true;
-		this.logs.push(['warn', msg]);
+		this.doLog('warn', msg);
 	}
 	warnOnce(msg: string, options?: vite.LogOptions): void {
 		this.hasWarned = true;
-		this.logs.push(['warnOnce', msg]);
+		this.doLog('warnOnce', msg);
 	}
 	error(msg: string, options?: vite.LogErrorOptions): void {
-		this.logs.push(['error', msg]);
+		this.doLog('error', msg);
 	}
 	clearScreen(type: vite.LogType): void {
-		this.logs.push(['clear screen']);
+		this.doLog('clear screen');
 	}
 	hasErrorLogged(error: Error | vite.Rollup.RollupError): boolean {
 		throw new Error('Not implemented');
@@ -55,7 +69,7 @@ export class MockLogger implements vite.Logger {
 	getLogs(type: string) {
 		return this.logs
 			.filter((log) => log[0] === type)
-			.map((log) => log[1]?.trim())
+			.map((log) => log[1])
 			.join('\n');
 	}
 }

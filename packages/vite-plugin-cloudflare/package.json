@@ -21,12 +21,15 @@
 		"@hattip/adapter-node": "^0.0.48",
 		"cjs-module-lexer": "^1.4.1",
 		"miniflare": "^3.20241004.0",
-		"unenv": "^1.10.0"
+		"unenv": "catalog:default"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "catalog:default",
 		"@types/node": "^22.5.5",
 		"@vite-plugin-cloudflare/typescript-config": "workspace:*",
+		"esbuild": "^0.24.0",
+		"magic-string": "^0.30.12",
+		"ts-dedent": "^2.2.0",
 		"tsup": "^8.3.0",
 		"typescript": "catalog:default",
 		"vite": "catalog:default",

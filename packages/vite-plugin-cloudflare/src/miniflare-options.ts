@@ -219,14 +219,18 @@ export function getMiniflareOptions(
 						] as CloudflareDevEnvironment;
 
 						try {
+							console.log('fetching', moduleId);
 							const result = await devEnvironment.fetchModule(
 								moduleId,
 								imported,
 								options,
 							);
+							const { code: _, ...rest } = result as any;
+							console.log('fetched', moduleId, rest);
 							return MiniflareResponse.json(result);
 						} catch (error) {
 							if (moduleId.startsWith('cloudflare:')) {
+								console.log('cloudflare import catch', moduleId);
 								return MiniflareResponse.json({
 									externalize: moduleId,
 									type: 'module',

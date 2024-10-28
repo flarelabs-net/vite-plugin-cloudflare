@@ -1,10 +1,10 @@
 import * as path from 'node:path';
-import { getNodeCompat } from 'miniflare';
 import { cloudflare, env, nodeless } from 'unenv';
 import * as vite from 'vite';
-import { unstable_getMiniflareWorkerOptions } from 'wrangler';
+import { isNodeCompat, nodejsHybridPlugin } from './hybrid-nodejs-compat';
+import { cloudflareInternalPlugin } from './plugins/cloudflare-internal';
 import { INIT_PATH, invariant, UNKNOWN_HOST } from './shared';
-import type { NormalizedPluginConfig, WorkerOptions } from './plugin-config';
+import type { NormalizedPluginConfig } from './plugin-config';
 import type { Fetcher } from '@cloudflare/workers-types/experimental';
 import type {
 	MessageEvent,
@@ -123,79 +123,65 @@ export class CloudflareDevEnvironment extends vite.DevEnvironment {
 }
 
 export function createCloudflareEnvironmentOptions(
-	rootPath: string,
 	name: string,
-	options: WorkerOptions,
+	main: string,
+	workerOptions: SourcelessWorkerOptions,
 ): vite.EnvironmentOptions {
-	const wranglerConfigPath = path.resolve(
-		rootPath,
-		options.wranglerConfig ?? './wrangler.toml',
-	);
-	const { workerOptions } =
-		unstable_getMiniflareWorkerOptions(wranglerConfigPath);
+	const plugins = [cloudflareInternalPlugin];
 
 	const nodeCompat = isNodeCompat(workerOptions);
+	if (nodeCompat) {
+		plugins.push(nodejsHybridPlugin(env(nodeless, cloudflare)));
+	}
 
-	const { external, inject, alias } = nodeCompat
-		? env(nodeless, cloudflare)
-		: {};
-
-	return vite.mergeConfig(
-		{
-			resolve: {
-				// Note: in order for ssr pre-bundling to take effect we need to ask vite to treat all
-				//       dependencies as not external
-				noExternal: true,
-				conditions: ['workerd'],
+	return {
+		resolve: {
+			// Note: in order for ssr pre-bundling to take effect we need to ask vite to treat all
+			//       dependencies as not external
+			noExternal: true,
+			conditions: ['workerd'],
+		},
+		dev: {
+			createEnvironment(name, config) {
+				return new CloudflareDevEnvironment(name, config);
 			},
-			dev: {
-				createEnvironment(name, config) {
-					return new CloudflareDevEnvironment(name, config);
-				},
-				optimizeDeps: {
-					// Note: ssr pre-bundling is opt-in, and we need to enabled it by setting noDiscovery to false
-					noDiscovery: false,
-					exclude: external,
-					esbuildOptions: {
-						alias,
-						resolveExtensions: [
-							'.mjs',
-							'.js',
-							'.mts',
-							'.ts',
-							'.jsx',
-							'.tsx',
-							'.json',
-							'.cjs',
-							'.cts',
-							'.ctx',
-						],
-					},
-				},
-			},
-			build: {
-				createEnvironment(name, config) {
-					return new vite.BuildEnvironment(name, config);
-				},
-				outDir: path.join('dist', name),
-				ssr: true,
-				rollupOptions: {
-					// Note: vite starts dev pre-bundling crawling from either optimizeDeps.entries or rollupOptions.input
-					//       so the input value here serves both as the build input as well as the starting point for
-					//       dev pre-bundling crawling (were we not to set this input field we'd have to appropriately set
-					//       optimizeDeps.entries in the dev config)
-					input: options.main,
-					external: [
-						'cloudflare:email',
-						'cloudflare:sockets',
-						'cloudflare:workers',
+			optimizeDeps: {
+				// Note: ssr pre-bundling is opt-in, and we need to enabled it by setting noDiscovery to false
+				noDiscovery: false,
+				esbuildOptions: {
+					plugins,
+					resolveExtensions: [
+						'.mjs',
+						'.js',
+						'.mts',
+						'.ts',
+						'.jsx',
+						'.tsx',
+						'.json',
+						'.cjs',
+						'.cts',
+						'.ctx',
 					],
 				},
 			},
-			webCompatible: !isNodeCompat,
-		} satisfies vite.EnvironmentOptions,
-		options.overrides ?? {},
-	);
+		},
+		build: {
+			createEnvironment(name, config) {
+				return new vite.BuildEnvironment(name, config);
+			},
+			outDir: path.join('dist', name),
+			ssr: true,
+			rollupOptions: {
+				// Note: vite starts dev pre-bundling crawling from either optimizeDeps.entries or rollupOptions.input
+				//       so the input value here serves both as the build input as well as the starting point for
+				//       dev pre-bundling crawling (were we not to set this input field we'd have to appropriately set
+				//       optimizeDeps.entries in the dev config)
+				input: main,
+				external: (source) => source.startsWith('cloudflare:'),
+			},
+		},
+		webCompatible: !nodeCompat,
+	};
 }
 
 export function initRunners(
@@ -212,28 +198,4 @@ export function initRunners(
 			).initRunner(worker);
 		}),
 	);
-}
-
-function isNodeCompat({
-	compatibilityDate,
-	compatibilityFlags,
-}: SourcelessWorkerOptions): boolean {
-	const nodeCompatMode = getNodeCompat(
-		compatibilityDate,
-		compatibilityFlags ?? [],
-	).mode;
-	if (nodeCompatMode === 'v2') {
-		return true;
-	}
-	if (nodeCompatMode === 'legacy') {
-		throw new Error(
-			'Unsupported Node.js compat mode (legacy). Remove the `node_compat` setting and add the `nodejs_compat` flag instead.',
-		);
-	}
-	if (nodeCompatMode === 'v1') {
-		throw new Error(
-			`Unsupported Node.js compat mode (v1). Only the v2 mode is supported, either change your compat date to "2024-09-23" or later, or set the "nodejs_compat_v2" compatibility flag`,
-		);
-	}
-	return false;
 }
