@@ -9,8 +9,8 @@ export default defineConfig({
 	},
 	test: {
 		include: ['./playground/**/__tests__/**/*.spec.[tj]s'],
-		setupFiles: ['./playground/vitestSetup.ts'],
-		globalSetup: ['./playground/vitestGlobalSetup.ts'],
+		setupFiles: ['./playground/vitest-setup.ts'],
+		globalSetup: ['./playground/vitest-global-setup.ts'],
 		reporters: 'dot',
 		onConsoleLog: () => false,
 	},

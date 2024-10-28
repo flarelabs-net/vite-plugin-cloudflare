@@ -1,2 +1,2 @@
-export * from '../vitestSetup';
+export * from '../vitest-setup';
 export * from './responses';
