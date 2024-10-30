@@ -99,6 +99,7 @@ beforeAll(async (s) => {
 	browser = await chromium.connect(wsEndpoint);
 	page = await browser.newPage();
 
+	// @ts-ignore
 	const globalConsole = global.console;
 	const warn = globalConsole.warn;
 	globalConsole.warn = (msg: string, ...args: unknown[]) => {
