@@ -1,4 +1,4 @@
-import { page, viteTestUrl } from '~utils';
+import { page, viteTestUrl } from './index';
 
 export async function getTextResponse(path = '/'): Promise<string> {
 	const response = await getResponse(path);

@@ -1,5 +1,5 @@
-import { getJsonResponse, isBuild } from '~utils';
 import { describe, expect, test } from 'vitest';
+import { getJsonResponse, isBuild } from '../../__test-utils__';
 
 describe.runIf(!isBuild)('multi-worker service bindings', async () => {
 	test('returns a response from another worker', async () => {

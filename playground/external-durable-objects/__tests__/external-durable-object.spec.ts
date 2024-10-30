@@ -1,5 +1,5 @@
-import { getTextResponse, isBuild } from '~utils';
 import { describe, expect, test } from 'vitest';
+import { getTextResponse, isBuild } from '../../__test-utils__';
 
 describe.runIf(!isBuild)('external durable objects', async () => {
 	test('can use `scriptName` to bind to a Durable Object defined in another Worker', async () => {

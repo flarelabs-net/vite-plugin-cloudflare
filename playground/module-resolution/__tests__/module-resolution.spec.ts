@@ -1,5 +1,5 @@
-import { getJsonResponse, getTextResponse, isBuild } from '~utils';
 import { describe, expect, test } from 'vitest';
+import { getJsonResponse, isBuild } from '../../__test-utils__';
 
 describe.runIf(!isBuild)('module resolution', async () => {
 	describe('basic module resolution', () => {
