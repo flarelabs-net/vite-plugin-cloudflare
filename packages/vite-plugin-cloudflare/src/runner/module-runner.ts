@@ -19,6 +19,7 @@ export async function createModuleRunner(
 			sourcemapInterceptor: 'prepareStackTrace',
 			transport: {
 				async fetchModule(...args) {
+					console.log(`fetchModule: ${args[0]}\nfrom: ${args[1]}`);
 					const response = await env.__VITE_FETCH_MODULE__.fetch(
 						new Request(UNKNOWN_HOST, {
 							method: 'POST',
@@ -55,12 +56,20 @@ export async function createModuleRunner(
 					',',
 				)})=>{{`;
 				const code = `${codeDefinition}${transformed}\n}}`;
-				const fn = env.__VITE_UNSAFE_EVAL__.eval(code, module.id);
-				await fn(...Object.values(context));
-				Object.freeze(context.__vite_ssr_exports__);
+				console.log('runInlineModule', module.id);
+				try {
+					const fn = env.__VITE_UNSAFE_EVAL__.eval(code, module.id);
+					await fn(...Object.values(context));
+					Object.freeze(context.__vite_ssr_exports__);
+				} catch (e) {
+					console.error('error running', module.id);
+					console.error('stack' in (e as any) ? (e as any).stack : e);
+					throw e;
+				}
 			},
 			async runExternalModule(filepath) {
 				filepath = filepath.replace(/^file:\/\//, '');
+				console.log('runExternalModule', filepath);
 				return import(filepath);
 			},
 		},

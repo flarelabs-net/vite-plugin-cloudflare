@@ -127,13 +127,7 @@ export function createCloudflareEnvironmentOptions(
 	main: string,
 	workerOptions: SourcelessWorkerOptions,
 ): vite.EnvironmentOptions {
-	const plugins = [cloudflareInternalPlugin];
-
-	const nodeCompat = isNodeCompat(workerOptions);
-	if (nodeCompat) {
-		plugins.push(nodejsHybridPlugin(env(nodeless, cloudflare)));
-	}
-
+	const optimizeDeps = getOptimizeDepsOptions(workerOptions);
 	return {
 		resolve: {
 			// Note: in order for ssr pre-bundling to take effect we need to ask vite to treat all
@@ -145,25 +139,7 @@ export function createCloudflareEnvironmentOptions(
 			createEnvironment(name, config) {
 				return new CloudflareDevEnvironment(name, config);
 			},
-			optimizeDeps: {
-				// Note: ssr pre-bundling is opt-in, and we need to enabled it by setting noDiscovery to false
-				noDiscovery: false,
-				esbuildOptions: {
-					plugins,
-					resolveExtensions: [
-						'.mjs',
-						'.js',
-						'.mts',
-						'.ts',
-						'.jsx',
-						'.tsx',
-						'.json',
-						'.cjs',
-						'.cts',
-						'.ctx',
-					],
-				},
-			},
+			optimizeDeps,
 		},
 		build: {
 			createEnvironment(name, config) {
@@ -180,7 +156,7 @@ export function createCloudflareEnvironmentOptions(
 				external: (source) => source.startsWith('cloudflare:'),
 			},
 		},
-		webCompatible: !nodeCompat,
+		webCompatible: !isNodeCompat(workerOptions),
 	};
 }
 
@@ -198,4 +174,40 @@ export function initRunners(
 			).initRunner(worker);
 		}),
 	);
+}
+
+function getOptimizeDepsOptions(workerOptions: SourcelessWorkerOptions) {
+	const plugins = [cloudflareInternalPlugin];
+	const include: string[] = [];
+
+	const nodeCompat = isNodeCompat(workerOptions);
+	if (nodeCompat) {
+		const unenv = env(nodeless, cloudflare);
+		plugins.push(nodejsHybridPlugin(unenv));
+		include.push(...Object.values(unenv.alias));
+	}
+
+	const extensions = [
+		'.js',
+		'.ts',
+		'.mjs',
+		'.mts',
+		'.jsx',
+		'.tsx',
+		'.cjs',
+		'.cts',
+		'.json',
+		'.ctx',
+	];
+
+	return {
+		// Note: ssr pre-bundling is opt-in, and we need to enabled it by setting noDiscovery to false
+		noDiscovery: false,
+		// include,
+		extensions,
+		esbuildOptions: {
+			// plugins,
+			resolveExtensions: extensions,
+		},
+	};
 }

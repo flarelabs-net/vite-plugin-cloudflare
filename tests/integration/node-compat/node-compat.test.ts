@@ -9,7 +9,7 @@ import type { TaskResult } from 'vitest';
 const root = fileURLToPath(new URL('.', import.meta.url));
 
 describe('node.js compatibility', async () => {
-	test('basic basic nodejs properties', async ({ onTestFinished }) => {
+	test.only('basic basic nodejs properties', async ({ onTestFinished }) => {
 		const { worker } = await createServer('worker-basic', onTestFinished);
 		const response = await worker.dispatchFetch(new Request(UNKNOWN_HOST));
 		await expect(response.text()).resolves.toBe(`"OK!"`);
@@ -71,6 +71,7 @@ async function createServer(
 	const customLogger = new MockLogger();
 	const server = await vite.createServer({
 		customLogger,
+		logLevel: 'info',
 		plugins: [
 			cloudflare({
 				workers: {

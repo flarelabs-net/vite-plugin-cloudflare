@@ -77,6 +77,15 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 				},
 			};
 		},
+		load(id, options) {
+			console.log('load', id);
+		},
+		moduleParsed(info) {
+			console.log('moduleParsed', info.id);
+		},
+		resolveId(source, importer, options) {
+			console.log('resolveId', importer, '->', source);
+		},
 		configResolved(resolvedConfig) {
 			viteConfig = resolvedConfig;
 		},
@@ -97,10 +106,11 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 			if (isNodeCompat(workerOptions)) {
 				// Inject the node globals into the entry-point file
 				const { inject } = unenv.env(unenv.nodeless, unenv.cloudflare);
+
 				const statements = Object.entries(inject).map(getGlobalModuleContents);
 				const modified = new MagicString(code);
 				modified.prepend(statements.join('\n'));
-				console.log('tranform: injected', id, statements);
+				console.log('transform: injected', id, statements);
 				return {
 					code: modified.toString(),
 					map: modified.generateMap({ hires: 'boundary', source: id }),

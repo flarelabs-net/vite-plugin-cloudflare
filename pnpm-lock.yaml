@@ -2404,38 +2404,6 @@ packages:
       terser:
         optional: true
 
-  vite@https://pkg.pr.new/vite@main:
-    resolution: {tarball: https://pkg.pr.new/vite@main}
-    version: 6.0.0-beta.4
-    engines: {node: ^18.0.0 || >=20.0.0}
-    hasBin: true
-    peerDependencies:
-      '@types/node': ^18.0.0 || >=20.0.0
-      less: '*'
-      lightningcss: ^1.21.0
-      sass: '*'
-      sass-embedded: '*'
-      stylus: '*'
-      sugarss: '*'
-      terser: ^5.16.0
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-      less:
-        optional: true
-      lightningcss:
-        optional: true
-      sass:
-        optional: true
-      sass-embedded:
-        optional: true
-      stylus:
-        optional: true
-      sugarss:
-        optional: true
-      terser:
-        optional: true
-
   vitest@2.1.2:
     resolution: {integrity: sha512-veNjLizOMkRrJ6xxb+pvxN6/QAWg95mzcRjtmkepXdN87FNfxAss9RKe2far/G9cQpipfgP2taqg0KiWsquj8A==}
     engines: {node: ^18.0.0 || >=20.0.0}
@@ -3220,13 +3188,13 @@ snapshots:
       chai: 5.1.1
       tinyrainbow: 1.2.0
 
-  '@vitest/mocker@2.1.2(@vitest/spy@2.1.2)(vite@6.0.0-beta.4(@types/node@22.5.5))':
+  '@vitest/mocker@2.1.2(@vitest/spy@2.1.2)(vite@5.4.10(@types/node@22.5.5))':
     dependencies:
       '@vitest/spy': 2.1.2
       estree-walker: 3.0.3
       magic-string: 0.30.12
     optionalDependencies:
-      vite: 6.0.0-beta.4(@types/node@22.5.5)
+      vite: 5.4.10(@types/node@22.5.5)
 
   '@vitest/pretty-format@2.1.2':
     dependencies:
@@ -4264,19 +4232,10 @@ snapshots:
       '@types/node': 22.5.5
       fsevents: 2.3.3
 
-  vite@https://pkg.pr.new/vite@main(@types/node@22.5.5):
-    dependencies:
-      esbuild: 0.24.0
-      postcss: 8.4.47
-      rollup: 4.24.0
-    optionalDependencies:
-      '@types/node': 22.5.5
-      fsevents: 2.3.3
-
   vitest@2.1.2(@types/node@22.5.5):
     dependencies:
       '@vitest/expect': 2.1.2
-      '@vitest/mocker': 2.1.2(@vitest/spy@2.1.2)(vite@6.0.0-beta.4(@types/node@22.5.5))
+      '@vitest/mocker': 2.1.2(@vitest/spy@2.1.2)(vite@5.4.10(@types/node@22.5.5))
       '@vitest/pretty-format': 2.1.2
       '@vitest/runner': 2.1.2
       '@vitest/snapshot': 2.1.2
@@ -4291,7 +4250,7 @@ snapshots:
       tinyexec: 0.3.0
       tinypool: 1.0.1
       tinyrainbow: 1.2.0
-      vite: https://pkg.pr.new/vite@main(@types/node@22.5.5)
+      vite: 5.4.10(@types/node@22.5.5)
       vite-node: 2.1.2(@types/node@22.5.5)
       why-is-node-running: 2.3.0
     optionalDependencies:

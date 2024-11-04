@@ -2,8 +2,10 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Log, LogLevel, Response as MiniflareResponse } from 'miniflare';
+import { cloudflare, env, nodeless } from 'unenv';
 import * as vite from 'vite';
 import { unstable_getMiniflareWorkerOptions } from 'wrangler';
+import { isNodeCompat } from './hybrid-nodejs-compat';
 import { invariant } from './shared';
 import type { CloudflareDevEnvironment } from './cloudflare-environment';
 import type { NormalizedPluginConfig } from './plugin-config';
@@ -124,6 +126,17 @@ export function getMiniflareOptions(
 			worker.wranglerConfigPath,
 		);
 
+		if (isNodeCompat(miniflareOptions.workerOptions)) {
+			const { alias } = env(nodeless, cloudflare);
+			const devEnv = viteDevServer.environments[worker.name];
+			const depsOptimizer = devEnv?.depsOptimizer!;
+
+			Object.values(alias).forEach(async (target) => {
+				const resolved = await devEnv!.pluginContainer.resolveId(target);
+				depsOptimizer.registerMissingImport(target, cleanUrl(resolved!.id));
+			});
+		}
+
 		const { ratelimits, ...workerOptions } = miniflareOptions.workerOptions;
 
 		return {
@@ -208,15 +221,50 @@ export function getMiniflareOptions(
 				serviceBindings: {
 					...workerOptions.serviceBindings,
 					__VITE_FETCH_MODULE__: async (request) => {
-						const [moduleId, imported, options] = (await request.json()) as [
+						let [moduleId, imported, options] = (await request.json()) as [
 							string,
 							string,
 							FetchFunctionOptions,
 						];
 
+						if (moduleId.startsWith('cloudflare:')) {
+							console.log('cloudflare import catch', moduleId);
+							return MiniflareResponse.json({
+								externalize: moduleId,
+								type: 'module',
+							});
+						}
+
 						const devEnvironment = viteDevServer.environments[
 							workerOptions.name
 						] as CloudflareDevEnvironment;
+
+						if (isNodeCompat(workerOptions)) {
+							const { alias, external } = env(nodeless, cloudflare);
+							const aliasedId = alias[moduleId];
+							if (aliasedId) {
+								if (external.includes(aliasedId)) {
+									console.log('unenv external');
+									return MiniflareResponse.json({
+										externalize: aliasedId,
+										type: 'module',
+									});
+								}
+
+								if (aliasedId.startsWith('unenv')) {
+									console.log('aliasing', moduleId, aliasedId);
+
+									debugger;
+									const resolved =
+										await devEnvironment.pluginContainer.resolveId(
+											aliasedId,
+											imported,
+										);
+
+									moduleId = resolved!.id;
+								}
+							}
+						}
 
 						try {
 							console.log('fetching', moduleId);
@@ -225,17 +273,11 @@ export function getMiniflareOptions(
 								imported,
 								options,
 							);
-							const { code: _, ...rest } = result as any;
+							const { code, ...rest } = result as any;
 							console.log('fetched', moduleId, rest);
 							return MiniflareResponse.json(result);
 						} catch (error) {
-							if (moduleId.startsWith('cloudflare:')) {
-								console.log('cloudflare import catch', moduleId);
-								return MiniflareResponse.json({
-									externalize: moduleId,
-									type: 'module',
-								});
-							}
+							console.error((error as any).stack);
 							return new MiniflareResponse(
 								`Unexpected Error, failed to get module: ${moduleId}\n${error}`,
 								{ status: 404 },
@@ -286,4 +328,9 @@ function miniflareLogLevelFromViteLogLevel(
 		case 'silent':
 			return LogLevel.NONE;
 	}
+}
+
+const postfixRE = /[?#].*$/;
+function cleanUrl(url: string) {
+	return url.replace(postfixRE, '');
 }
