@@ -1,0 +1,7 @@
+{
+	"extends": ["@vite-plugin-cloudflare/typescript-config/worker.json"],
+	"compilerOptions": {
+		"jsx": "react-jsx"
+	},
+	"include": ["**/*"]
+}
