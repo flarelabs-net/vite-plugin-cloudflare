@@ -187,14 +187,17 @@ async function loadConfig(configEnv: ConfigEnv) {
 	// config file named by convention as the *.spec.ts folder
 	const variantName = path.basename(path.dirname(testPath));
 	if (variantName !== '__tests__') {
-		const configVariantPath = path.resolve(
-			rootDir,
-			`vite.config-${variantName}.js`,
-		);
-		if (fs.existsSync(configVariantPath)) {
-			const res = await loadConfigFromFile(configEnv, configVariantPath);
-			if (res) {
-				config = res.config;
+		for (const extension of ['js', 'ts', 'mjs', 'cjs', 'mts', 'cts']) {
+			const configVariantPath = path.resolve(
+				rootDir,
+				`vite.config-${variantName}.${extension}`,
+			);
+			if (fs.existsSync(configVariantPath)) {
+				const res = await loadConfigFromFile(configEnv, configVariantPath);
+				if (res) {
+					config = res.config;
+					break;
+				}
 			}
 		}
 	}
