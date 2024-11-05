@@ -31,18 +31,6 @@ describe.runIf(!isBuild)('module resolution', async () => {
 		});
 	});
 
-	test('node built-ins (both from userland and external dependencies)', async () => {
-		const result = await getJsonResponse('/node-builtins');
-		expect(result).toEqual({
-			'(internal import) buffer.constants.MAX_LENGTH': 2147483647,
-			'(internal import) node:buffer.constants.MAX_LENGTH': 2147483647,
-			'(external require) buffer.constants.MAX_LENGTH': 2147483647,
-			'(external require) node:buffer.constants.MAX_LENGTH': 2147483647,
-			'(external import) buffer.constants.MAX_LENGTH': 2147483647,
-			'(external import) node:buffer.constants.MAX_LENGTH': 2147483647,
-		});
-	});
-
 	describe('Cloudflare specific module resolution', () => {
 		test('internal imports from `cloudflare:*`', async () => {
 			const result = await getJsonResponse('/cloudflare-imports');

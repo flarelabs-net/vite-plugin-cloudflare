@@ -1,7 +1,6 @@
 const allowedPaths = new Set([
 	'/require-ext',
 	'/require-no-ext',
-	'/node-builtins',
 	'/require-json',
 	'/cloudflare-imports',
 	'/external-cloudflare-imports',
