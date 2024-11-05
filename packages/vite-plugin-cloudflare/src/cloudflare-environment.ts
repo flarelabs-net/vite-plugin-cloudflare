@@ -140,28 +140,6 @@ export function createCloudflareEnvironmentOptions(
 				createEnvironment(name, config) {
 					return new CloudflareDevEnvironment(name, config);
 				},
-				optimizeDeps: {
-					// Note: ssr pre-bundling is opt-in, and we need to enabled it by setting noDiscovery to false
-					noDiscovery: false,
-					exclude: [
-						...cloudflareBuiltInModules,
-						...builtinModules.concat(builtinModules.map((m) => `node:${m}`)),
-					],
-					esbuildOptions: {
-						resolveExtensions: [
-							'.mjs',
-							'.js',
-							'.mts',
-							'.ts',
-							'.jsx',
-							'.tsx',
-							'.json',
-							'.cjs',
-							'.cts',
-							'.ctx',
-						],
-					},
-				},
 			},
 			build: {
 				createEnvironment(name, config) {
@@ -178,7 +156,29 @@ export function createCloudflareEnvironmentOptions(
 					external: [...cloudflareBuiltInModules],
 				},
 			},
-			webCompatible: true,
+			optimizeDeps: {
+				// Note: ssr pre-bundling is opt-in, and we need to enabled it by setting noDiscovery to false
+				noDiscovery: false,
+				exclude: [
+					...cloudflareBuiltInModules,
+					...builtinModules.concat(builtinModules.map((m) => `node:${m}`)),
+				],
+				esbuildOptions: {
+					resolveExtensions: [
+						'.mjs',
+						'.js',
+						'.mts',
+						'.ts',
+						'.jsx',
+						'.tsx',
+						'.json',
+						'.cjs',
+						'.cts',
+						'.ctx',
+					],
+				},
+			},
+			keepProcessEnv: true,
 		} satisfies vite.EnvironmentOptions,
 		options.overrides ?? {},
 	);
