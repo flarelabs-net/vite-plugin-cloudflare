@@ -34,12 +34,12 @@ function testBasicNodejsProperties() {
 		'globalThis.performance is missing',
 	);
 
-	// assert(Performance !== undefined, 'Performance is missing');
-	// assert(global.Performance !== undefined, 'global.Performance is missing');
-	// assert(
-	// 	globalThis.Performance !== undefined,
-	// 	'globalThis.Performance is missing',
-	// );
+	assert(Performance !== undefined, 'Performance is missing');
+	assert(global.Performance !== undefined, 'global.Performance is missing');
+	assert(
+		globalThis.Performance !== undefined,
+		'globalThis.Performance is missing',
+	);
 
 	return new Response(`"OK!"`);
 }

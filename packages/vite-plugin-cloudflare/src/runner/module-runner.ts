@@ -56,9 +56,9 @@ export async function createModuleRunner(
 				)})=>{{`;
 				const code = `${codeDefinition}${transformed}\n}}`;
 				try {
-				const fn = env.__VITE_UNSAFE_EVAL__.eval(code, module.id);
-				await fn(...Object.values(context));
-				Object.freeze(context.__vite_ssr_exports__);
+					const fn = env.__VITE_UNSAFE_EVAL__.eval(code, module.id);
+					await fn(...Object.values(context));
+					Object.freeze(context.__vite_ssr_exports__);
 				} catch (e) {
 					console.error('error running', module.id);
 					console.error('stack' in (e as any) ? (e as any).stack : e);

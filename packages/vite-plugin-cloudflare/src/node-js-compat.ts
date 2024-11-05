@@ -24,3 +24,21 @@ export function isNodeCompat({
 	}
 	return false;
 }
+
+/**
+ * Get the import statement and export name to be used for the given global inject setting.
+ */
+export function getGlobalModuleContents([globalName, globalInject]: [
+	string,
+	string | string[],
+]) {
+	if (typeof globalInject === 'string') {
+		const moduleSpecifier = globalInject;
+		// the mapping is a simple string, indicating a default export, so the string is just the module specifier.
+		return `import var_${globalName} from "${moduleSpecifier}";\nglobalThis.${globalName} = var_${globalName};\n`;
+	}
+
+	// the mapping is a 2 item tuple, indicating a named export, made up of a module specifier and an export name.
+	const [moduleSpecifier, exportName] = globalInject;
+	return `import var_${globalName} from "${moduleSpecifier}";\nglobalThis.${globalName} = var_${globalName}.${exportName};\n`;
+}

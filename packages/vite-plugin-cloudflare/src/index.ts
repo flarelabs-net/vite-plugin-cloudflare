@@ -1,12 +1,16 @@
+import * as path from 'node:path';
 import { createMiddleware } from '@hattip/adapter-node';
+import MagicString from 'magic-string';
 import { Miniflare } from 'miniflare';
 import * as unenv from 'unenv';
 import * as vite from 'vite';
+import { unstable_getMiniflareWorkerOptions } from 'wrangler';
 import {
 	createCloudflareEnvironmentOptions,
 	initRunners,
 } from './cloudflare-environment';
 import { getMiniflareOptions } from './miniflare-options';
+import { getGlobalModuleContents, isNodeCompat } from './node-js-compat';
 import { normalizePluginConfig } from './plugin-config';
 import { invariant } from './shared';
 import type { CloudflareDevEnvironment } from './cloudflare-environment';
@@ -19,8 +23,14 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 ): vite.Plugin {
 	let viteConfig: vite.ResolvedConfig;
 
+	/**
+	 * A set of worker/environment names that require Node.js compatibility.
+	 */
+	let requiresNodeCompat: Set<string>;
+
 	return {
 		name: 'vite-plugin-cloudflare',
+		enforce: 'pre',
 		config() {
 			const alias = Object.fromEntries(
 				Object.entries(preset.alias).filter(
@@ -62,6 +72,34 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 		},
 		configResolved(resolvedConfig) {
 			viteConfig = resolvedConfig;
+			requiresNodeCompat = getNodeCompatEnvironments(
+				pluginConfig,
+				path.resolve(
+					path.dirname(viteConfig.configFile ?? './dummy'),
+					viteConfig.root,
+				),
+			);
+		},
+		transform(code, id) {
+			// If the current environment needs Node.js compatibility, then inject the necessary global polyfills.
+			if (requiresNodeCompat.has(this.environment.name)) {
+				// TODO: check whether there is a better way to only do this on entry-points
+				if (id !== Array.from(this.getModuleIds())[0]) {
+					return;
+				}
+
+				const statements = Object.entries(preset.inject)
+					.map(getGlobalModuleContents)
+					.join('\n');
+
+				const modified = new MagicString(code);
+				modified.prepend(statements);
+
+				return {
+					code: modified.toString(),
+					map: modified.generateMap({ hires: 'boundary', source: id }),
+				};
+			}
 		},
 		async configureServer(viteDevServer) {
 			const { normalizedPluginConfig, wranglerConfigPaths } =
@@ -130,4 +168,25 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 			};
 		},
 	};
+}
+
+/**
+ * Returns a set of environment names that need Node.js compatibility.
+ */
+function getNodeCompatEnvironments(config: PluginConfig, root: string) {
+	const needsNodeJsCompat = new Set<string>();
+
+	Object.entries(config.workers).forEach(([name, rawWorkerOptions]) => {
+		const wranglerConfigPath = path.resolve(
+			root,
+			rawWorkerOptions.wranglerConfig ?? './wrangler.toml',
+		);
+		const { workerOptions } =
+			unstable_getMiniflareWorkerOptions(wranglerConfigPath);
+		if (isNodeCompat(workerOptions)) {
+			needsNodeJsCompat.add(name);
+		}
+	});
+
+	return needsNodeJsCompat;
 }
