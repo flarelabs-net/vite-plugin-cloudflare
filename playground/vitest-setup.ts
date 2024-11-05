@@ -183,10 +183,12 @@ beforeAll(async (s) => {
 
 async function loadConfig(configEnv: ConfigEnv) {
 	let config: UserConfig | null = null;
+	let cacheDir = 'node_modules/.vite';
 
 	// config file named by convention as the *.spec.ts folder
 	const variantName = path.basename(path.dirname(testPath));
 	if (variantName !== '__tests__') {
+		cacheDir += '/' + variantName;
 		for (const extension of ['js', 'ts', 'mjs', 'cjs', 'mts', 'cts']) {
 			const configVariantPath = path.resolve(
 				rootDir,
@@ -210,6 +212,7 @@ async function loadConfig(configEnv: ConfigEnv) {
 	}
 
 	const options: InlineConfig = {
+		cacheDir,
 		root: rootDir,
 		logLevel: 'silent',
 		configFile: false,
