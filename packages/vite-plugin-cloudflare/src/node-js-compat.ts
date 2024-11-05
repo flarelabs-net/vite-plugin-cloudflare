@@ -1,6 +1,9 @@
 import { getNodeCompat } from 'miniflare';
 import type { SourcelessWorkerOptions } from 'wrangler';
 
+/**
+ * Returns true if the given combination of compat dates and flags means that we need Node.js compatibility.
+ */
 export function isNodeCompat({
 	compatibilityDate,
 	compatibilityFlags,
