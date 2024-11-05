@@ -31,7 +31,6 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 
 	return {
 		name: 'vite-plugin-cloudflare',
-		enforce: 'pre',
 		config() {
 			// We only want to alias Node.js built-ins if the environment has Node.js compatibility turned on.
 			// But Vite only allows us to configure aliases at the shared options level, not per environment.
