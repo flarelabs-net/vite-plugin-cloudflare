@@ -17,6 +17,7 @@ import type { CloudflareDevEnvironment } from './cloudflare-environment';
 import type { PluginConfig, WorkerOptions } from './plugin-config';
 
 const preset = unenv.env(unenv.nodeless, unenv.cloudflare);
+const CLOUDFLARE_VIRTUAL_PREFIX = '\0cloudflare-';
 
 export function cloudflare<T extends Record<string, WorkerOptions>>(
 	pluginConfig: PluginConfig<T>,
@@ -32,15 +33,21 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 		name: 'vite-plugin-cloudflare',
 		enforce: 'pre',
 		config() {
-			const alias = Object.fromEntries(
-				Object.entries(preset.alias).filter(
-					(i) => !preset.external.includes(i[1]),
-				),
+			// We only want to alias Node.js built-ins if the environment has Node.js compatibility turned on.
+			// But Vite only allows us to configure aliases at the shared options level, not per environment.
+			// So instead we alias these to a virtual module, which are then handled with environment specific code in the `resolveId` handler
+			const nodeCompatAliases = Object.fromEntries(
+				Object.entries(preset.alias)
+					.filter((i) => !preset.external.includes(i[1]))
+					.map(([from, to]) => [
+						from,
+						CLOUDFLARE_VIRTUAL_PREFIX + to + '?' + from,
+					]),
 			);
 
 			return {
 				resolve: {
-					alias,
+					alias: { ...nodeCompatAliases },
 					// We want to use `workerd` package exports if available (e.g. for postgres).
 					conditions: ['workerd'],
 				},
@@ -79,6 +86,21 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 					viteConfig.root,
 				),
 			);
+		},
+		resolveId(source) {
+			if (source.startsWith(CLOUDFLARE_VIRTUAL_PREFIX)) {
+				// We found a potential Node.js import.
+				// If Node.js compatibility is turned on, use the alias to the appropriate unenv polyfill.
+				// Otherwise return it to the original non-aliased import.
+				const [to, from] = source
+					.slice(CLOUDFLARE_VIRTUAL_PREFIX.length)
+					.split('?');
+				if (requiresNodeCompat.has(this.environment.name)) {
+					return to;
+				} else {
+					return from;
+				}
+			}
 		},
 		transform(code, id) {
 			// If the current environment needs Node.js compatibility, then inject the necessary global polyfills.
