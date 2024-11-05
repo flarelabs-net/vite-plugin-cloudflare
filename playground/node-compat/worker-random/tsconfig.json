@@ -3,7 +3,7 @@
 	"compilerOptions": {
 		"allowJs": true,
 		"allowSyntheticDefaultImports": true,
-		"types": ["vite/client", "@types/node", "./.wrangler/types/runtime.d.ts"]
+		"types": ["vite/client", "@types/node", "../runtime.d.ts"]
 	},
 	"include": ["**/*.ts"],
 	"exclude": ["*.test.ts"]
