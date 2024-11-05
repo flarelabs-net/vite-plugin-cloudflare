@@ -1,5 +1,6 @@
 import { createMiddleware } from '@hattip/adapter-node';
 import { Miniflare } from 'miniflare';
+import * as unenv from 'unenv';
 import * as vite from 'vite';
 import {
 	createCloudflareEnvironmentOptions,
@@ -11,6 +12,8 @@ import { invariant } from './shared';
 import type { CloudflareDevEnvironment } from './cloudflare-environment';
 import type { PluginConfig, WorkerOptions } from './plugin-config';
 
+const preset = unenv.env(unenv.nodeless, unenv.cloudflare);
+
 export function cloudflare<T extends Record<string, WorkerOptions>>(
 	pluginConfig: PluginConfig<T>,
 ): vite.Plugin {
@@ -19,7 +22,18 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 	return {
 		name: 'vite-plugin-cloudflare',
 		config() {
+			const alias = Object.fromEntries(
+				Object.entries(preset.alias).filter(
+					(i) => !preset.external.includes(i[1]),
+				),
+			);
+
 			return {
+				resolve: {
+					alias,
+					// We want to use `workerd` package exports if available (e.g. for postgres).
+					conditions: ['workerd'],
+				},
 				appType: 'custom',
 				builder: {
 					async buildApp(builder) {
