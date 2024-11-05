@@ -214,6 +214,16 @@ export function getMiniflareOptions(
 							FetchFunctionOptions,
 						];
 
+						// For some reason we need this here for cloudflare built-ins (e.g. `cloudflare:workers`) but not for node built-ins (e.g. `node:path`)
+						if (moduleId.startsWith('cloudflare:')) {
+							const result = {
+								externalize: moduleId,
+								type: 'module',
+							} satisfies vite.FetchResult;
+
+							return new MiniflareResponse(JSON.stringify(result));
+						}
+
 						const devEnvironment = viteDevServer.environments[
 							workerOptions.name
 						] as CloudflareDevEnvironment;
@@ -227,16 +237,10 @@ export function getMiniflareOptions(
 
 							return new MiniflareResponse(JSON.stringify(result));
 						} catch (error) {
-							if (moduleId.startsWith('cloudflare:')) {
-								const result = {
-									externalize: moduleId,
-									type: 'module',
-								} satisfies vite.FetchResult;
-
-								return new MiniflareResponse(JSON.stringify(result));
-							}
-							throw new Error(
-								`Unexpected Error, failed to get module: ${moduleId}`,
+							console.log((error as any).stack);
+							return new MiniflareResponse(
+								`Unexpected Error, failed to get module: ${moduleId}\n${error}`,
+								{ status: 404 },
 							);
 						}
 					},
