@@ -12,7 +12,7 @@ export default {
 
 function testX509Certificate() {
 	try {
-		new nodeCrypto.X509Certificate(`-----BEGIN CERTIFICATE-----
+		const cert = new nodeCrypto.X509Certificate(`-----BEGIN CERTIFICATE-----
 MIICZjCCAc+gAwIBAgIUOsv8Y+x40C+gdNuu40N50KpGUhEwDQYJKoZIhvcNAQEL
 BQAwRTELMAkGA1UEBhMCQVUxEzARBgNVBAgMClNvbWUtU3RhdGUxITAfBgNVBAoM
 GEludGVybmV0IFdpZGdpdHMgUHR5IEx0ZDAeFw0yNDA5MjAwOTA4MTNaFw0yNTA5
@@ -27,7 +27,7 @@ DQEBCwUAA4GBACbto0+Ds40F7faRFFMwg5nPyh7gsiX+ZK3FYcrO3oxh5ejfzwow
 DKOOje4Ncaw0rIkVpxacPyjg+wANuK2Nv/Z4CVAD3mneE4gwgRdn38q8IYN9AtSv
 GzEf4UxiLBbUB6WRBgyVyquGfUMlKl/tnm4q0yeYQloYKSoHpGeHVJuN
 -----END CERTIFICATE-----`);
-		return new Response(`"OK!"`);
+		return new Response(`"OK!": ` + cert.toString());
 	} catch {
 		return new Response(`"KO!"`);
 	}
