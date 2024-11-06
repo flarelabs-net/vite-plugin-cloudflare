@@ -2,7 +2,6 @@ import * as path from 'node:path';
 import { createMiddleware } from '@hattip/adapter-node';
 import MagicString from 'magic-string';
 import { Miniflare } from 'miniflare';
-import * as unenv from 'unenv';
 import * as vite from 'vite';
 import { unstable_getMiniflareWorkerOptions } from 'wrangler';
 import {
@@ -10,14 +9,16 @@ import {
 	initRunners,
 } from './cloudflare-environment';
 import { getMiniflareOptions } from './miniflare-options';
-import { getGlobalModuleContents, isNodeCompat } from './node-js-compat';
+import {
+	getGlobalInjectionCode,
+	getNodeCompatAliases,
+	isNodeCompat,
+	resolveNodeAliases,
+} from './node-js-compat';
 import { normalizePluginConfig } from './plugin-config';
 import { invariant } from './shared';
 import type { CloudflareDevEnvironment } from './cloudflare-environment';
 import type { PluginConfig, WorkerOptions } from './plugin-config';
-
-const preset = unenv.env(unenv.nodeless, unenv.cloudflare);
-const CLOUDFLARE_VIRTUAL_PREFIX = '\0cloudflare-';
 
 export function cloudflare<T extends Record<string, WorkerOptions>>(
 	pluginConfig: PluginConfig<T>,
@@ -32,21 +33,9 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 	return {
 		name: 'vite-plugin-cloudflare',
 		config() {
-			// We only want to alias Node.js built-ins if the environment has Node.js compatibility turned on.
-			// But Vite only allows us to configure aliases at the shared options level, not per environment.
-			// So instead we alias these to a virtual module, which are then handled with environment specific code in the `resolveId` handler
-			const nodeCompatAliases = Object.fromEntries(
-				Object.entries(preset.alias)
-					.filter((i) => !preset.external.includes(i[1]))
-					.map(([from, to]) => [
-						from,
-						CLOUDFLARE_VIRTUAL_PREFIX + to + '?' + from,
-					]),
-			);
-
 			return {
 				resolve: {
-					alias: { ...nodeCompatAliases },
+					alias: { ...getNodeCompatAliases() },
 					// We want to use `workerd` package exports if available (e.g. for postgres).
 					conditions: ['workerd'],
 				},
@@ -87,39 +76,25 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 			);
 		},
 		resolveId(source) {
-			if (source.startsWith(CLOUDFLARE_VIRTUAL_PREFIX)) {
-				// We found a potential Node.js import.
-				// If Node.js compatibility is turned on, use the alias to the appropriate unenv polyfill.
-				// Otherwise return it to the original non-aliased import.
-				const [to, from] = source
-					.slice(CLOUDFLARE_VIRTUAL_PREFIX.length)
-					.split('?');
-				if (requiresNodeCompat.has(this.environment.name)) {
-					return to;
-				} else {
-					return from;
-				}
-			}
+			return resolveNodeAliases(
+				source,
+				requiresNodeCompat.has(this.environment.name),
+			);
 		},
 		transform(code, id) {
-			// If the current environment needs Node.js compatibility, then inject the necessary global polyfills.
+			// If the current environment needs Node.js compatibility,
+			// then inject the necessary global polyfills into the entry point.
 			if (requiresNodeCompat.has(this.environment.name)) {
-				// TODO: check whether there is a better way to only do this on entry-points
-				if (id !== Array.from(this.getModuleIds())[0]) {
-					return;
+				// TODO: find a better way to identify if this is an entry-point
+				const firstModule = this.getModuleIds().next().value;
+				if (id === firstModule) {
+					const modified = new MagicString(code);
+					modified.prepend(getGlobalInjectionCode());
+					return {
+						code: modified.toString(),
+						map: modified.generateMap({ hires: 'boundary', source: id }),
+					};
 				}
-
-				const statements = Object.entries(preset.inject)
-					.map(getGlobalModuleContents)
-					.join('\n');
-
-				const modified = new MagicString(code);
-				modified.prepend(statements);
-
-				return {
-					code: modified.toString(),
-					map: modified.generateMap({ hires: 'boundary', source: id }),
-				};
 			}
 		},
 		async configureServer(viteDevServer) {
