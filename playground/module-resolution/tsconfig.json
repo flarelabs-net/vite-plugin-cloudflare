@@ -1,4 +1,7 @@
 {
 	"extends": ["@vite-plugin-cloudflare/typescript-config/worker.json"],
-	"include": ["**/*"]
+	"include": ["**/*"],
+	"compilerOptions": {"paths": {
+		"@alias/test": ["./src/alias-test.ts"]
+	}}
 }

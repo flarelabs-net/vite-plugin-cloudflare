@@ -1,3 +1,5 @@
+import { test } from '@alias/test';
+
 const allowedPaths = new Set([
 	'/require-ext',
 	'/require-no-ext',
@@ -19,6 +21,10 @@ export default {
 		if (allowedPaths.has(path)) {
 			const mod = await import(/* @vite-ignore */ `./${path}`);
 			return Response.json(mod.default);
+		}
+
+		if (path === '/alias-test') {
+			return test();
 		}
 
 		return new Response(`path not found: '${path}'`, { status: 404 });
