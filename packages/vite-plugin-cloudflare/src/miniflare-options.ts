@@ -235,7 +235,6 @@ export function getMiniflareOptions(
 
 							return new MiniflareResponse(JSON.stringify(result));
 						} catch (error) {
-							console.log((error as any).stack);
 							return new MiniflareResponse(
 								`Unexpected Error, failed to get module: ${moduleId}\n${error}`,
 								{ status: 404 },
