@@ -61,7 +61,7 @@ export async function createModuleRunner(
 					Object.freeze(context.__vite_ssr_exports__);
 				} catch (e) {
 					console.error('error running', module.id);
-					console.error('stack' in (e as any) ? (e as any).stack : e);
+					console.error(e instanceof Error ? e.stack : e);
 					throw e;
 				}
 			},
