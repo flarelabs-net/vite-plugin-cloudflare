@@ -78,10 +78,11 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 				return resolveNodeAliases(source, worker.workerOptions);
 			}
 		},
-		transform(code, id) {
+		async transform(code, id) {
 			const worker = normalizedPluginConfig.workers[this.environment.name];
 			if (worker) {
-				if (id === worker.entryPath) {
+				const rId = await this.resolve(worker.entryPath);
+				if (id === rId?.id) {
 					return injectGlobalCode(id, code, worker.workerOptions);
 				}
 			}
