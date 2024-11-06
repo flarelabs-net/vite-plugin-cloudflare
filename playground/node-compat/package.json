@@ -1,5 +1,5 @@
 {
-	"name": "@tests/integration-node-compat",
+	"name": "@playground/integration-node-compat",
 	"private": true,
 	"type": "module",
 	"scripts": {
