@@ -29,13 +29,10 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 
 	return {
 		name: 'vite-plugin-cloudflare',
-		config(userConfig) {
+		config() {
 			return {
 				resolve: {
-					alias: vite.mergeAlias(
-						getNodeCompatAliases(),
-						userConfig.resolve?.alias,
-					),
+					alias: getNodeCompatAliases(),
 					// We want to use `workerd` package exports if available (e.g. for postgres).
 					conditions: ['workerd'],
 				},
