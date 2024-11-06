@@ -3,7 +3,7 @@
 	"include": ["**/*"],
 	"compilerOptions": {
 		"paths": {
-			"@alias/test": ["./src/alias-test.ts"]
+			"@alias/test": ["./src/aliasing.ts"]
 		}
 	}
 }

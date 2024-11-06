@@ -1,5 +1,10 @@
 import { afterAll, describe, expect, test } from 'vitest';
-import { getJsonResponse, isBuild, serverLogs } from '../../__test-utils__';
+import {
+	getJsonResponse,
+	getTextResponse,
+	isBuild,
+	serverLogs,
+} from '../../__test-utils__';
 
 describe.runIf(!isBuild)('module resolution', async () => {
 	afterAll(() => expect(serverLogs.errors).toEqual([]));
@@ -93,6 +98,13 @@ describe.runIf(!isBuild)('module resolution', async () => {
 				'(slash-create/web) slashCreatorInstance is instance of SlashCreator':
 					true,
 			});
+		});
+	});
+
+	describe('user aliases', () => {
+		test('imports from an aliased package', async () => {
+			const result = await getTextResponse('/@alias/test');
+			expect(result).toBe('OK!');
 		});
 	});
 });

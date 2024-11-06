@@ -23,7 +23,7 @@ export default {
 			return Response.json(mod.default);
 		}
 
-		if (path === '/alias-test') {
+		if (path === '/@alias/test') {
 			return test();
 		}
 

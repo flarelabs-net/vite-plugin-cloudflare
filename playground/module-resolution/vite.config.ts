@@ -5,7 +5,7 @@ import { defineConfig } from 'vite';
 export default defineConfig({
 	resolve: {
 		alias: {
-			'@alias/test': resolve('./src/alias-test.ts'),
+			'@alias/test': resolve(__dirname, './src/aliasing.ts'),
 		},
 	},
 	plugins: [
