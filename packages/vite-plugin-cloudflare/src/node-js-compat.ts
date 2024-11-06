@@ -59,8 +59,8 @@ const CLOUDFLARE_VIRTUAL_PREFIX = '\0cloudflare-';
 export function getNodeCompatAliases() {
 	return Object.fromEntries(
 		Object.entries(preset.alias)
-			.filter((i) => !preset.external.includes(i[1]))
-			.map(([from, to]) => [from, CLOUDFLARE_VIRTUAL_PREFIX + to + '?' + from]),
+			.filter(([, to]) => !preset.external.includes(to))
+			.map(([from]) => [from, CLOUDFLARE_VIRTUAL_PREFIX + from]),
 	);
 }
 
@@ -76,11 +76,9 @@ export function resolveNodeAliases(
 		// We found a potential Node.js import.
 		// If Node.js compatibility is turned on, use the alias to the appropriate unenv polyfill.
 		// Otherwise return it to the original non-aliased import.
-		const [to, from] = source
-			.slice(CLOUDFLARE_VIRTUAL_PREFIX.length)
-			.split('?');
+		const from = source.slice(CLOUDFLARE_VIRTUAL_PREFIX.length);
 		if (requiresNodeCompat) {
-			return to;
+			return preset.alias[from];
 		} else {
 			return from;
 		}
