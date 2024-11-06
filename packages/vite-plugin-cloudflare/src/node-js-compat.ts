@@ -1,6 +1,10 @@
+import MagicString from 'magic-string';
 import { getNodeCompat } from 'miniflare';
 import * as unenv from 'unenv';
 import type { SourcelessWorkerOptions } from 'wrangler';
+
+const preset = unenv.env(unenv.nodeless, unenv.cloudflare);
+const CLOUDFLARE_VIRTUAL_PREFIX = '\0cloudflare-';
 
 /**
  * Returns true if the given combination of compat dates and flags means that we need Node.js compatibility.
@@ -30,10 +34,19 @@ export function isNodeCompat({
 }
 
 /**
- * Get the code to inject globals into the entry-point.
+ * If the current environment needs Node.js compatibility,
+ * then inject the necessary global polyfills into the code.
  */
-export function getGlobalInjectionCode() {
-	return Object.entries(preset.inject)
+export function injectGlobalCode(
+	id: string,
+	code: string,
+	workerOptions: SourcelessWorkerOptions,
+) {
+	if (!isNodeCompat(workerOptions)) {
+		return;
+	}
+
+	const injectedCode = Object.entries(preset.inject)
 		.map(([globalName, globalInject]) => {
 			if (typeof globalInject === 'string') {
 				const moduleSpecifier = globalInject;
@@ -46,10 +59,14 @@ export function getGlobalInjectionCode() {
 			return `import var_${globalName} from "${moduleSpecifier}";\nglobalThis.${globalName} = var_${globalName}.${exportName};\n`;
 		})
 		.join('\n');
-}
 
-const preset = unenv.env(unenv.nodeless, unenv.cloudflare);
-const CLOUDFLARE_VIRTUAL_PREFIX = '\0cloudflare-';
+	const modified = new MagicString(code);
+	modified.prepend(injectedCode);
+	return {
+		code: modified.toString(),
+		map: modified.generateMap({ hires: 'boundary', source: id }),
+	};
+}
 
 /**
  * We only want to alias Node.js built-ins if the environment has Node.js compatibility turned on.
@@ -70,14 +87,14 @@ export function getNodeCompatAliases() {
  */
 export function resolveNodeAliases(
 	source: string,
-	requiresNodeCompat: boolean,
+	workerOptions: SourcelessWorkerOptions,
 ) {
 	if (source.startsWith(CLOUDFLARE_VIRTUAL_PREFIX)) {
 		// We found a potential Node.js import.
 		// If Node.js compatibility is turned on, use the alias to the appropriate unenv polyfill.
 		// Otherwise return it to the original non-aliased import.
 		const from = source.slice(CLOUDFLARE_VIRTUAL_PREFIX.length);
-		if (requiresNodeCompat) {
+		if (isNodeCompat(workerOptions)) {
 			return preset.alias[from];
 		} else {
 			return from;
