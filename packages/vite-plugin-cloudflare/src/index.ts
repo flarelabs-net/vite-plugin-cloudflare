@@ -81,8 +81,7 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 		transform(code, id) {
 			const worker = normalizedPluginConfig.workers[this.environment.name];
 			if (worker) {
-				const isFirstModule = id === this.getModuleIds().next().value;
-				if (isFirstModule) {
+				if (id === worker.entryPath) {
 					return injectGlobalCode(id, code, worker.workerOptions);
 				}
 			}
