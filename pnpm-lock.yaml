@@ -71,6 +71,9 @@ importers:
         specifier: ^3.20241004.0
         version: 3.20241004.0
     devDependencies:
+      '@cloudflare/workers-shared':
+        specifier: ^0.7.0
+        version: 0.7.0
       '@cloudflare/workers-types':
         specifier: catalog:default
         version: 4.20241011.0
@@ -442,6 +445,10 @@ packages:
 
   '@cloudflare/workers-shared@0.6.0':
     resolution: {integrity: sha512-rfUCvb3hx4AsvdUZsxgk9lmgEnQehqV3jdtXLP/Xr0+P56n11T/0nXNMzmn7Nnv+IJFOV6X9NmFhuMz4sBPw7w==}
+    engines: {node: '>=16.7.0'}
+
+  '@cloudflare/workers-shared@0.7.0':
+    resolution: {integrity: sha512-LLQRTqx7lKC7o2eCYMpyc5FXV8d0pUX6r3A+agzhqS9aoR5A6zCPefwQGcvbKx83ozX22ATZcemwxQXn12UofQ==}
     engines: {node: '>=16.7.0'}
 
   '@cloudflare/workers-types@4.20241011.0':
@@ -2709,6 +2716,11 @@ snapshots:
     optional: true
 
   '@cloudflare/workers-shared@0.6.0':
+    dependencies:
+      mime: 3.0.0
+      zod: 3.23.8
+
+  '@cloudflare/workers-shared@0.7.0':
     dependencies:
       mime: 3.0.0
       zod: 3.23.8

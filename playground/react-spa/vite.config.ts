@@ -33,7 +33,7 @@ export default defineConfig({
 
 									res.end(html);
 								} catch (error) {
-									next();
+									next(error);
 								}
 							}
 						}
