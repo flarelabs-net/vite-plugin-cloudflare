@@ -135,6 +135,8 @@ export function createCloudflareEnvironmentOptions(
 				// Note: in order for ssr pre-bundling to take effect we need to ask vite to treat all
 				//       dependencies as not external
 				noExternal: true,
+				// We want to use `workerd` package exports if available (e.g. for postgres).
+				conditions: ['workerd', 'module', 'browser', 'development|production'],
 			},
 			dev: {
 				createEnvironment(name, config) {
