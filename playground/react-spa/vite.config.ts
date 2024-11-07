@@ -8,48 +8,49 @@ import { defineConfig } from 'vite';
 export default defineConfig({
 	plugins: [
 		react(),
-		{
-			name: 'test-plugin',
-			configureServer(viteDevServer) {
-				const root = viteDevServer.config.root;
+		// {
+		// 	name: 'test-plugin',
+		// 	configureServer(viteDevServer) {
+		// 		const root = viteDevServer.config.root;
 
-				return () => {
-					viteDevServer.middlewares.use(async (req, res, next) => {
-						console.log(req.url, req.originalUrl);
-						// Clean url?
-						const url = req.url;
+		// 		return () => {
+		// 			viteDevServer.middlewares.use(async (req, res, next) => {
+		// 				console.log(req.url, req.originalUrl);
+		// 				// Clean url?
+		// 				const url = req.url;
 
-						if (
-							url?.endsWith('.html') &&
-							req.headers['sec-fetch-dest'] !== 'script'
-						) {
-							const filePath = path.join(root, decodeURIComponent(url));
+		// 				if (
+		// 					url?.endsWith('.html') &&
+		// 					req.headers['sec-fetch-dest'] !== 'script'
+		// 				) {
+		// 					const filePath = path.join(root, decodeURIComponent(url));
 
-							if (fs.existsSync(filePath)) {
-								// Add headers?
-								try {
-									let html = await fsp.readFile(filePath, 'utf-8');
-									html = await viteDevServer.transformIndexHtml(url, html);
+		// 					if (fs.existsSync(filePath)) {
+		// 						// Add headers?
+		// 						try {
+		// 							let html = await fsp.readFile(filePath, 'utf-8');
+		// 							html = await viteDevServer.transformIndexHtml(url, html);
 
-									res.end(html);
-								} catch (error) {
-									next(error);
-								}
-							}
-						}
-					});
-				};
-			},
-		},
-		// cloudflare({
-		// 	workers: {
-		// 		worker: {
-		// 			main: './src/index.ts',
-		// 			wranglerConfig: './src/wrangler.toml',
-		// 		},
+		// 							res.end(html);
+		// 						} catch (error) {
+		// 							next(error);
+		// 						}
+		// 					}
+		// 				}
+		// 			});
+		// 		};
 		// 	},
-		// 	entryWorker: 'worker',
-		// 	persistTo: false,
-		// }),
+		// },
+		cloudflare({
+			workers: {},
+			// workers: {
+			// 	worker: {
+			// 		main: './src/index.ts',
+			// 		wranglerConfig: './src/wrangler.toml',
+			// 	},
+			// },
+			// entryWorker: 'worker',
+			persistTo: false,
+		}),
 	],
 });

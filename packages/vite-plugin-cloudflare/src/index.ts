@@ -2,6 +2,7 @@ import path from 'node:path';
 import { createMiddleware } from '@hattip/adapter-node';
 import { Miniflare } from 'miniflare';
 import * as vite from 'vite';
+import { getRouterWorker } from './assets';
 import {
 	createCloudflareEnvironmentOptions,
 	initRunners,
@@ -35,7 +36,7 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 				resolve: {
 					alias: getNodeCompatAliases(),
 				},
-				appType: 'custom',
+				// appType: 'custom',
 				builder: {
 					async buildApp(builder) {
 						const environments = Object.keys(pluginConfig.workers).map(
@@ -103,6 +104,8 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 				getMiniflareOptions(normalizedPluginConfig, viteConfig, viteDevServer),
 			);
 
+			const routerWorker = await getRouterWorker(miniflare);
+
 			await initRunners(normalizedPluginConfig, miniflare, viteDevServer);
 
 			viteDevServer.watcher.on('all', async (_, path) => {
@@ -129,18 +132,22 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 				}
 			});
 
-			const middleware =
-				pluginConfig.entryWorker &&
-				createMiddleware(
-					(context) => {
-						return (
-							viteDevServer.environments[
-								pluginConfig.entryWorker as string
-							] as CloudflareDevEnvironment
-						).dispatchFetch(context.request);
-					},
-					{ alwaysCallNext: false },
-				);
+			// const middleware =
+			// 	pluginConfig.entryWorker &&
+			// 	createMiddleware(
+			// 		(context) => {
+			// 			return (
+			// 				viteDevServer.environments[
+			// 					pluginConfig.entryWorker as string
+			// 				] as CloudflareDevEnvironment
+			// 			).dispatchFetch(context.request);
+			// 		},
+			// 		{ alwaysCallNext: false },
+			// 	);
+
+			const middleware = createMiddleware(({ request }) => {
+				return routerWorker.fetch(request.url) as any;
+			});
 
 			return () => {
 				viteDevServer.middlewares.use((req, res, next) => {
@@ -148,7 +155,9 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 						throw error;
 					}
 
-					req.url = req.originalUrl;
+					// req.url = req.originalUrl;
+
+					console.log(req.url);
 
 					if (!middleware) {
 						next();
