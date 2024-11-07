@@ -1,5 +1,3 @@
-import { test } from '@alias/test';
-
 const allowedPaths = new Set([
 	'/require-ext',
 	'/require-no-ext',
@@ -24,6 +22,12 @@ export default {
 		}
 
 		if (path === '/@alias/test') {
+			const { test } = await import('@alias/test');
+			return test();
+		}
+
+		if (path === '/@alias/test-not-registered') {
+			const { test } = await import('@alias/test-not-registered');
 			return test();
 		}
 

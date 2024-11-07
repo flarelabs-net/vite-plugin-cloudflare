@@ -3,11 +3,17 @@ import {
 	getJsonResponse,
 	getTextResponse,
 	isBuild,
+	page,
 	serverLogs,
+	viteTestUrl,
 } from '../../__test-utils__';
 
 describe.runIf(!isBuild)('module resolution', async () => {
-	afterAll(() => expect(serverLogs.errors).toEqual([]));
+	afterAll(() => {
+		const isNotAliasNotRegisteredError = (error: string) =>
+			!error.includes('@alias/test-not-registered');
+		expect(serverLogs.errors.filter(isNotAliasNotRegisteredError)).toEqual([]);
+	});
 
 	describe('basic module resolution', () => {
 		test('`require` js/cjs files with specifying their file extension', async () => {
@@ -105,6 +111,16 @@ describe.runIf(!isBuild)('module resolution', async () => {
 		test('imports from an aliased package', async () => {
 			const result = await getTextResponse('/@alias/test');
 			expect(result).toBe('OK!');
+		});
+
+		test('imports from a non-registered aliased package', async () => {
+			await page.goto(`${viteTestUrl}/@alias/test-not-registered`);
+			const errorText = await page
+				.locator('vite-error-overlay pre.message')
+				.textContent();
+			expect(errorText).toContain(
+				"Cannot find module '@alias/test-not-registered'",
+			);
 		});
 	});
 });
