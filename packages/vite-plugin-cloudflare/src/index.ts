@@ -134,7 +134,9 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 			});
 
 			const middleware = createMiddleware(({ request }) => {
-				return routerWorker.fetch(toMiniflareRequest(request)) as any;
+				return routerWorker.fetch(toMiniflareRequest(request), {
+					redirect: 'manual',
+				}) as any;
 			});
 
 			return () => {

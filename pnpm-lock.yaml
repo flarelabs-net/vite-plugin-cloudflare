@@ -292,6 +292,43 @@ importers:
         specifier: catalog:default
         version: 3.80.4(@cloudflare/workers-types@4.20241011.0)
 
+  playground/spa-with-api:
+    dependencies:
+      react:
+        specifier: 18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: catalog:default
+        version: 4.20241011.0
+      '@flarelabs-net/vite-plugin-cloudflare':
+        specifier: workspace:*
+        version: link:../../packages/vite-plugin-cloudflare
+      '@types/react':
+        specifier: ^18.3.11
+        version: 18.3.12
+      '@types/react-dom':
+        specifier: ^18.3.1
+        version: 18.3.1
+      '@vite-plugin-cloudflare/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
+      '@vitejs/plugin-react':
+        specifier: ^4.3.3
+        version: 4.3.3(vite@6.0.0-beta.4(@types/node@22.8.7))
+      typescript:
+        specifier: catalog:default
+        version: 5.6.2
+      vite:
+        specifier: catalog:default
+        version: 6.0.0-beta.4(@types/node@22.8.7)
+      wrangler:
+        specifier: catalog:default
+        version: 3.80.4(@cloudflare/workers-types@4.20241011.0)
+
   playground/static-mpa:
     devDependencies:
       '@cloudflare/workers-types':
