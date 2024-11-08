@@ -26,8 +26,8 @@ export default {
 			return test();
 		}
 
-		if (path === '/@alias/unconfigured') {
-			const { test } = await import('@alias/unconfigured');
+		if (path === '/@non-existing/pkg') {
+			const { test } = await import('@non-existing/pkg');
 			return test();
 		}
 

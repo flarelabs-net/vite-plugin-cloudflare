@@ -10,8 +10,9 @@ export default defineConfig({
 	},
 	build: {
 		rollupOptions: {
-			// let's externalize this unconfigured alias just to make the build command pass
-			external: ['@alias/unconfigured'],
+			// let's externalize this non existing package just to make the build command pass
+			// (so that we can validate the dev user error for trying to import it)
+			external: ['@non-existing/pkg'],
 		},
 	},
 	plugins: [

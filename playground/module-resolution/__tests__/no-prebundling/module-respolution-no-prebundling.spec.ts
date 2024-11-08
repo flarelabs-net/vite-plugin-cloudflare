@@ -45,13 +45,15 @@ describe.runIf(!isBuild)('module resolution without prebundling', async () => {
 			const result = await getTextResponse('/@alias/test');
 			expect(result).toBe('OK!');
 		});
+	});
 
-		test('imports from a non configured aliased package', async () => {
-			await page.goto(`${viteTestUrl}/@alias/unconfigured`);
+	describe('user errors', () => {
+		test('imports from a non existing package', async () => {
+			await page.goto(`${viteTestUrl}/@non-existing/pkg`);
 			const errorText = await page
 				.locator('vite-error-overlay pre.message')
 				.textContent();
-			expect(errorText).toContain("Cannot find module '@alias/unconfigured'");
+			expect(errorText).toContain("Cannot find module '@non-existing/pkg'");
 		});
 	});
 });
