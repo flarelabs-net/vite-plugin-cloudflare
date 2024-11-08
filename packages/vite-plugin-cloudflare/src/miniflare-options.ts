@@ -142,7 +142,6 @@ export function getMiniflareOptions(
 			],
 			bindings: {
 				CONFIG: {
-					// TODO: update
 					has_user_worker: normalizedPluginConfig.entryWorkerName
 						? true
 						: false,
@@ -150,7 +149,9 @@ export function getMiniflareOptions(
 			},
 			serviceBindings: {
 				ASSET_WORKER: ASSET_WORKER_NAME,
-				USER_WORKER: normalizedPluginConfig.entryWorkerName ?? '',
+				...(normalizedPluginConfig.entryWorkerName
+					? { USER_WORKER: normalizedPluginConfig.entryWorkerName }
+					: {}),
 			},
 		},
 		{

@@ -15,6 +15,7 @@ import {
 } from './node-js-compat';
 import { normalizePluginConfig } from './plugin-config';
 import { invariant } from './shared';
+import { toMiniflareRequest } from './utils';
 import type {
 	NormalizedPluginConfig,
 	PluginConfig,
@@ -34,7 +35,6 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 				resolve: {
 					alias: getNodeCompatAliases(),
 				},
-				// TODO: decide on the correct approach here
 				appType: 'custom',
 				builder: {
 					async buildApp(builder) {
@@ -134,21 +134,8 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 				}
 			});
 
-			// const middleware =
-			// 	pluginConfig.entryWorker &&
-			// 	createMiddleware(
-			// 		(context) => {
-			// 			return (
-			// 				viteDevServer.environments[
-			// 					pluginConfig.entryWorker as string
-			// 				] as CloudflareDevEnvironment
-			// 			).dispatchFetch(context.request);
-			// 		},
-			// 		{ alwaysCallNext: false },
-			// 	);
-
 			const middleware = createMiddleware(({ request }) => {
-				return routerWorker.fetch(request.url) as any;
+				return routerWorker.fetch(toMiniflareRequest(request)) as any;
 			});
 
 			return () => {
