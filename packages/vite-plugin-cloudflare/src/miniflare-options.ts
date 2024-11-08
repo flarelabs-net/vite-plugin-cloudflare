@@ -4,7 +4,11 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Log, LogLevel, Response as MiniflareResponse } from 'miniflare';
 import * as vite from 'vite';
-import { ASSET_WORKER_NAME, ROUTER_WORKER_NAME } from './assets';
+import {
+	ASSET_WORKER_NAME,
+	ASSETS_COMPATIBILITY_DATE,
+	ROUTER_WORKER_NAME,
+} from './assets';
 import { invariant } from './shared';
 import type { CloudflareDevEnvironment } from './cloudflare-environment';
 import type { NormalizedPluginConfig } from './plugin-config';
@@ -125,6 +129,7 @@ export function getMiniflareOptions(
 	const assetWorkers: Array<WorkerOptions> = [
 		{
 			name: ROUTER_WORKER_NAME,
+			compatibilityDate: ASSETS_COMPATIBILITY_DATE,
 			modulesRoot: miniflareModulesRoot,
 			modules: [
 				{
@@ -138,15 +143,19 @@ export function getMiniflareOptions(
 			bindings: {
 				CONFIG: {
 					// TODO: update
-					has_user_worker: false,
+					has_user_worker: normalizedPluginConfig.entryWorkerName
+						? true
+						: false,
 				},
 			},
 			serviceBindings: {
 				ASSET_WORKER: ASSET_WORKER_NAME,
+				USER_WORKER: normalizedPluginConfig.entryWorkerName ?? '',
 			},
 		},
 		{
 			name: ASSET_WORKER_NAME,
+			compatibilityDate: ASSETS_COMPATIBILITY_DATE,
 			modulesRoot: miniflareModulesRoot,
 			modules: [
 				{
