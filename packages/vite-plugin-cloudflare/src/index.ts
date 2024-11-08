@@ -15,7 +15,6 @@ import {
 } from './node-js-compat';
 import { normalizePluginConfig } from './plugin-config';
 import { invariant } from './shared';
-import type { CloudflareDevEnvironment } from './cloudflare-environment';
 import type {
 	NormalizedPluginConfig,
 	PluginConfig,
@@ -26,7 +25,6 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 	pluginConfig: PluginConfig<T>,
 ): vite.Plugin {
 	let viteConfig: vite.ResolvedConfig;
-
 	let normalizedPluginConfig: NormalizedPluginConfig;
 
 	return {
@@ -36,10 +34,11 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 				resolve: {
 					alias: getNodeCompatAliases(),
 				},
-				// appType: 'custom',
+				// TODO: decide on the correct approach here
+				appType: 'custom',
 				builder: {
 					async buildApp(builder) {
-						const environments = Object.keys(pluginConfig.workers).map(
+						const environments = Object.keys(pluginConfig.workers ?? {}).map(
 							(name) => {
 								const environment = builder.environments[name];
 								invariant(environment, `${name} environment not found`);
@@ -55,10 +54,12 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 				},
 				// Ensure there is an environment for each worker
 				environments: Object.fromEntries(
-					Object.entries(pluginConfig.workers).map(([name, workerOptions]) => [
-						name,
-						createCloudflareEnvironmentOptions(workerOptions),
-					]),
+					Object.entries(pluginConfig.workers ?? {}).map(
+						([name, workerOptions]) => [
+							name,
+							createCloudflareEnvironmentOptions(workerOptions),
+						],
+					),
 				),
 			};
 		},
@@ -156,8 +157,6 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 					}
 
 					// req.url = req.originalUrl;
-
-					console.log(req.url);
 
 					if (!middleware) {
 						next();

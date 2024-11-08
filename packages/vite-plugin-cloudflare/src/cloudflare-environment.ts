@@ -115,7 +115,7 @@ export class CloudflareDevEnvironment extends vite.DevEnvironment {
 			headers: [['accept-encoding', 'identity'], ...request.headers],
 			body: request.body,
 			duplex: 'half',
-		});
+		}) as any;
 	}
 }
 

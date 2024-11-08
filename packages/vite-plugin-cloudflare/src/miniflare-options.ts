@@ -157,29 +157,43 @@ export function getMiniflareOptions(
 					),
 				},
 			],
-			// TODO: add config binding
-			// bindings: {
-			// 	ASSET_CONFIG: {}
-			// },
+			bindings: {
+				CONFIG: {
+					html_handling: normalizedPluginConfig.assets.htmlHandling ?? null,
+					not_found_handling:
+						normalizedPluginConfig.assets.notFoundHandling ?? null,
+				},
+			},
 			serviceBindings: {
-				__VITE_FETCH_HTML__: async (request) => {
+				__VITE_ASSET_EXISTS__: async (request) => {
 					const { pathname } = new URL(request.url);
-					const filePath = path.join(
-						viteConfig.root,
-						decodeURIComponent(pathname),
-					);
+					const filePath = path.join(viteConfig.root, pathname);
 
-					if (fs.existsSync(filePath)) {
-						try {
-							let html = await fsp.readFile(filePath, 'utf-8');
-							html = await viteDevServer.transformIndexHtml(pathname, html);
+					let exists: boolean;
 
-							return new MiniflareResponse(html, {
-								headers: { 'Content-Type': 'text/html' },
-							});
-						} catch (error) {
-							console.error('No HTML');
-						}
+					try {
+						exists = fs.statSync(filePath).isFile();
+					} catch (error) {
+						exists = false;
+					}
+
+					return new MiniflareResponse(JSON.stringify(exists), {
+						headers: { 'Content-Type': 'application/json' },
+					});
+				},
+				__VITE_FETCH_ASSET__: async (request) => {
+					const { pathname } = new URL(request.url);
+					const filePath = path.join(viteConfig.root, pathname);
+
+					try {
+						let html = await fsp.readFile(filePath, 'utf-8');
+						html = await viteDevServer.transformIndexHtml(pathname, html);
+
+						return new MiniflareResponse(html, {
+							headers: { 'Content-Type': 'text/html' },
+						});
+					} catch (error) {
+						throw new Error(`Unexpected error. Failed to load ${pathname}`);
 					}
 				},
 			},
