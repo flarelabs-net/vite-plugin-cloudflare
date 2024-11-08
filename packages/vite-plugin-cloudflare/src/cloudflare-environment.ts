@@ -166,6 +166,7 @@ export function createCloudflareEnvironmentOptions(
 					...builtinModules.concat(builtinModules.map((m) => `node:${m}`)),
 				],
 				esbuildOptions: {
+					platform: 'neutral',
 					resolveExtensions: [
 						'.mjs',
 						'.js',
