@@ -6,7 +6,7 @@ import { Log, LogLevel, Response as MiniflareResponse } from 'miniflare';
 import * as vite from 'vite';
 import {
 	ASSET_WORKER_NAME,
-	ASSETS_COMPATIBILITY_DATE,
+	ASSET_WORKERS_COMPATIBILITY_DATE,
 	ROUTER_WORKER_NAME,
 } from './assets';
 import { invariant } from './shared';
@@ -129,7 +129,7 @@ export function getMiniflareOptions(
 	const assetWorkers: Array<WorkerOptions> = [
 		{
 			name: ROUTER_WORKER_NAME,
-			compatibilityDate: ASSETS_COMPATIBILITY_DATE,
+			compatibilityDate: ASSET_WORKERS_COMPATIBILITY_DATE,
 			modulesRoot: miniflareModulesRoot,
 			modules: [
 				{
@@ -156,7 +156,7 @@ export function getMiniflareOptions(
 		},
 		{
 			name: ASSET_WORKER_NAME,
-			compatibilityDate: ASSETS_COMPATIBILITY_DATE,
+			compatibilityDate: ASSET_WORKERS_COMPATIBILITY_DATE,
 			modulesRoot: miniflareModulesRoot,
 			modules: [
 				{
@@ -169,9 +169,15 @@ export function getMiniflareOptions(
 			],
 			bindings: {
 				CONFIG: {
-					html_handling: normalizedPluginConfig.assets.htmlHandling ?? null,
-					not_found_handling:
-						normalizedPluginConfig.assets.notFoundHandling ?? null,
+					...(normalizedPluginConfig.assets.htmlHandling
+						? { html_handling: normalizedPluginConfig.assets.htmlHandling }
+						: {}),
+					...(normalizedPluginConfig.assets.notFoundHandling
+						? {
+								not_found_handling:
+									normalizedPluginConfig.assets.notFoundHandling,
+							}
+						: {}),
 				},
 			},
 			serviceBindings: {
@@ -251,7 +257,6 @@ export function getMiniflareOptions(
 			);
 		},
 		...getPersistence(normalizedPluginConfig.persistPath),
-		// TODO: move userWorkers.map
 		workers: [
 			...assetWorkers,
 			...userWorkers.map((workerOptions) => {
