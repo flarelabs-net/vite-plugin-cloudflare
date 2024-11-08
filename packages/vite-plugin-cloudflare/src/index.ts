@@ -105,9 +105,7 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 				getMiniflareOptions(normalizedPluginConfig, viteConfig, viteDevServer),
 			);
 
-			// TODO: update on config changes
-			const routerWorker = await getRouterWorker(miniflare);
-
+			let routerWorker = await getRouterWorker(miniflare);
 			await initRunners(normalizedPluginConfig, miniflare, viteDevServer);
 
 			viteDevServer.watcher.on('all', async (_, path) => {
@@ -124,6 +122,7 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 						),
 					);
 
+					routerWorker = await getRouterWorker(miniflare);
 					await initRunners(normalizedPluginConfig, miniflare, viteDevServer);
 
 					error = undefined;

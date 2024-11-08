@@ -15,6 +15,7 @@ export default class CustomAssetWorker extends (AssetWorker as typeof WorkerEntr
 		headers.delete('ETag');
 		headers.delete('Cache-Control');
 
+		// Do we need to do anything else here to duplicate the origin response?
 		return new Response(response.body, {
 			status: response.status,
 			headers,
