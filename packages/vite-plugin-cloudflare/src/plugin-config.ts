@@ -7,6 +7,8 @@ import type { SourcelessWorkerOptions } from 'wrangler';
 export interface WorkerOptions {
 	main: string;
 	wranglerConfig?: string;
+	// TODO: tighten up types so assets can only be bound to entry worker
+	assetsBinding?: string;
 	overrides?: vite.EnvironmentOptions;
 }
 
@@ -30,6 +32,7 @@ export interface NormalizedPluginConfig {
 			name: string;
 			entryPath: string;
 			wranglerConfigPath: string;
+			assetsBinding?: string;
 			workerOptions: SourcelessWorkerOptions;
 		}
 	>;
@@ -70,6 +73,7 @@ export function normalizePluginConfig(
 					name,
 					entryPath: options.main,
 					wranglerConfigPath,
+					assetsBinding: options.assetsBinding,
 					workerOptions,
 				},
 			];

@@ -223,6 +223,12 @@ export function getMiniflareOptions(
 					__VITE_ROOT__: viteConfig.root,
 					__VITE_ENTRY_PATH__: worker.entryPath,
 				},
+				serviceBindings: {
+					...workerOptions.serviceBindings,
+					...(worker.assetsBinding
+						? { [worker.assetsBinding]: ASSET_WORKER_NAME }
+						: {}),
+				},
 			} satisfies Partial<WorkerOptions>;
 		},
 	);

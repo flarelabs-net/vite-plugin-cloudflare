@@ -1,5 +1,17 @@
+interface Env {
+	ASSETS: Fetcher;
+}
+
 export default {
-	fetch(request) {
-		return new Response('Hello from API');
+	fetch(request, env) {
+		const url = new URL(request.url);
+
+		if (url.pathname.startsWith('/api/')) {
+			return Response.json({
+				name: 'Jack',
+			});
+		}
+
+		return env.ASSETS.fetch(request);
 	},
-} satisfies ExportedHandler;
+} satisfies ExportedHandler<Env>;

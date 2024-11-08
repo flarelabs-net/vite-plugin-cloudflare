@@ -10,6 +10,7 @@ export default defineConfig({
 				api: {
 					main: './api/index.ts',
 					wranglerConfig: './api/wrangler.toml',
+					assetsBinding: 'ASSETS',
 				},
 			},
 			entryWorker: 'api',
