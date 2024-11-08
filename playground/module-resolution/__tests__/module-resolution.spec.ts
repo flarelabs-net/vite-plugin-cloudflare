@@ -10,9 +10,10 @@ import {
 
 describe.runIf(!isBuild)('module resolution', async () => {
 	afterAll(() => {
-		const isNotUnconfiguredAliasError = (error: string) =>
-			!error.includes('@alias/unconfigured');
-		expect(serverLogs.errors.filter(isNotUnconfiguredAliasError)).toEqual([]);
+		const unexpectedErrors = serverLogs.errors.filter(
+			(error) => !error.includes('@alias/unconfigured'),
+		);
+		expect(unexpectedErrors).toEqual([]);
 	});
 
 	describe('basic module resolution', () => {
