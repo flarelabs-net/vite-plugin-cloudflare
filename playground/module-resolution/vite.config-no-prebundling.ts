@@ -20,9 +20,11 @@ export default defineConfig({
 				worker: {
 					main: './src/index.ts',
 					wranglerConfig: './src/wrangler.toml',
+					// the following overrides partially opts out of prebundling
 					overrides: {
 						dev: {
 							optimizeDeps: {
+								// we specifically opt-out of prebundling for the following dependencies
 								exclude: [
 									'@cloudflare-dev-module-resolution/requires',
 									'react',
@@ -30,6 +32,7 @@ export default defineConfig({
 							},
 						},
 						resolve: {
+							// external modules don't get prebundled
 							external: ['@cloudflare-dev-module-resolution/requires/ext'],
 						},
 					},
