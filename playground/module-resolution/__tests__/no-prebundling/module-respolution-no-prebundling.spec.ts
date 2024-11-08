@@ -46,14 +46,12 @@ describe.runIf(!isBuild)('module resolution without prebundling', async () => {
 			expect(result).toBe('OK!');
 		});
 
-		test('imports from a non-registered aliased package', async () => {
-			await page.goto(`${viteTestUrl}/@alias/test-not-registered`);
+		test('imports from a non configured aliased package', async () => {
+			await page.goto(`${viteTestUrl}/@alias/unconfigured`);
 			const errorText = await page
 				.locator('vite-error-overlay pre.message')
 				.textContent();
-			expect(errorText).toContain(
-				"Cannot find module '@alias/test-not-registered'",
-			);
+			expect(errorText).toContain("Cannot find module '@alias/unconfigured'");
 		});
 	});
 });

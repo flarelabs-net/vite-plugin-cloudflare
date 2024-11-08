@@ -4,7 +4,7 @@
 	"compilerOptions": {
 		"paths": {
 			"@alias/test": ["./src/aliasing.ts"],
-			"@alias/test-not-registered": ["./src/aliasing.ts"]
+			"@alias/unconfigured": ["./src/aliasing.ts"]
 		}
 	}
 }

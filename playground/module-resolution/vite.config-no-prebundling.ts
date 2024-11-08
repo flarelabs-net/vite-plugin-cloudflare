@@ -10,8 +10,8 @@ export default defineConfig({
 	},
 	build: {
 		rollupOptions: {
-			// let's externalize this unregistered alias just to make the build command pass
-			external: ['@alias/test-not-registered'],
+			// let's externalize this unconfigured alias just to make the build command pass
+			external: ['@alias/unconfigured'],
 		},
 	},
 	plugins: [

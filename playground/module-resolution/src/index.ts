@@ -26,8 +26,8 @@ export default {
 			return test();
 		}
 
-		if (path === '/@alias/test-not-registered') {
-			const { test } = await import('@alias/test-not-registered');
+		if (path === '/@alias/unconfigured') {
+			const { test } = await import('@alias/unconfigured');
 			return test();
 		}
 
