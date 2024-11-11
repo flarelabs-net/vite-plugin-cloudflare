@@ -19,16 +19,11 @@ catalogs:
       specifier: npm:unenv-nightly@2.0.0-20241024-111401-d4156ac
       version: 2.0.0-20241024-111401-d4156ac
     vite:
-      specifier: 6.0.0-beta.8
-      version: 6.0.0-beta.8
+      specifier: https://pkg.pr.new/vite@main
+      version: 6.0.0-beta.9
     wrangler:
       specifier: ^3.80.4
       version: 3.80.4
-
-patchedDependencies:
-  vite@6.0.0-beta.8:
-    hash: g3blvx5hfst3umu4f5b72s4wjm
-    path: patches/vite@6.0.0-beta.8.patch
 
 importers:
 
@@ -52,7 +47,7 @@ importers:
         version: 2.5.3(prettier@3.3.3)
       vite:
         specifier: catalog:default
-        version: 6.0.0-beta.8(patch_hash=g3blvx5hfst3umu4f5b72s4wjm)(@types/node@22.9.0)
+        version: https://pkg.pr.new/vite@main(@types/node@22.9.0)
       vitest:
         specifier: ^2.1.3
         version: 2.1.3(@types/node@22.9.0)
@@ -94,7 +89,7 @@ importers:
         version: unenv-nightly@2.0.0-20241024-111401-d4156ac
       vite:
         specifier: catalog:default
-        version: 6.0.0-beta.8(patch_hash=g3blvx5hfst3umu4f5b72s4wjm)(@types/node@22.9.0)
+        version: https://pkg.pr.new/vite@main(@types/node@22.9.0)
       wrangler:
         specifier: catalog:default
         version: 3.80.4(@cloudflare/workers-types@4.20241011.0)
@@ -124,7 +119,7 @@ importers:
         version: 5.6.2
       vite:
         specifier: catalog:default
-        version: 6.0.0-beta.8(patch_hash=g3blvx5hfst3umu4f5b72s4wjm)(@types/node@22.9.0)
+        version: https://pkg.pr.new/vite@main(@types/node@22.9.0)
       wrangler:
         specifier: catalog:default
         version: 3.80.4(@cloudflare/workers-types@4.20241011.0)
@@ -145,7 +140,7 @@ importers:
         version: 5.6.2
       vite:
         specifier: catalog:default
-        version: 6.0.0-beta.8(patch_hash=g3blvx5hfst3umu4f5b72s4wjm)(@types/node@22.9.0)
+        version: https://pkg.pr.new/vite@main(@types/node@22.9.0)
       wrangler:
         specifier: catalog:default
         version: 3.80.4(@cloudflare/workers-types@4.20241011.0)
@@ -187,7 +182,7 @@ importers:
         version: 5.6.2
       vite:
         specifier: catalog:default
-        version: 6.0.0-beta.8(patch_hash=g3blvx5hfst3umu4f5b72s4wjm)(@types/node@22.9.0)
+        version: https://pkg.pr.new/vite@main(@types/node@22.9.0)
       wrangler:
         specifier: catalog:default
         version: 3.80.4(@cloudflare/workers-types@4.20241011.0)
@@ -208,7 +203,7 @@ importers:
         version: 5.6.2
       vite:
         specifier: catalog:default
-        version: 6.0.0-beta.8(patch_hash=g3blvx5hfst3umu4f5b72s4wjm)(@types/node@22.9.0)
+        version: https://pkg.pr.new/vite@main(@types/node@22.9.0)
       wrangler:
         specifier: catalog:default
         version: 3.80.4(@cloudflare/workers-types@4.20241011.0)
@@ -247,7 +242,7 @@ importers:
         version: unenv-nightly@2.0.0-20241024-111401-d4156ac
       vite:
         specifier: catalog:default
-        version: 6.0.0-beta.8(patch_hash=g3blvx5hfst3umu4f5b72s4wjm)(@types/node@22.9.0)
+        version: https://pkg.pr.new/vite@main(@types/node@22.9.0)
       wrangler:
         specifier: catalog:default
         version: 3.80.4(@cloudflare/workers-types@4.20241011.0)
@@ -268,7 +263,7 @@ importers:
         version: 5.6.2
       vite:
         specifier: catalog:default
-        version: 6.0.0-beta.8(patch_hash=g3blvx5hfst3umu4f5b72s4wjm)(@types/node@22.9.0)
+        version: https://pkg.pr.new/vite@main(@types/node@22.9.0)
       wrangler:
         specifier: catalog:default
         version: 3.80.4(@cloudflare/workers-types@4.20241011.0)
@@ -2330,8 +2325,9 @@ packages:
       terser:
         optional: true
 
-  vite@6.0.0-beta.8:
-    resolution: {integrity: sha512-KbUpk2e8NvL1aYGJdV4FfppDq/ygwTm+YUqGyUUb30K9R2Z9Up6a1D4203D2YRQb5pT4hChmYsXPA3MZ1R3ohA==}
+  vite@https://pkg.pr.new/vite@main:
+    resolution: {tarball: https://pkg.pr.new/vite@main}
+    version: 6.0.0-beta.9
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
     peerDependencies:
@@ -4201,7 +4197,7 @@ snapshots:
       '@types/node': 22.9.0
       fsevents: 2.3.3
 
-  vite@6.0.0-beta.8(patch_hash=g3blvx5hfst3umu4f5b72s4wjm)(@types/node@22.9.0):
+  vite@https://pkg.pr.new/vite@main(@types/node@22.9.0):
     dependencies:
       esbuild: 0.24.0
       postcss: 8.4.47
