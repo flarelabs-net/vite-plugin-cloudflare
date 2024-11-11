@@ -128,6 +128,7 @@ const cloudflareBuiltInModules = [
 export function createCloudflareEnvironmentOptions(
 	name: string,
 	options: WorkerOptions,
+	userConfig: vite.UserConfig,
 ): vite.EnvironmentOptions {
 	return vite.mergeConfig(
 		{
@@ -147,7 +148,7 @@ export function createCloudflareEnvironmentOptions(
 				createEnvironment(name, config) {
 					return new vite.BuildEnvironment(name, config);
 				},
-				outDir: path.join('dist', name),
+				outDir: userConfig.build?.outDir ?? path.join('dist', name),
 				ssr: true,
 				rollupOptions: {
 					// Note: vite starts dev pre-bundling crawling from either optimizeDeps.entries or rollupOptions.input

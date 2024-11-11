@@ -29,7 +29,7 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 
 	return {
 		name: 'vite-plugin-cloudflare',
-		config() {
+		config(config) {
 			return {
 				resolve: {
 					alias: getNodeCompatAliases(),
@@ -55,7 +55,7 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 				environments: Object.fromEntries(
 					Object.entries(pluginConfig.workers).map(([name, workerOptions]) => [
 						name,
-						createCloudflareEnvironmentOptions(name, workerOptions),
+						createCloudflareEnvironmentOptions(name, workerOptions, config),
 					]),
 				),
 			};
