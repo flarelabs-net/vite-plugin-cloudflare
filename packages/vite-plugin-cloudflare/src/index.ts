@@ -67,10 +67,17 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 				resolvedConfig,
 			);
 		},
-		resolveId(source) {
+		async resolveId(source) {
 			const worker = normalizedPluginConfig.workers[this.environment.name];
 			if (worker) {
-				return resolveNodeAliases(source, worker.workerOptions);
+				const aliased = resolveNodeAliases(source, worker.workerOptions);
+				if (aliased) {
+					if (aliased.external) {
+						return aliased.id;
+					} else {
+						return await this.resolve(aliased.id);
+					}
+				}
 			}
 		},
 		async transform(code, id) {
