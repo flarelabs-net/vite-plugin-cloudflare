@@ -1,7 +1,7 @@
 {
-	"extends": ["@vite-plugin-cloudflare/typescript-config/worker.json"],
-	"compilerOptions": {
-		"jsx": "react-jsx"
-	},
-	"include": ["**/*"]
+	"files": [],
+	"references": [
+		{ "path": "./tsconfig.client.json" },
+		{ "path": "./tsconfig.worker.json" }
+	]
 }
