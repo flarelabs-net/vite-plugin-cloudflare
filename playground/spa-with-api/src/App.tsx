@@ -19,7 +19,10 @@ function App() {
 			</div>
 			<h1>Vite + React</h1>
 			<div className="card">
-				<button onClick={() => setCount((count) => count + 1)}>
+				<button
+					onClick={() => setCount((count) => count + 1)}
+					aria-label="increment"
+				>
 					count is {count}
 				</button>
 				<p>
@@ -33,6 +36,7 @@ function App() {
 							.then((res) => res.json() as Promise<{ name: string }>)
 							.then((data) => setName(data.name));
 					}}
+					aria-label="get-name"
 				>
 					Name from API is: {name}
 				</button>
