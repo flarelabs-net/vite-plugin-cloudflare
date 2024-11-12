@@ -193,9 +193,7 @@ export function getMiniflareOptions(
 						exists = false;
 					}
 
-					return new MiniflareResponse(JSON.stringify(exists), {
-						headers: { 'Content-Type': 'application/json' },
-					});
+					return MiniflareResponse.json(exists);
 				},
 				__VITE_FETCH_ASSET__: async (request) => {
 					const { pathname } = new URL(request.url);
