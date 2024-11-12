@@ -204,41 +204,58 @@ export function getMiniflareOptions(
 				],
 				serviceBindings: {
 					...workerOptions.serviceBindings,
-					__VITE_FETCH_MODULE__: async (request) => {
-						const [moduleId, imported, options] = (await request.json()) as [
-							string,
-							string,
-							FetchFunctionOptions,
-						];
+					__VITE_INVOKE__: async (request) => {
+						const payload = (await request.json()) as vite.CustomPayload;
 
-						// For some reason we need this here for cloudflare built-ins (e.g. `cloudflare:workers`) but not for node built-ins (e.g. `node:path`)
-						// See https://github.com/flarelabs-net/vite-plugin-cloudflare/issues/46
-						if (moduleId.startsWith('cloudflare:')) {
-							const result = {
-								externalize: moduleId,
-								type: 'module',
-							} satisfies vite.FetchResult;
+						invariant(
+							payload.type === 'custom',
+							`unexpected payload type sent to the vite-invoke binding: "${payload.type}"`,
+						);
 
-							return new MiniflareResponse(JSON.stringify(result));
-						}
+						invariant(
+							payload.event === 'vite:invoke',
+							`unexpected payload event sent to the vite-invoke binding: "${payload.event}"`,
+						);
 
-						const devEnvironment = viteDevServer.environments[
-							workerOptions.name
-						] as CloudflareDevEnvironment;
+						const invokePayloadData = payload.data as {
+							id: string;
+							name: string;
+							data: [string, string, FetchFunctionOptions];
+						};
+						if (invokePayloadData.name !== 'fetchModule')
+							throw new Error(
+								`invalid invoke event: ${invokePayloadData.name}`,
+							);
 
 						try {
+							const [moduleId, imported, options] = invokePayloadData.data;
+
+							// For some reason we need this here for cloudflare built-ins (e.g. `cloudflare:workers`) but not for node built-ins (e.g. `node:path`)
+							// See https://github.com/flarelabs-net/vite-plugin-cloudflare/issues/46
+							if (moduleId.startsWith('cloudflare:')) {
+								const result = {
+									externalize: moduleId,
+									type: 'module',
+								} satisfies vite.FetchResult;
+
+								return new MiniflareResponse(JSON.stringify({ r: result }));
+							}
+
+							const devEnvironment = viteDevServer.environments[
+								workerOptions.name
+							] as CloudflareDevEnvironment;
+
 							const result = await devEnvironment.fetchModule(
 								moduleId,
 								imported,
 								options,
 							);
 
-							return new MiniflareResponse(JSON.stringify(result));
+							return new MiniflareResponse(JSON.stringify({ r: result }));
 						} catch (error) {
-							return new MiniflareResponse(
-								`Unexpected Error, failed to get module: ${moduleId}\n${error}`,
-								{ status: 404 },
-							);
+							const errorMessage =
+								error instanceof Error ? error.message : error;
+							return new MiniflareResponse(JSON.stringify({ e: errorMessage }));
 						}
 					},
 				},

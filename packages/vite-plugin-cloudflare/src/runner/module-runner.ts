@@ -1,14 +1,10 @@
 import { ModuleRunner } from 'vite/module-runner';
 import { UNKNOWN_HOST } from '../shared';
 import type { WrapperEnv } from './env';
-import type { FetchResult } from 'vite/module-runner';
 
 let moduleRunner: ModuleRunner;
 
-export async function createModuleRunner(
-	env: WrapperEnv,
-	webSocket: WebSocket,
-) {
+export async function createModuleRunner(env: WrapperEnv) {
 	if (moduleRunner) {
 		throw new Error('Runner already initialized');
 	}
@@ -18,34 +14,15 @@ export async function createModuleRunner(
 			root: env.__VITE_ROOT__,
 			sourcemapInterceptor: 'prepareStackTrace',
 			transport: {
-				async fetchModule(...args) {
-					const response = await env.__VITE_FETCH_MODULE__.fetch(
+				async invoke(data) {
+					const response = await env.__VITE_INVOKE__.fetch(
 						new Request(UNKNOWN_HOST, {
 							method: 'POST',
-							body: JSON.stringify(args),
+							body: JSON.stringify(data),
 						}),
 					);
-
-					if (!response.ok) {
-						throw new Error(await response.text());
-					}
-
-					const result = await response.json();
-
-					return result as FetchResult;
-				},
-			},
-			hmr: {
-				connection: {
-					isReady: () => true,
-					onUpdate(callback) {
-						webSocket.addEventListener('message', (event) => {
-							callback(JSON.parse(event.data.toString()));
-						});
-					},
-					send(payload) {
-						webSocket.send(JSON.stringify(payload));
-					},
+					const result = response.json();
+					return result as Promise<{ r: any } | { e: any }>;
 				},
 			},
 		},

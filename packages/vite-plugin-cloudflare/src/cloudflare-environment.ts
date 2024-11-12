@@ -32,19 +32,7 @@ function createHotChannel(
 	}
 
 	return {
-		send(...args: [string, unknown] | [vite.HotPayload]) {
-			let payload: vite.HotPayload;
-
-			if (typeof args[0] === 'string') {
-				payload = {
-					type: 'custom',
-					event: args[0],
-					data: args[1],
-				};
-			} else {
-				payload = args[0];
-			}
-
+		send(payload: vite.HotPayload) {
 			const webSocket = webSocketContainer.webSocket;
 			invariant(webSocket, webSocketUndefinedError);
 
@@ -81,7 +69,10 @@ export class CloudflareDevEnvironment extends vite.DevEnvironment {
 	constructor(name: string, config: vite.ResolvedConfig) {
 		// It would be good if we could avoid passing this object around and mutating it
 		const webSocketContainer = {};
-		super(name, config, { hot: createHotChannel(webSocketContainer) });
+		super(name, config, {
+			hot: true,
+			transport: createHotChannel(webSocketContainer),
+		});
 		this.#webSocketContainer = webSocketContainer;
 	}
 
