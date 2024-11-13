@@ -30,7 +30,7 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 
 	return {
 		name: 'vite-plugin-cloudflare',
-		config(config) {
+		config() {
 			return {
 				resolve: {
 					alias: getNodeCompatAliases(),
