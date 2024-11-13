@@ -110,6 +110,6 @@ export function resolveNodeAliases(
 /**
  * Get an array of modules that should be considered external.
  */
-export function getNodeCompatExterns(): string[] {
+export function getNodeCompatExternals(): string[] {
 	return preset.external;
 }
