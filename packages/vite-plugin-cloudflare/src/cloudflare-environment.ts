@@ -1,5 +1,4 @@
 import { builtinModules } from 'node:module';
-import * as path from 'node:path';
 import * as vite from 'vite';
 import { getNodeCompatExterns } from './node-js-compat';
 import { INIT_PATH, invariant, UNKNOWN_HOST } from './shared';
@@ -127,9 +126,7 @@ const cloudflareBuiltInModules = [
 ];
 
 export function createCloudflareEnvironmentOptions(
-	name: string,
 	options: WorkerOptions,
-	userConfig: vite.UserConfig,
 ): vite.EnvironmentOptions {
 	return vite.mergeConfig(
 		{
@@ -149,7 +146,6 @@ export function createCloudflareEnvironmentOptions(
 				createEnvironment(name, config) {
 					return new vite.BuildEnvironment(name, config);
 				},
-				outDir: userConfig.build?.outDir ?? path.join('dist', name),
 				ssr: true,
 				rollupOptions: {
 					// Note: vite starts dev pre-bundling crawling from either optimizeDeps.entries or rollupOptions.input
