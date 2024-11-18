@@ -11,15 +11,11 @@ interface Env {
 export default class CustomAssetWorker extends (AssetWorker as typeof WorkerEntrypoint<Env>) {
 	override async fetch(request: Request): Promise<Response> {
 		const response = await super.fetch!(request);
-		const headers = new Headers(response.headers);
-		headers.delete('ETag');
-		headers.delete('Cache-Control');
+		const modifiedResponse = new Response(response.body, response);
+		modifiedResponse.headers.delete('ETag');
+		modifiedResponse.headers.delete('Cache-Control');
 
-		// Do we need to do anything else here to duplicate the original response?
-		return new Response(response.body, {
-			status: response.status,
-			headers,
-		});
+		return modifiedResponse;
 	}
 	async unstable_getByETag(
 		eTag: string,
