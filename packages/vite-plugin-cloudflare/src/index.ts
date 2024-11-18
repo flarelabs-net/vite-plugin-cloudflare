@@ -105,7 +105,6 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 				getMiniflareOptions(normalizedPluginConfig, viteConfig, viteDevServer),
 			);
 
-			let routerWorker = await getRouterWorker(miniflare);
 			await initRunners(normalizedPluginConfig, miniflare, viteDevServer);
 
 			viteDevServer.watcher.on('all', async (_, path) => {
@@ -122,7 +121,6 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 						),
 					);
 
-					routerWorker = await getRouterWorker(miniflare);
 					await initRunners(normalizedPluginConfig, miniflare, viteDevServer);
 
 					error = undefined;
@@ -133,7 +131,9 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 				}
 			});
 
-			const middleware = createMiddleware(({ request }) => {
+			const middleware = createMiddleware(async ({ request }) => {
+				const routerWorker = await getRouterWorker(miniflare);
+
 				return routerWorker.fetch(toMiniflareRequest(request), {
 					redirect: 'manual',
 				}) as any;
