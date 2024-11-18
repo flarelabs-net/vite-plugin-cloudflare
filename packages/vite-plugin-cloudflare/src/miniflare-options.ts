@@ -365,17 +365,30 @@ export function getPreviewMiniflareOptions(
 	normalizedPluginConfig: NormalizedPluginConfig,
 	viteConfig: vite.ResolvedConfig,
 ): MiniflareOptions {
-	const workers = Object.values(normalizedPluginConfig.workers).map(
-		(worker) => {
+	const workers = Object.fromEntries(
+		Object.entries(normalizedPluginConfig.workers).map(([name, worker]) => {
 			const { ratelimits, ...workerOptions } = worker.workerOptions;
 
-			return {
-				...workerOptions,
-				name: worker.name,
-				modulesRoot: miniflareModulesRoot,
-			} satisfies Partial<WorkerOptions>;
-		},
+			return [
+				name,
+				{
+					...workerOptions,
+					name: worker.name,
+				},
+			];
+		}),
 	);
+
+	const entryWorker = normalizedPluginConfig.entryWorkerName
+		? workers[normalizedPluginConfig.entryWorkerName]
+		: undefined;
+
+	const orderedWorkers = [
+		...(entryWorker ? [entryWorker] : []),
+		...Object.values(workers).filter(
+			(worker) => worker.name !== entryWorker?.name,
+		),
+	];
 
 	const logger = new ViteMiniflareLogger(viteConfig);
 
@@ -389,7 +402,8 @@ export function getPreviewMiniflareOptions(
 			);
 		},
 		...getPersistence(normalizedPluginConfig.persistPath),
-		workers: workers.map((workerOptions) => {
+		workers: orderedWorkers.map((workerOptions) => {
+			// Hard coded as `configEnvironment` is not called in preview mode
 			const entryPath = path.join('dist', workerOptions.name, 'index.js');
 
 			return {
@@ -398,7 +412,6 @@ export function getPreviewMiniflareOptions(
 					{
 						type: 'ESModule',
 						path: path.resolve(viteConfig.root, entryPath),
-						// contents: fs.readFileSync(new URL(entryPath, import.meta.url)),
 					},
 				],
 			};

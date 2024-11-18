@@ -168,7 +168,7 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 
 			const middleware = createMiddleware(
 				(context) => {
-					return miniflare.dispatchFetch(context.request.url);
+					return miniflare.dispatchFetch(context.request.url) as any;
 				},
 				{ alwaysCallNext: false },
 			);
