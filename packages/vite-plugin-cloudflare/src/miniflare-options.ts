@@ -121,7 +121,7 @@ const ASSET_WORKER_PATH = './assets/asset-worker.js';
 const WRAPPER_PATH = '__VITE_WORKER_ENTRY__';
 const RUNNER_PATH = './runner/index.js';
 
-export function getMiniflareOptions(
+export function getDevMiniflareOptions(
 	normalizedPluginConfig: NormalizedPluginConfig,
 	viteConfig: vite.ResolvedConfig,
 	viteDevServer: vite.ViteDevServer,
@@ -358,6 +358,51 @@ export function getMiniflareOptions(
 				} satisfies WorkerOptions;
 			}),
 		],
+	};
+}
+
+export function getPreviewMiniflareOptions(
+	normalizedPluginConfig: NormalizedPluginConfig,
+	viteConfig: vite.ResolvedConfig,
+): MiniflareOptions {
+	const workers = Object.values(normalizedPluginConfig.workers).map(
+		(worker) => {
+			const { ratelimits, ...workerOptions } = worker.workerOptions;
+
+			return {
+				...workerOptions,
+				name: worker.name,
+				modulesRoot: miniflareModulesRoot,
+			} satisfies Partial<WorkerOptions>;
+		},
+	);
+
+	const logger = new ViteMiniflareLogger(viteConfig);
+
+	return {
+		log: logger,
+		handleRuntimeStdio(stdout, stderr) {
+			const decoder = new TextDecoder();
+			stdout.forEach((data) => logger.info(decoder.decode(data)));
+			stderr.forEach((error) =>
+				logger.logWithLevel(LogLevel.ERROR, decoder.decode(error)),
+			);
+		},
+		...getPersistence(normalizedPluginConfig.persistPath),
+		workers: workers.map((workerOptions) => {
+			const entryPath = path.join('dist', workerOptions.name, 'index.js');
+
+			return {
+				...workerOptions,
+				modules: [
+					{
+						type: 'ESModule',
+						path: path.resolve(viteConfig.root, entryPath),
+						// contents: fs.readFileSync(new URL(entryPath, import.meta.url)),
+					},
+				],
+			};
+		}),
 	};
 }
 

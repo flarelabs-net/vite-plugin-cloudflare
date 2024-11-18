@@ -7,7 +7,10 @@ import {
 	createCloudflareEnvironmentOptions,
 	initRunners,
 } from './cloudflare-environment';
-import { getMiniflareOptions } from './miniflare-options';
+import {
+	getDevMiniflareOptions,
+	getPreviewMiniflareOptions,
+} from './miniflare-options';
 import {
 	getNodeCompatAliases,
 	injectGlobalCode,
@@ -102,7 +105,11 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 			let error: unknown;
 
 			const miniflare = new Miniflare(
-				getMiniflareOptions(normalizedPluginConfig, viteConfig, viteDevServer),
+				getDevMiniflareOptions(
+					normalizedPluginConfig,
+					viteConfig,
+					viteDevServer,
+				),
 			);
 
 			await initRunners(normalizedPluginConfig, miniflare, viteDevServer);
@@ -114,7 +121,7 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 
 				try {
 					await miniflare.setOptions(
-						getMiniflareOptions(
+						getDevMiniflareOptions(
 							normalizedPluginConfig,
 							viteConfig,
 							viteDevServer,
@@ -145,6 +152,29 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 						throw error;
 					}
 
+					if (!middleware) {
+						next();
+						return;
+					}
+
+					middleware(req, res, next);
+				});
+			};
+		},
+		configurePreviewServer(vitePreviewServer) {
+			const miniflare = new Miniflare(
+				getPreviewMiniflareOptions(normalizedPluginConfig, viteConfig),
+			);
+
+			const middleware = createMiddleware(
+				(context) => {
+					return miniflare.dispatchFetch(context.request.url);
+				},
+				{ alwaysCallNext: false },
+			);
+
+			return () => {
+				vitePreviewServer.middlewares.use((req, res, next) => {
 					if (!middleware) {
 						next();
 						return;
