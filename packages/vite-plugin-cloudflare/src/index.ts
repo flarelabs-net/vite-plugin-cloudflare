@@ -33,7 +33,7 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 
 	return {
 		name: 'vite-plugin-cloudflare',
-		config() {
+		config(userConfig) {
 			return {
 				resolve: {
 					alias: getNodeCompatAliases(),
@@ -60,7 +60,7 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 					Object.entries(pluginConfig.workers ?? {}).map(
 						([name, workerOptions]) => [
 							name,
-							createCloudflareEnvironmentOptions(workerOptions),
+							createCloudflareEnvironmentOptions(workerOptions, userConfig),
 						],
 					),
 				),
@@ -167,8 +167,8 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 			);
 
 			const middleware = createMiddleware(
-				(context) => {
-					return miniflare.dispatchFetch(context.request.url) as any;
+				({ request }) => {
+					return miniflare.dispatchFetch(toMiniflareRequest(request)) as any;
 				},
 				{ alwaysCallNext: false },
 			);

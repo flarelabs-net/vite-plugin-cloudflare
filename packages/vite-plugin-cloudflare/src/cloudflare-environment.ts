@@ -1,4 +1,5 @@
 import { builtinModules } from 'node:module';
+import * as path from 'node:path';
 import * as vite from 'vite';
 import { getNodeCompatExternals } from './node-js-compat';
 import { INIT_PATH, invariant, UNKNOWN_HOST } from './shared';
@@ -123,6 +124,7 @@ const cloudflareBuiltInModules = [
 
 export function createCloudflareEnvironmentOptions(
 	options: WorkerOptions,
+	userConfig: vite.UserConfig,
 ): vite.EnvironmentOptions {
 	return vite.mergeConfig(
 		{
@@ -148,7 +150,9 @@ export function createCloudflareEnvironmentOptions(
 					//       so the input value here serves both as the build input as well as the starting point for
 					//       dev pre-bundling crawling (were we not to set this input field we'd have to appropriately set
 					//       optimizeDeps.entries in the dev config)
-					input: options.main,
+					input: userConfig.root
+						? path.resolve(userConfig.root, options.main)
+						: path.resolve(options.main),
 					external: [...cloudflareBuiltInModules, ...getNodeCompatExternals()],
 				},
 			},
