@@ -12,12 +12,7 @@ import {
 import { invariant } from './shared';
 import type { CloudflareDevEnvironment } from './cloudflare-environment';
 import type { NormalizedPluginConfig } from './plugin-config';
-import type {
-	MiniflareOptions,
-	SharedOptions,
-	Worker,
-	WorkerOptions,
-} from 'miniflare';
+import type { MiniflareOptions, SharedOptions, WorkerOptions } from 'miniflare';
 import type { FetchFunctionOptions } from 'vite/module-runner';
 
 type PersistOptions = Pick<
@@ -221,22 +216,19 @@ export function getDevMiniflareOptions(
 
 	const userWorkers = Object.values(normalizedPluginConfig.workers).map(
 		(worker) => {
-			const { ratelimits, ...workerOptions } = worker.workerOptions;
-
 			return {
-				...workerOptions,
-				name: worker.name,
+				...worker.workerOptions,
 				modulesRoot: miniflareModulesRoot,
 				unsafeEvalBinding: '__VITE_UNSAFE_EVAL__',
 				bindings: {
-					...workerOptions.bindings,
+					...worker.workerOptions.bindings,
 					__VITE_ROOT__: viteConfig.root,
 					__VITE_ENTRY_PATH__: worker.entryPath,
 				},
 				serviceBindings: {
-					...workerOptions.serviceBindings,
-					...(worker.name === normalizedPluginConfig.entryWorkerName &&
-					worker.assetsBinding
+					...worker.workerOptions.serviceBindings,
+					...(worker.workerOptions.name ===
+						normalizedPluginConfig.entryWorkerName && worker.assetsBinding
 						? { [worker.assetsBinding]: ASSET_WORKER_NAME }
 						: {}),
 				},
@@ -406,12 +398,23 @@ export function getPreviewMiniflareOptions(
 			}
 		: {};
 
-	const orderedWorkers = [
+	const workers: Array<WorkerOptions> = [
 		...(entryWorkerConfig
 			? [
 					{
 						...entryWorkerConfig.workerOptions,
 						...assets,
+						modules: [
+							{
+								type: 'ESModule',
+								path: path.resolve(
+									viteConfig.root,
+									viteConfig.build.outDir,
+									entryWorkerConfig.workerOptions.name,
+									'index.js',
+								),
+							} as const,
+						],
 					},
 				]
 			: [
@@ -432,8 +435,23 @@ export function getPreviewMiniflareOptions(
 				(config) =>
 					config.workerOptions.name !== normalizedPluginConfig.entryWorkerName,
 			)
-			.map((config) => config.workerOptions),
-	] satisfies Array<Partial<WorkerOptions>>;
+			.map((config) => {
+				return {
+					...config.workerOptions,
+					modules: [
+						{
+							type: 'ESModule',
+							path: path.resolve(
+								viteConfig.root,
+								viteConfig.build.outDir,
+								config.workerOptions.name,
+								'index.js',
+							),
+						} as const,
+					],
+				};
+			}),
+	];
 
 	const logger = new ViteMiniflareLogger(viteConfig);
 
@@ -447,27 +465,7 @@ export function getPreviewMiniflareOptions(
 			);
 		},
 		...getPersistence(normalizedPluginConfig.persistPath),
-		workers: entryWorkerConfig
-			? orderedWorkers.map((workerOptions) => {
-					// Hard coded as `configEnvironment` is not called in preview mode
-					const entryPath = path.join(
-						viteConfig.build.outDir,
-						workerOptions.name!,
-						'index.js',
-					);
-
-					return {
-						...workerOptions,
-						modules: [
-							// Could use a no-op worker here if necessary
-							{
-								type: 'ESModule',
-								path: path.resolve(viteConfig.root, entryPath),
-							},
-						],
-					};
-				})
-			: orderedWorkers,
+		workers,
 	};
 }
 
