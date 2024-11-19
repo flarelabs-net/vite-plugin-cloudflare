@@ -27,7 +27,7 @@
 		"postgres:typegen": "cd worker-postgres && wrangler types -c wrangler.toml",
 		"process:build": "vite build --app -c vite.config.worker-process.ts",
 		"process:dev": "vite dev -c vite.config.worker-process.ts",
-		"process:preview": "vite preview-c vite.config.worker-process.ts",
+		"process:preview": "vite preview -c vite.config.worker-process.ts",
 		"process:test": "pnpm -w test-serve worker-process",
 		"process:typegen": "cd worker-process && wrangler types -c wrangler.toml",
 		"random:build": "vite build --app -c vite.config.worker-random.ts",

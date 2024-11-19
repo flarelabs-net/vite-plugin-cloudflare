@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { getTextResponse, isBuild } from '../../../__test-utils__';
+import { getTextResponse } from '../../../__test-utils__';
 
 test('crypto.X509Certificate is implemented', async () => {
 	const result = await getTextResponse();

@@ -144,6 +144,8 @@ export function createCloudflareEnvironmentOptions(
 				createEnvironment(name, config) {
 					return new vite.BuildEnvironment(name, config);
 				},
+				// This is a bit of a hack to make sure the user can't override the output directory at the environment level
+				outDir: userConfig.build?.outDir ?? 'dist',
 				ssr: true,
 				rollupOptions: {
 					// Note: vite starts dev pre-bundling crawling from either optimizeDeps.entries or rollupOptions.input
