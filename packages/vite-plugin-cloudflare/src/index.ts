@@ -86,6 +86,7 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 		configEnvironment(name, options) {
 			options.build = {
 				...options.build,
+				// Puts all environment builds in subdirectories of the same build directory
 				outDir: path.join(options.build?.outDir ?? 'dist', name),
 			};
 		},
