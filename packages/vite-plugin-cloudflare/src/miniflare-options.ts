@@ -12,7 +12,12 @@ import {
 import { invariant } from './shared';
 import type { CloudflareDevEnvironment } from './cloudflare-environment';
 import type { NormalizedPluginConfig } from './plugin-config';
-import type { MiniflareOptions, SharedOptions, WorkerOptions } from 'miniflare';
+import type {
+	MiniflareOptions,
+	SharedOptions,
+	Worker,
+	WorkerOptions,
+} from 'miniflare';
 import type { FetchFunctionOptions } from 'vite/module-runner';
 
 type PersistOptions = Pick<
@@ -230,7 +235,8 @@ export function getDevMiniflareOptions(
 				},
 				serviceBindings: {
 					...workerOptions.serviceBindings,
-					...(worker.assetsBinding
+					...(worker.name === normalizedPluginConfig.entryWorkerName &&
+					worker.assetsBinding
 						? { [worker.assetsBinding]: ASSET_WORKER_NAME }
 						: {}),
 				},
@@ -365,30 +371,69 @@ export function getPreviewMiniflareOptions(
 	normalizedPluginConfig: NormalizedPluginConfig,
 	viteConfig: vite.ResolvedConfig,
 ): MiniflareOptions {
-	const workers = Object.fromEntries(
-		Object.entries(normalizedPluginConfig.workers).map(([name, worker]) => {
-			const { ratelimits, ...workerOptions } = worker.workerOptions;
-
-			return [
-				name,
-				{
-					...workerOptions,
-					name: worker.name,
-				},
-			];
-		}),
-	);
-
-	const entryWorker = normalizedPluginConfig.entryWorkerName
-		? workers[normalizedPluginConfig.entryWorkerName]
+	const entryWorkerConfig = normalizedPluginConfig.entryWorkerName
+		? normalizedPluginConfig.workers[normalizedPluginConfig.entryWorkerName]
 		: undefined;
 
+	const assetsDirectory = path.resolve(
+		viteConfig.root,
+		viteConfig.build.outDir,
+		'client',
+	);
+	const hasAssets = fs.existsSync(assetsDirectory);
+	const assets = hasAssets
+		? {
+				assets: {
+					routingConfig: {
+						has_user_worker: entryWorkerConfig ? true : false,
+					},
+					assetConfig: {
+						...(normalizedPluginConfig.assets.htmlHandling
+							? { html_handling: normalizedPluginConfig.assets.htmlHandling }
+							: {}),
+						...(normalizedPluginConfig.assets.notFoundHandling
+							? {
+									not_found_handling:
+										normalizedPluginConfig.assets.notFoundHandling,
+								}
+							: {}),
+					},
+					directory: assetsDirectory,
+					...(entryWorkerConfig?.assetsBinding
+						? { binding: entryWorkerConfig.assetsBinding }
+						: {}),
+				},
+			}
+		: {};
+
 	const orderedWorkers = [
-		...(entryWorker ? [entryWorker] : []),
-		...Object.values(workers).filter(
-			(worker) => worker.name !== entryWorker?.name,
-		),
-	];
+		...(entryWorkerConfig
+			? [
+					{
+						...entryWorkerConfig.workerOptions,
+						...assets,
+					},
+				]
+			: [
+					{
+						...assets,
+						name: 'assets-only',
+						modules: [
+							{
+								type: 'ESModule',
+								path: '__dummy-module__',
+								contents: '',
+							} as const,
+						],
+					},
+				]),
+		...Object.values(normalizedPluginConfig.workers)
+			.filter(
+				(config) =>
+					config.workerOptions.name !== normalizedPluginConfig.entryWorkerName,
+			)
+			.map((config) => config.workerOptions),
+	] satisfies Array<Partial<WorkerOptions>>;
 
 	const logger = new ViteMiniflareLogger(viteConfig);
 
@@ -402,24 +447,27 @@ export function getPreviewMiniflareOptions(
 			);
 		},
 		...getPersistence(normalizedPluginConfig.persistPath),
-		workers: orderedWorkers.map((workerOptions) => {
-			// Hard coded as `configEnvironment` is not called in preview mode
-			const entryPath = path.join(
-				viteConfig.build.outDir,
-				workerOptions.name,
-				'index.js',
-			);
+		workers: entryWorkerConfig
+			? orderedWorkers.map((workerOptions) => {
+					// Hard coded as `configEnvironment` is not called in preview mode
+					const entryPath = path.join(
+						viteConfig.build.outDir,
+						workerOptions.name!,
+						'index.js',
+					);
 
-			return {
-				...workerOptions,
-				modules: [
-					{
-						type: 'ESModule',
-						path: path.resolve(viteConfig.root, entryPath),
-					},
-				],
-			};
-		}),
+					return {
+						...workerOptions,
+						modules: [
+							// Could use a no-op worker here if necessary
+							{
+								type: 'ESModule',
+								path: path.resolve(viteConfig.root, entryPath),
+							},
+						],
+					};
+				})
+			: orderedWorkers,
 	};
 }
 

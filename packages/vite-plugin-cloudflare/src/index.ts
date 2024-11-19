@@ -1,3 +1,4 @@
+import * as fs from 'node:fs';
 import path from 'node:path';
 import { createMiddleware } from '@hattip/adapter-node';
 import { Miniflare } from 'miniflare';
@@ -41,17 +42,33 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 				appType: 'custom',
 				builder: {
 					async buildApp(builder) {
-						const environments = Object.keys(pluginConfig.workers ?? {}).map(
-							(name) => {
-								const environment = builder.environments[name];
-								invariant(environment, `${name} environment not found`);
-
-								return environment;
-							},
+						const client = builder.environments.client;
+						const defaultHtmlPath = path.resolve(
+							builder.config.root,
+							'index.html',
 						);
 
+						if (
+							client &&
+							(client.config.build.rollupOptions.input ||
+								fs.existsSync(defaultHtmlPath))
+						) {
+							await builder.build(client);
+						}
+
+						const workerEnvironments = Object.keys(
+							pluginConfig.workers ?? {},
+						).map((name) => {
+							const environment = builder.environments[name];
+							invariant(environment, `${name} environment not found`);
+
+							return environment;
+						});
+
 						await Promise.all(
-							environments.map((environment) => builder.build(environment)),
+							workerEnvironments.map((environment) =>
+								builder.build(environment),
+							),
 						);
 					},
 				},
@@ -168,7 +185,9 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 
 			const middleware = createMiddleware(
 				({ request }) => {
-					return miniflare.dispatchFetch(toMiniflareRequest(request)) as any;
+					return miniflare.dispatchFetch(toMiniflareRequest(request), {
+						redirect: 'manual',
+					}) as any;
 				},
 				{ alwaysCallNext: false },
 			);
