@@ -404,7 +404,11 @@ export function getPreviewMiniflareOptions(
 		...getPersistence(normalizedPluginConfig.persistPath),
 		workers: orderedWorkers.map((workerOptions) => {
 			// Hard coded as `configEnvironment` is not called in preview mode
-			const entryPath = path.join('dist', workerOptions.name, 'index.js');
+			const entryPath = path.join(
+				viteConfig.build.outDir,
+				workerOptions.name,
+				'index.js',
+			);
 
 			return {
 				...workerOptions,

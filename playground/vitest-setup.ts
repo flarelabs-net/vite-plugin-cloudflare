@@ -292,6 +292,9 @@ export async function startDefaultServe(): Promise<void> {
 		// prevent preview change NODE_ENV
 		process.env.NODE_ENV = _nodeEnv;
 		viteTestUrl = previewServer!.resolvedUrls!.local[0]!;
+		if (previewServer.config.base === '/') {
+			viteTestUrl = viteTestUrl.replace(/\/$/, '');
+		}
 		await page.goto(viteTestUrl);
 	}
 }

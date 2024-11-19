@@ -68,8 +68,8 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 		},
 		configEnvironment(name, options) {
 			options.build = {
-				outDir: path.join('dist', name),
 				...options.build,
+				outDir: path.join(options.build?.outDir ?? 'dist', name),
 			};
 		},
 		configResolved(resolvedConfig) {

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { getTextResponse, isBuild, serverLogs } from '../../__test-utils__';
+import { getTextResponse, serverLogs } from '../../__test-utils__';
 
 test('basic hello-world functionality', async () => {
 	expect(await getTextResponse()).toEqual('Hello World!');
