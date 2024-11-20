@@ -4,6 +4,16 @@ import { stripInternalEnv } from './env';
 import { createModuleRunner, getWorkerEntryExport } from './module-runner';
 import type { WrapperEnv } from './env';
 
+export class ViteRunnerObject extends DurableObject<WrapperEnv> {
+	override fetch() {
+		const { 0: client, 1: server } = new WebSocketPair();
+		server.accept();
+		createModuleRunner(this.env, server);
+
+		return new Response(null, { status: 101, webSocket: client });
+	}
+}
+
 interface WorkerEntrypointConstructor<T = unknown> {
 	new (
 		...args: ConstructorParameters<typeof WorkerEntrypoint<T>>
@@ -157,11 +167,9 @@ export function createWorkerEntrypointWrapper(
 				const url = new URL(request.url);
 
 				if (url.pathname === INIT_PATH) {
-					const { 0: client, 1: server } = new WebSocketPair();
-					server.accept();
-					createModuleRunner(this.env, server);
+					const stub = this.env.__VITE_RUNNER_OBJECT__.get('singleton');
 
-					return new Response(null, { status: 101, webSocket: client });
+					return stub.fetch(request);
 				}
 			}
 

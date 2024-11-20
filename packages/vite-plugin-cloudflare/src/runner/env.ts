@@ -7,6 +7,7 @@ export interface WrapperEnv {
 	__VITE_UNSAFE_EVAL__: {
 		eval: (code: string, filename: string) => Function;
 	};
+	__VITE_RUNNER_OBJECT__: { get(id: 'singleton'): Fetcher };
 	[key: string]: unknown;
 }
 
@@ -16,6 +17,7 @@ export function stripInternalEnv(internalEnv: WrapperEnv) {
 		__VITE_ENTRY_PATH__,
 		__VITE_FETCH_MODULE__,
 		__VITE_UNSAFE_EVAL__,
+		__VITE_RUNNER_OBJECT__,
 		...userEnv
 	} = internalEnv;
 

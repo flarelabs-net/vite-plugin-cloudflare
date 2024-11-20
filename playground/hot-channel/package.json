@@ -1,5 +1,5 @@
 {
-	"name": "@playground/worker",
+	"name": "@playground/hot-channel",
 	"private": true,
 	"type": "module",
 	"scripts": {
