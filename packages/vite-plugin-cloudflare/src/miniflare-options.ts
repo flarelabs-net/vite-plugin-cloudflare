@@ -2,7 +2,12 @@ import * as fs from 'node:fs';
 import * as fsp from 'node:fs/promises';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Log, LogLevel, Response as MiniflareResponse } from 'miniflare';
+import {
+	kUnsafeEphemeralUniqueKey,
+	Log,
+	LogLevel,
+	Response as MiniflareResponse,
+} from 'miniflare';
 import * as vite from 'vite';
 import {
 	ASSET_WORKER_NAME,
@@ -260,6 +265,7 @@ export function getMiniflareOptions(
 			...userWorkers.map((workerOptions) => {
 				const wrappers = [
 					`import { createWorkerEntrypointWrapper, createDurableObjectWrapper } from '${RUNNER_PATH}';`,
+					`export { ViteRunnerObject } from '${RUNNER_PATH}';`,
 					`export default createWorkerEntrypointWrapper('default');`,
 				];
 
@@ -307,6 +313,14 @@ export function getMiniflareOptions(
 							),
 						},
 					],
+					durableObjects: {
+						...workerOptions.durableObjects,
+						__VITE_RUNNER_OBJECT__: {
+							className: 'ViteRunnerObject',
+							unsafeUniqueKey: kUnsafeEphemeralUniqueKey,
+							unsafePreventEviction: true,
+						},
+					},
 					serviceBindings: {
 						...workerOptions.serviceBindings,
 						__VITE_FETCH_MODULE__: async (request) => {
