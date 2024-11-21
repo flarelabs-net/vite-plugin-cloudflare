@@ -421,13 +421,8 @@ export function getPreviewMiniflareOptions(
 					{
 						...assetsOptions,
 						name: 'assets-only',
-						modules: [
-							{
-								type: 'ESModule',
-								path: '__dummy-module__',
-								contents: '',
-							} as const,
-						],
+						script: '',
+						modules: true,
 					},
 				]),
 		...Object.values(normalizedPluginConfig.workers)
