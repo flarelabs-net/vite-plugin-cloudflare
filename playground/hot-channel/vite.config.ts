@@ -22,7 +22,10 @@ export default defineConfig({
 
 				return () => {
 					viteDevServer.middlewares.use(async (req, res, next) => {
-						worker.hot.send('custom-event', 'event-data');
+						worker.hot.send('server-event', 'server-event-data');
+						worker.hot.on('client-event', (payload) => {
+							worker.hot.send('client-event-received', payload);
+						});
 						next();
 					});
 				};
