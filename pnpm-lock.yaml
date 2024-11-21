@@ -146,13 +146,13 @@ importers:
         version: 6.0.0-beta.10(@types/node@22.9.0)
       wrangler:
         specifier: catalog:default
-        version: 3.80.4(@cloudflare/workers-types@4.20241011.0)
+        version: 3.87.0(@cloudflare/workers-types@4.20241112.0)
 
   playground/hot-channel:
     devDependencies:
       '@cloudflare/workers-types':
         specifier: catalog:default
-        version: 4.20241011.0
+        version: 4.20241112.0
       '@flarelabs-net/vite-plugin-cloudflare':
         specifier: workspace:*
         version: link:../../packages/vite-plugin-cloudflare
