@@ -373,7 +373,7 @@ export function getPreviewMiniflareOptions(
 		'client',
 	);
 	const hasAssets = fs.existsSync(assetsDirectory);
-	const assets = hasAssets
+	const assetsOptions = hasAssets
 		? {
 				assets: {
 					routingConfig: {
@@ -403,7 +403,7 @@ export function getPreviewMiniflareOptions(
 			? [
 					{
 						...entryWorkerConfig.workerOptions,
-						...assets,
+						...assetsOptions,
 						modules: [
 							{
 								type: 'ESModule',
@@ -419,7 +419,7 @@ export function getPreviewMiniflareOptions(
 				]
 			: [
 					{
-						...assets,
+						...assetsOptions,
 						name: 'assets-only',
 						modules: [
 							{
