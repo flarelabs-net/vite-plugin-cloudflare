@@ -6,6 +6,5 @@ test.runIf(!isBuild)('client receives custom events', async () => {
 });
 
 test.runIf(!isBuild)('server receives custom events', async () => {
-	console.log('serverLogs', serverLogs);
 	expect(serverLogs.info.join()).toContain('__client-event-data-received__');
 });
