@@ -2,11 +2,12 @@ packages:
   - 'packages/*'
   - 'playground'
   - 'playground/*'
+  - 'config-experiments/*'
 
 catalog:
   '@cloudflare/workers-types': ^4.20241112.0
   'typescript': ^5.6.2
   'vite': '6.0.0-beta.10'
-  'wrangler': '^3.87.0'
+  'wrangler': 'https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/prs/7256/npm-package-wrangler-7256'
   '@types/node': '^22.8.7'
   'unenv': 'npm:unenv-nightly@2.0.0-20241024-111401-d4156ac'

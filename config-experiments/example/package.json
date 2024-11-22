@@ -1,0 +1,14 @@
+{
+	"name": "@config/example",
+	"private": true,
+	"type": "module",
+	"scripts": {},
+	"devDependencies": {
+		"@cloudflare/workers-types": "catalog:default",
+		"@flarelabs-net/vite-plugin-cloudflare": "workspace:*",
+		"@vite-plugin-cloudflare/typescript-config": "workspace:*",
+		"typescript": "catalog:default",
+		"vite": "catalog:default",
+		"wrangler": "catalog:default"
+	}
+}
