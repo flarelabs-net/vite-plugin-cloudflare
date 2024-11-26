@@ -78,9 +78,6 @@ importers:
       '@types/node':
         specifier: catalog:default
         version: 22.9.0
-      '@vite-plugin-cloudflare/typescript-config':
-        specifier: workspace:*
-        version: link:../typescript-config
       magic-string:
         specifier: ^0.30.12
         version: 0.30.12
