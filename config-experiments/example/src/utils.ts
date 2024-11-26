@@ -32,7 +32,7 @@ interface Resources extends Record<string, any> {
 	>;
 	r2Buckets?: NormalizedRecord<Defined<RawEnvironment['r2_buckets']>[number]>;
 	sendEmail?: NormalizedRecord<Defined<RawEnvironment['send_email']>[number]>;
-	vars?: RawEnvironment['vars'];
+	vars?: Defined<RawEnvironment['vars']>;
 	vectorize?: NormalizedRecord<Defined<RawEnvironment['vectorize']>[number]>;
 }
 
@@ -70,11 +70,11 @@ interface Worker<
 		compatibilityDate: `${string}-${string}-${string}`;
 		// compatibilityFlags?: RawEnvironment['compatibility_flags']; // use narrower types
 		compatibilityFlags?: Array<'nodejs_compat'>;
-		main: RawEnvironment['main'];
+		main: Defined<RawEnvironment['main']>;
 	};
 	runtime?: (environment: TEnvironmentNames) => {
 		limits?: KeysToCamelCase<Defined<RawEnvironment['limits']>>;
-		logpush?: RawEnvironment['logpush'];
+		logpush?: Defined<RawEnvironment['logpush']>;
 		observability?: KeysToCamelCase<Defined<RawEnvironment['observability']>>;
 		// queueConsumers
 		// route
@@ -103,8 +103,8 @@ interface Config<
 	TBindings extends Bindings = Bindings<TResources> &
 		Bindings<{} extends TServices ? {} : { services: TServices }>,
 > {
-	keepVars?: RawConfig['keep_vars'];
-	sendMetrics?: RawConfig['send_metrics'];
+	keepVars?: Defined<RawConfig['keep_vars']>;
+	sendMetrics?: Defined<RawConfig['send_metrics']>;
 	environments?: TEnvironments;
 	services?: TServices;
 	// durableObjects
