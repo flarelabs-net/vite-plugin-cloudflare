@@ -52,6 +52,32 @@ export interface NormalizedPluginConfig {
 
 const DEFAULT_PERSIST_PATH = '.wrangler/state/v3';
 
+function getWorkerOptions(
+	wranglerConfigPath: string,
+	wranglerConfigPaths: Set<string>,
+) {
+	if (wranglerConfigPaths.has(wranglerConfigPath)) {
+		throw new Error(
+			`Duplicate Wrangler config path found: ${wranglerConfigPath}`,
+		);
+	}
+
+	let miniflareWorkerOptions: { workerOptions: SourcelessWorkerOptions };
+
+	try {
+		miniflareWorkerOptions =
+			unstable_getMiniflareWorkerOptions(wranglerConfigPath);
+	} catch (error) {
+		return {};
+	}
+
+	const { ratelimits, ...workerOptions } = miniflareWorkerOptions.workerOptions;
+
+	wranglerConfigPaths.add(wranglerConfigPath);
+
+	return workerOptions;
+}
+
 export function normalizePluginConfig(
 	pluginConfig: PluginConfig,
 	viteConfig: vite.ResolvedConfig,
@@ -64,19 +90,10 @@ export function normalizePluginConfig(
 				options.wranglerConfig ?? './wrangler.toml',
 			);
 
-			if (wranglerConfigPaths.has(wranglerConfigPath)) {
-				throw new Error(
-					`Duplicate Wrangler config path found: ${wranglerConfigPath}`,
-				);
-			}
-
-			wranglerConfigPaths.add(wranglerConfigPath);
-
-			const miniflareWorkerOptions =
-				unstable_getMiniflareWorkerOptions(wranglerConfigPath);
-
-			const { ratelimits, ...workerOptions } =
-				miniflareWorkerOptions.workerOptions;
+			const workerOptions = getWorkerOptions(
+				wranglerConfigPath,
+				wranglerConfigPaths,
+			);
 
 			return [
 				name,

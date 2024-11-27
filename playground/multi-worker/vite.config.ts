@@ -13,7 +13,6 @@ export default defineConfig({
 				worker_b: {
 					main: './worker-b/index.ts',
 					compatibilityDate: '2024-11-06',
-					wranglerConfig: './worker-b/wrangler.toml',
 				},
 			},
 			entryWorker: 'worker_a',

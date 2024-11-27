@@ -216,7 +216,6 @@ export function getDevMiniflareOptions(
 
 	const userWorkers = Object.values(normalizedPluginConfig.workers).map(
 		(worker) => {
-			console.log(worker.buildOptions);
 			return {
 				...worker.workerOptions,
 				...worker.buildOptions,
@@ -405,6 +404,7 @@ export function getPreviewMiniflareOptions(
 			? [
 					{
 						...entryWorkerConfig.workerOptions,
+						...entryWorkerConfig.buildOptions,
 						...assetsOptions,
 						modules: [
 							{
@@ -435,6 +435,7 @@ export function getPreviewMiniflareOptions(
 			.map((config) => {
 				return {
 					...config.workerOptions,
+					...config.buildOptions,
 					modules: [
 						{
 							type: 'ESModule',
