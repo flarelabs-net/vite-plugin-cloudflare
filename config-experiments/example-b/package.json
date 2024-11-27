@@ -2,7 +2,9 @@
 	"name": "@config/example-b",
 	"private": true,
 	"type": "module",
-	"scripts": {},
+	"scripts": {
+		"check": "tsc --build"
+	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "catalog:default",
 		"@flarelabs-net/vite-plugin-cloudflare": "workspace:*",

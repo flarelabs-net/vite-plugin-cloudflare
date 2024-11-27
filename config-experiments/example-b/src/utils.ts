@@ -64,11 +64,16 @@ interface Constructor<T> {
 }
 
 declare const __resource: unique symbol;
+declare const __var: unique symbol;
 declare const __worker: unique symbol;
 
-interface ResourceDefinition<TType extends string> {
-	[__resource]: never;
-	type: TType;
+interface ResourceDefinition<TType> {
+	[__resource]: TType;
+}
+
+interface VarDefinition<TVar> {
+	[__var]: never;
+	type: TVar;
 }
 
 interface WorkerDefinition<
@@ -80,6 +85,19 @@ interface WorkerDefinition<
 	entrypoint: TEntrypoint;
 }
 
+// Add AI, browser, queues
+
+interface ResourceTypes {
+	analyticsEngineDatasets: AnalyticsEngineDataset;
+	d1Databases: D1Database;
+	hyperdrive: Hyperdrive;
+	kvNamespaces: KVNamespace;
+	mtlsCertificates: Fetcher;
+	r2Buckets: R2Bucket;
+	sendEmail: SendEmail;
+	vectorize: VectorizeIndex;
+}
+
 export function defineConfig<
 	TEnvironments extends Environments,
 	TWorkers extends Record<
@@ -87,12 +105,23 @@ export function defineConfig<
 		Worker<{} extends TEnvironments ? undefined : string & keyof TEnvironments>
 	>,
 >(config: { environments?: TEnvironments; workers?: TWorkers }) {
-	type Resources = { [__resource]: never } & {
-		[TBindingType in keyof TEnvironments[keyof TEnvironments]]: {
+	type Resources = {
+		[TBindingType in Exclude<
+			keyof TEnvironments[keyof TEnvironments],
+			'vars'
+		>]: {
 			[TBindingName in keyof TEnvironments[keyof TEnvironments][TBindingType]]: ResourceDefinition<
-				string & TBindingType
+				ResourceTypes[TBindingType extends keyof ResourceTypes
+					? TBindingType
+					: never]
 			>;
 		};
+	};
+
+	type Vars = {
+		[TBindingName in keyof TEnvironments[keyof TEnvironments]['vars']]: VarDefinition<
+			TEnvironments[keyof TEnvironments]['vars'][TBindingName]
+		>;
 	};
 
 	type Workers = {
@@ -108,28 +137,34 @@ export function defineConfig<
 		defineBindings: <
 			TBindings extends Record<
 				string,
-				ResourceDefinition<string> | WorkerDefinition<string, string>
+				| ResourceDefinition<ResourceTypes[keyof ResourceTypes]>
+				| VarDefinition<any>
+				| WorkerDefinition<string, string>
 			>,
 		>(
-			config: (values: { resources: Resources; workers: Workers }) => TBindings,
+			config: (values: {
+				resources: Resources;
+				vars: Vars;
+				workers: Workers;
+			}) => TBindings,
 		) => {
 			[TBindingName in keyof TBindings]: TBindings[TBindingName] extends infer TBinding
 				? TBinding extends ResourceDefinition<infer TResourceType>
-					? TResourceType extends 'kvNamespaces'
-						? KVNamespace
-						: never
-					: TBinding extends WorkerDefinition<
-								infer TWorkerName,
-								infer TEntrypoint
-						  >
-						? TWorkers[TWorkerName]['build']['module'][TEntrypoint] extends infer TExport
-							? TExport extends Constructor<Rpc.DurableObjectBranded>
-								? DurableObjectNamespace<InstanceType<TExport>>
-								: TExport extends Constructor<Rpc.WorkerEntrypointBranded>
-									? Service<InstanceType<TExport>>
-									: Service
+					? TResourceType
+					: TBinding extends VarDefinition<infer TVarType>
+						? TVarType
+						: TBinding extends WorkerDefinition<
+									infer TWorkerName,
+									infer TEntrypoint
+							  >
+							? TWorkers[TWorkerName]['build']['module'][TEntrypoint] extends infer TExport
+								? TExport extends Constructor<Rpc.DurableObjectBranded>
+									? DurableObjectNamespace<InstanceType<TExport>>
+									: TExport extends Constructor<Rpc.WorkerEntrypointBranded>
+										? Service<InstanceType<TExport>>
+										: Service
+								: never
 							: never
-						: never
 				: never;
 		};
 	};
