@@ -15,8 +15,13 @@ export const { defineBindings } = defineConfig({
 					id: '12345',
 				},
 			},
+			queueProducers: {
+				exampleQueue: {
+					queue: 'Production queue',
+				},
+			},
 			vars: {
-				EXAMPLE_VAR: 'Production var',
+				exampleVar: 'Production var',
 			},
 		},
 		staging: {
@@ -31,8 +36,13 @@ export const { defineBindings } = defineConfig({
 					id: '12345',
 				},
 			},
+			queueProducers: {
+				exampleQueue: {
+					queue: 'Staging queue',
+				},
+			},
 			vars: {
-				EXAMPLE_VAR: 'Staging var',
+				exampleVar: 'Staging var',
 			},
 		},
 	},
@@ -45,6 +55,7 @@ export const { defineBindings } = defineConfig({
 			runtime: (environment) => ({
 				limits: { cpuMs: 200 },
 				logpush: true,
+				queueConsumers: [{ queue: 'exampleQueue' }],
 				observability: {
 					enabled: environment === 'production' ? true : false,
 				},

@@ -30,6 +30,9 @@ interface Resources extends Record<string, any> {
 	mtlsCertificates?: NormalizedRecord<
 		Defined<RawEnvironment['mtls_certificates']>[number]
 	>;
+	queueProducers?: NormalizedRecord<
+		Defined<Defined<RawEnvironment['queues']>['producers']>[number]
+	>;
 	r2Buckets?: NormalizedRecord<Defined<RawEnvironment['r2_buckets']>[number]>;
 	sendEmail?: NormalizedRecord<Defined<RawEnvironment['send_email']>[number]>;
 	vars?: Defined<RawEnvironment['vars']>;
@@ -42,7 +45,10 @@ type Environment = {
 
 type Environments = Record<string, Environment>;
 
-interface Worker<TEnvironmentNames extends string | undefined> {
+interface Worker<
+	TEnvironmentNames extends string | undefined,
+	TQueueNames extends string | undefined,
+> {
 	build: {
 		module: Record<string, any>;
 		compatibilityDate: `${string}-${string}-${string}`;
@@ -51,6 +57,11 @@ interface Worker<TEnvironmentNames extends string | undefined> {
 	runtime?: (environment: TEnvironmentNames) => {
 		limits?: KeysToCamelCase<Defined<RawEnvironment['limits']>>;
 		logpush?: Defined<RawEnvironment['logpush']>;
+		queueConsumers?: Array<
+			Defined<Defined<RawEnvironment['queues']>['consumers']>[number] & {
+				queue: TQueueNames;
+			}
+		>;
 		observability?: KeysToCamelCase<Defined<RawEnvironment['observability']>>;
 		// queueConsumers
 		// route
@@ -93,16 +104,20 @@ interface ResourceTypes {
 	hyperdrive: Hyperdrive;
 	kvNamespaces: KVNamespace;
 	mtlsCertificates: Fetcher;
+	queueProducers: Queue;
 	r2Buckets: R2Bucket;
 	sendEmail: SendEmail;
 	vectorize: VectorizeIndex;
 }
 
 export function defineConfig<
-	TEnvironments extends Environments,
+	const TEnvironments extends Environments,
 	TWorkers extends Record<
 		string,
-		Worker<{} extends TEnvironments ? undefined : string & keyof TEnvironments>
+		Worker<
+			{} extends TEnvironments ? undefined : string & keyof TEnvironments,
+			string & keyof TEnvironments[keyof TEnvironments]['queueProducers']
+		>
 	>,
 >(config: { environments?: TEnvironments; workers?: TWorkers }) {
 	type Resources = {
