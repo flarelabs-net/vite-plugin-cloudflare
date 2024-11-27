@@ -6,6 +6,9 @@ import type { SourcelessWorkerOptions } from 'wrangler';
 
 export interface WorkerOptions {
 	main: string;
+	compatibilityDate: `${string}-${string}-${string}`;
+	// TODO: use string literal types
+	compatibilityFlags?: string[];
 	wranglerConfig?: string;
 	// TODO: tighten up types so assets can only be bound to entry worker
 	assetsBinding?: string;
@@ -25,11 +28,17 @@ export interface PluginConfig<
 	persistTo?: string | false;
 }
 
+export interface BuildOptions {
+	compatibilityDate: string;
+	compatibilityFlags?: string[];
+}
+
 export interface NormalizedPluginConfig {
 	workers: Record<
 		string,
 		{
 			entryPath: string;
+			buildOptions: BuildOptions;
 			wranglerConfigPath: string;
 			assetsBinding?: string;
 			workerOptions: SourcelessWorkerOptions & { name: string };
@@ -73,9 +82,13 @@ export function normalizePluginConfig(
 				name,
 				{
 					entryPath: options.main,
+					buildOptions: {
+						compatibilityDate: options.compatibilityDate,
+						compatibilityFlags: options.compatibilityFlags,
+					},
+					workerOptions: { ...workerOptions, name },
 					wranglerConfigPath,
 					assetsBinding: options.assetsBinding,
-					workerOptions: { ...workerOptions, name },
 				},
 			];
 		}),

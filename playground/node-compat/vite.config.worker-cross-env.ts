@@ -10,6 +10,8 @@ export default defineConfig({
 			workers: {
 				worker: {
 					main: './worker-cross-env/index.ts',
+					compatibilityDate: '2024-11-06',
+					compatibilityFlags: ['nodejs_compat'],
 					wranglerConfig: './worker-cross-env/wrangler.toml',
 				},
 			},

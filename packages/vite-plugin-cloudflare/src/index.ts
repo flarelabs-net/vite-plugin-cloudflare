@@ -99,8 +99,10 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 		},
 		async resolveId(source) {
 			const worker = normalizedPluginConfig.workers[this.environment.name];
+
 			if (worker) {
-				const aliased = resolveNodeAliases(source, worker.workerOptions);
+				const aliased = resolveNodeAliases(source, worker.buildOptions);
+
 				if (aliased) {
 					if (aliased.external) {
 						return aliased.id;
@@ -112,10 +114,12 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 		},
 		async transform(code, id) {
 			const worker = normalizedPluginConfig.workers[this.environment.name];
+
 			if (worker) {
-				const rId = await this.resolve(worker.entryPath);
-				if (id === rId?.id) {
-					return injectGlobalCode(id, code, worker.workerOptions);
+				const resolvedId = await this.resolve(worker.entryPath);
+
+				if (id === resolvedId?.id) {
+					return injectGlobalCode(id, code, worker.buildOptions);
 				}
 			}
 		},

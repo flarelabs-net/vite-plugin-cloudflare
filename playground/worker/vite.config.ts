@@ -7,6 +7,7 @@ export default defineConfig({
 			workers: {
 				worker: {
 					main: './src/index.ts',
+					compatibilityDate: '2024-11-06',
 					wranglerConfig: './src/wrangler.toml',
 				},
 			},

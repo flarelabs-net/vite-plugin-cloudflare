@@ -9,6 +9,7 @@ export default defineConfig({
 			workers: {
 				api: {
 					main: './api/index.ts',
+					compatibilityDate: '2024-11-06',
 					wranglerConfig: './api/wrangler.toml',
 					assetsBinding: 'ASSETS',
 				},

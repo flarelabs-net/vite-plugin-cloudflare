@@ -216,8 +216,10 @@ export function getDevMiniflareOptions(
 
 	const userWorkers = Object.values(normalizedPluginConfig.workers).map(
 		(worker) => {
+			console.log(worker.buildOptions);
 			return {
 				...worker.workerOptions,
+				...worker.buildOptions,
 				modulesRoot: miniflareModulesRoot,
 				unsafeEvalBinding: '__VITE_UNSAFE_EVAL__',
 				bindings: {
