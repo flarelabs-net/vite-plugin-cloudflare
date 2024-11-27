@@ -1,5 +1,5 @@
 import { defineConfig } from './utils';
-import * as workerA from './workers/worker-a';
+import * as workerA from './workers/worker-a' with { type: 'cf-worker' };
 
 export const { defineBindings } = defineConfig({
 	environments: {

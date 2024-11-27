@@ -20,7 +20,8 @@
 		"typescript",
 		"jsx",
 		"decorators",
-		"explicitResourceManagement"
+		"explicitResourceManagement",
+		"importAttributes"
 	],
 	"overrides": [
 		{
