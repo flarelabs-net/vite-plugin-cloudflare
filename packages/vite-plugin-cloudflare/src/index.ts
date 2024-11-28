@@ -25,6 +25,7 @@ import type {
 	PluginConfig,
 	WorkerOptions,
 } from './plugin-config';
+import type { RawConfig } from 'wrangler';
 
 // This is temporary
 let hasClientEnvironment = false;
@@ -107,25 +108,40 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 				mode,
 			);
 		},
-		generateBundle(options, bundle) {
-			const config =
-				normalizedPluginConfig.workers[this.environment.name]?.wranglerConfig;
+		generateBundle() {
+			let config: RawConfig;
 
-			if (!config) {
-				return;
-			}
-
-			const isEntryWorker =
-				this.environment.name === normalizedPluginConfig.entryWorkerName;
-
-			if (hasClientEnvironment && isEntryWorker) {
-				config.assets = {
-					...normalizedPluginConfig.assets,
-					directory: path.join('..', 'client'),
-					binding:
-						normalizedPluginConfig.workers[this.environment.name]
-							?.assetsBinding,
+			if (
+				this.environment.name === 'client' &&
+				!Object.keys(normalizedPluginConfig.workers).length
+			) {
+				config = {
+					assets: {
+						...normalizedPluginConfig.assets,
+						directory: '.',
+					},
 				};
+			} else {
+				const worker = normalizedPluginConfig.workers[this.environment.name];
+
+				if (!worker) {
+					return;
+				}
+
+				config = worker.wranglerConfig;
+
+				const isEntryWorker =
+					this.environment.name === normalizedPluginConfig.entryWorkerName;
+
+				if (isEntryWorker && hasClientEnvironment) {
+					config.assets = {
+						...normalizedPluginConfig.assets,
+						directory: path.join('..', 'client'),
+						binding:
+							normalizedPluginConfig.workers[this.environment.name]
+								?.assetsBinding,
+					};
+				}
 			}
 
 			this.emitFile({
