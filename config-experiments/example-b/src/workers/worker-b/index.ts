@@ -1,13 +1,13 @@
-import { defineBindings } from '../../cloudflare.config';
+import { WorkerEntrypoint } from 'cloudflare:workers';
 
-export const bindings = defineBindings(({ resources, vars, workers }) => ({
-	SERVICE_BINDING: workers.workerA.default,
-}));
-
-type Env = typeof bindings;
+export class NamedEntrypoint extends WorkerEntrypoint {
+	add(a: number, b: number) {
+		return a + b;
+	}
+}
 
 export default {
-	fetch(request, env) {
-		return new Response('Worker A');
+	fetch(request) {
+		return new Response('Worker B');
 	},
-} satisfies ExportedHandler<Env>;
+} satisfies ExportedHandler;

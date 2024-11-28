@@ -1,4 +1,4 @@
-import type { RawEnvironment } from 'wrangler';
+import type { RawConfig, RawEnvironment } from 'wrangler';
 
 type SnakeToCamelCase<T extends string> = T extends `${infer L}_${infer R}`
 	? `${L}${Capitalize<SnakeToCamelCase<R>>}`
@@ -117,7 +117,12 @@ export function defineConfig<
 			string & keyof TEnvironments[keyof TEnvironments]['queueProducers']
 		>
 	>,
->(config: { environments?: TEnvironments; workers?: TWorkers }) {
+>(config: {
+	keepVars?: Defined<RawConfig['keep_vars']>;
+	sendMetrics?: Defined<RawConfig['send_metrics']>;
+	environments?: TEnvironments;
+	workers?: TWorkers;
+}) {
 	type Resources = {
 		[TBindingType in Exclude<
 			keyof TEnvironments[keyof TEnvironments],
@@ -147,6 +152,7 @@ export function defineConfig<
 	};
 
 	return {} as {
+		config: {};
 		defineBindings: <
 			TBindings extends Record<
 				string,

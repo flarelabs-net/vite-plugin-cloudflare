@@ -2,19 +2,21 @@ import { defineConfig } from './utils';
 import * as workerA from './workers/worker-a' with { type: 'cloudflare-worker' };
 import * as workerB from './workers/worker-b' with { type: 'cloudflare-worker' };
 
-export const { defineBindings } = defineConfig({
+export const { config, defineBindings } = defineConfig({
+	keepVars: true,
+	sendMetrics: true,
 	environments: {
 		production: {
 			accountId: 'Production account ID',
 			d1Databases: {
 				exampleDatabase: {
-					databaseName: 'Production database',
-					databaseId: '12345',
+					databaseName: 'Production database name',
+					databaseId: 'Production database ID',
 				},
 			},
 			kvNamespaces: {
 				exampleNamespace: {
-					id: '12345',
+					id: 'Production namespace ID',
 				},
 			},
 			queueProducers: {
@@ -30,13 +32,13 @@ export const { defineBindings } = defineConfig({
 			accountId: 'Staging account ID',
 			d1Databases: {
 				exampleDatabase: {
-					databaseName: 'Staging database',
-					databaseId: '12345',
+					databaseName: 'Staging database name',
+					databaseId: 'Staging database ID',
 				},
 			},
 			kvNamespaces: {
 				exampleNamespace: {
-					id: '12345',
+					id: 'Staging namespace ID',
 				},
 			},
 			queueProducers: {
