@@ -1,4 +1,4 @@
-import type { RawConfig, RawEnvironment } from 'wrangler';
+import type { RawEnvironment } from 'wrangler';
 
 type SnakeToCamelCase<T extends string> = T extends `${infer L}_${infer R}`
 	? `${L}${Capitalize<SnakeToCamelCase<R>>}`
@@ -35,12 +35,12 @@ interface Resources extends Record<string, any> {
 	>;
 	r2Buckets?: NormalizedRecord<Defined<RawEnvironment['r2_buckets']>[number]>;
 	sendEmail?: NormalizedRecord<Defined<RawEnvironment['send_email']>[number]>;
-	vars?: Defined<RawEnvironment['vars']>;
 	vectorize?: NormalizedRecord<Defined<RawEnvironment['vectorize']>[number]>;
 }
 
 type Environment = {
 	accountId?: Defined<RawEnvironment['account_id']>;
+	vars?: Defined<RawEnvironment['vars']>;
 } & Resources;
 
 type Environments = Record<string, Environment>;
@@ -58,12 +58,13 @@ interface Worker<
 		limits?: KeysToCamelCase<Defined<RawEnvironment['limits']>>;
 		logpush?: Defined<RawEnvironment['logpush']>;
 		queueConsumers?: Array<
-			Defined<Defined<RawEnvironment['queues']>['consumers']>[number] & {
+			KeysToCamelCase<
+				Defined<Defined<RawEnvironment['queues']>['consumers']>[number]
+			> & {
 				queue: TQueueNames;
 			}
 		>;
 		observability?: KeysToCamelCase<Defined<RawEnvironment['observability']>>;
-		// queueConsumers
 		// route
 		// routes
 		triggers?: KeysToCamelCase<Defined<RawEnvironment['triggers']>>;
@@ -82,9 +83,8 @@ interface ResourceDefinition<TType> {
 	[__resource]: TType;
 }
 
-interface VarDefinition<TVar> {
-	[__var]: never;
-	type: TVar;
+interface VarDefinition<TType> {
+	[__var]: TType;
 }
 
 interface WorkerDefinition<
@@ -95,8 +95,6 @@ interface WorkerDefinition<
 	workerName: TWorkerName;
 	entrypoint: TEntrypoint;
 }
-
-// Add AI, browser, queues
 
 interface ResourceTypes {
 	analyticsEngineDatasets: AnalyticsEngineDataset;
@@ -112,7 +110,7 @@ interface ResourceTypes {
 
 export function defineConfig<
 	const TEnvironments extends Environments,
-	TWorkers extends Record<
+	const TWorkers extends Record<
 		string,
 		Worker<
 			{} extends TEnvironments ? undefined : string & keyof TEnvironments,
@@ -123,7 +121,7 @@ export function defineConfig<
 	type Resources = {
 		[TBindingType in Exclude<
 			keyof TEnvironments[keyof TEnvironments],
-			'vars'
+			'accountId' | 'vars'
 		>]: {
 			[TBindingName in keyof TEnvironments[keyof TEnvironments][TBindingType]]: ResourceDefinition<
 				ResourceTypes[TBindingType extends keyof ResourceTypes

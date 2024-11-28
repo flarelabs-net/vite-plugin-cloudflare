@@ -1,9 +1,11 @@
 import { defineConfig } from './utils';
-import * as workerA from './workers/worker-a' with { type: 'cf-worker' };
+import * as workerA from './workers/worker-a' with { type: 'cloudflare-worker' };
+import * as workerB from './workers/worker-b' with { type: 'cloudflare-worker' };
 
 export const { defineBindings } = defineConfig({
 	environments: {
 		production: {
+			accountId: 'Production account ID',
 			d1Databases: {
 				exampleDatabase: {
 					databaseName: 'Production database',
@@ -25,6 +27,7 @@ export const { defineBindings } = defineConfig({
 			},
 		},
 		staging: {
+			accountId: 'Staging account ID',
 			d1Databases: {
 				exampleDatabase: {
 					databaseName: 'Staging database',
@@ -61,6 +64,12 @@ export const { defineBindings } = defineConfig({
 				},
 				triggers: { crons: ['Trigger'] },
 			}),
+		},
+		workerB: {
+			build: {
+				module: workerB,
+				compatibilityDate: '2024-11-27',
+			},
 		},
 	},
 });

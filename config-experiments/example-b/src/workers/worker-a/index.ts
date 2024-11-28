@@ -4,10 +4,10 @@ import { defineBindings } from '../../cloudflare.config';
 export const bindings = defineBindings(({ resources, vars, workers }) => ({
 	D1_BINDING: resources.d1Databases.exampleDatabase,
 	KV_BINDING: resources.kvNamespaces.exampleNamespace,
-	QUEUE: resources.queueProducers.exampleQueue,
+	QUEUE_BINDING: resources.queueProducers.exampleQueue,
 	VAR_BINDING: vars.exampleVar,
 	SERVICE_BINDING: workers.workerA.default,
-	WORKER_ENTRYPOINT_SERVICE_BINDING: workers.workerA.NamedEntrypoint,
+	RPC_SERVICE_BINDING: workers.workerA.NamedEntrypoint,
 	DURABLE_OBJECT_BINDING: workers.workerA.Counter,
 }));
 
