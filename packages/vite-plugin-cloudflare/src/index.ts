@@ -26,6 +26,9 @@ import type {
 	WorkerOptions,
 } from './plugin-config';
 
+// This is temporary
+let hasClientEnvironment = false;
+
 export function cloudflare<T extends Record<string, WorkerOptions>>(
 	pluginConfig: PluginConfig<T>,
 ): vite.Plugin {
@@ -58,6 +61,7 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 							(client.config.build.rollupOptions.input ||
 								fs.existsSync(defaultHtmlPath))
 						) {
+							hasClientEnvironment = true;
 							await builder.build(client);
 						}
 
@@ -109,6 +113,19 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 
 			if (!config) {
 				return;
+			}
+
+			const isEntryWorker =
+				this.environment.name === normalizedPluginConfig.entryWorkerName;
+
+			if (hasClientEnvironment && isEntryWorker) {
+				config.assets = {
+					...normalizedPluginConfig.assets,
+					directory: path.join('..', 'client'),
+					binding:
+						normalizedPluginConfig.workers[this.environment.name]
+							?.assetsBinding,
+				};
 			}
 
 			this.emitFile({

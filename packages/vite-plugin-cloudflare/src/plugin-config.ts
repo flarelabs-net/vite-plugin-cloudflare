@@ -70,7 +70,7 @@ export function normalizePluginConfig(
 			wranglerConfigPaths.add(wranglerConfigPath);
 
 			// We'll need to change this to `${name}-${mode}` when the `mode` is present but this is non-trivial because service bindings etc. will need updating
-			wranglerConfig.name;
+			wranglerConfig.name = name;
 
 			const miniflareWorkerOptions =
 				unstable_getMiniflareWorkerOptions(wranglerConfig);
