@@ -22,8 +22,8 @@ catalogs:
       specifier: 6.0.0-beta.10
       version: 6.0.0-beta.10
     wrangler:
-      specifier: ^3.87.0
-      version: 3.87.0
+      specifier: https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/runs/12067079645/npm-package-wrangler-7256
+      version: 0.0.0-f8382626f
 
 importers:
 
@@ -101,7 +101,7 @@ importers:
         version: 6.0.0-beta.10(@types/node@22.9.0)
       wrangler:
         specifier: catalog:default
-        version: 3.87.0(@cloudflare/workers-types@4.20241112.0)
+        version: https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/runs/12067079645/npm-package-wrangler-7256(@cloudflare/workers-types@4.20241112.0)
 
   playground:
     devDependencies:
@@ -131,7 +131,7 @@ importers:
         version: 6.0.0-beta.10(@types/node@22.9.0)
       wrangler:
         specifier: catalog:default
-        version: 3.87.0(@cloudflare/workers-types@4.20241112.0)
+        version: https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/runs/12067079645/npm-package-wrangler-7256(@cloudflare/workers-types@4.20241112.0)
 
   playground/external-durable-objects:
     devDependencies:
@@ -152,7 +152,7 @@ importers:
         version: 6.0.0-beta.10(@types/node@22.9.0)
       wrangler:
         specifier: catalog:default
-        version: 3.87.0(@cloudflare/workers-types@4.20241112.0)
+        version: https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/runs/12067079645/npm-package-wrangler-7256(@cloudflare/workers-types@4.20241112.0)
 
   playground/hot-channel:
     devDependencies:
@@ -173,7 +173,7 @@ importers:
         version: 6.0.0-beta.10(@types/node@22.9.0)
       wrangler:
         specifier: catalog:default
-        version: 3.87.0(@cloudflare/workers-types@4.20241112.0)
+        version: https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/runs/12067079645/npm-package-wrangler-7256(@cloudflare/workers-types@4.20241112.0)
 
   playground/module-resolution:
     devDependencies:
@@ -215,7 +215,7 @@ importers:
         version: 6.0.0-beta.10(@types/node@22.9.0)
       wrangler:
         specifier: catalog:default
-        version: 3.87.0(@cloudflare/workers-types@4.20241112.0)
+        version: https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/runs/12067079645/npm-package-wrangler-7256(@cloudflare/workers-types@4.20241112.0)
 
   playground/multi-worker:
     devDependencies:
@@ -236,7 +236,7 @@ importers:
         version: 6.0.0-beta.10(@types/node@22.9.0)
       wrangler:
         specifier: catalog:default
-        version: 3.87.0(@cloudflare/workers-types@4.20241112.0)
+        version: https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/runs/12067079645/npm-package-wrangler-7256(@cloudflare/workers-types@4.20241112.0)
 
   playground/node-compat:
     devDependencies:
@@ -275,7 +275,7 @@ importers:
         version: 6.0.0-beta.10(@types/node@22.9.0)
       wrangler:
         specifier: catalog:default
-        version: 3.87.0(@cloudflare/workers-types@4.20241112.0)
+        version: https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/runs/12067079645/npm-package-wrangler-7256(@cloudflare/workers-types@4.20241112.0)
 
   playground/react-spa:
     dependencies:
@@ -312,7 +312,7 @@ importers:
         version: 6.0.0-beta.10(@types/node@22.9.0)
       wrangler:
         specifier: catalog:default
-        version: 3.87.0(@cloudflare/workers-types@4.20241112.0)
+        version: https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/runs/12067079645/npm-package-wrangler-7256(@cloudflare/workers-types@4.20241112.0)
 
   playground/spa-with-api:
     dependencies:
@@ -349,7 +349,7 @@ importers:
         version: 6.0.0-beta.10(@types/node@22.9.0)
       wrangler:
         specifier: catalog:default
-        version: 3.87.0(@cloudflare/workers-types@4.20241112.0)
+        version: https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/runs/12067079645/npm-package-wrangler-7256(@cloudflare/workers-types@4.20241112.0)
 
   playground/static-mpa:
     devDependencies:
@@ -370,7 +370,7 @@ importers:
         version: 6.0.0-beta.10(@types/node@22.9.0)
       wrangler:
         specifier: catalog:default
-        version: 3.87.0(@cloudflare/workers-types@4.20241112.0)
+        version: https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/runs/12067079645/npm-package-wrangler-7256(@cloudflare/workers-types@4.20241112.0)
 
   playground/worker:
     devDependencies:
@@ -391,7 +391,7 @@ importers:
         version: 6.0.0-beta.10(@types/node@22.9.0)
       wrangler:
         specifier: catalog:default
-        version: 3.87.0(@cloudflare/workers-types@4.20241112.0)
+        version: https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/runs/12067079645/npm-package-wrangler-7256(@cloudflare/workers-types@4.20241112.0)
 
 packages:
 
@@ -489,8 +489,9 @@ packages:
   '@cloudflare/kv-asset-handler@0.1.3':
     resolution: {integrity: sha512-FNcunDuTmEfQTLRLtA6zz+buIXUHj1soPvSWzzQFBC+n2lsy+CGf/NIrR3SEPCmsVNQj70/Jx2lViCpq+09YpQ==}
 
-  '@cloudflare/kv-asset-handler@0.3.4':
-    resolution: {integrity: sha512-YLPHc8yASwjNkmcDMQMY35yiWjoKAKnhUbPRszBRS0YgH+IXtsMp61j+yTcnCE3oO2DgP0U3iejLC8FTtKDC8Q==}
+  '@cloudflare/kv-asset-handler@https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/runs/12067079645/npm-package-cloudflare-kv-asset-handler-7256':
+    resolution: {tarball: https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/runs/12067079645/npm-package-cloudflare-kv-asset-handler-7256}
+    version: 0.0.0-f8382626f
     engines: {node: '>=16.13'}
 
   '@cloudflare/workerd-darwin-64@1.20241106.1':
@@ -527,8 +528,9 @@ packages:
     resolution: {integrity: sha512-LLQRTqx7lKC7o2eCYMpyc5FXV8d0pUX6r3A+agzhqS9aoR5A6zCPefwQGcvbKx83ozX22ATZcemwxQXn12UofQ==}
     engines: {node: '>=16.7.0'}
 
-  '@cloudflare/workers-shared@0.7.1':
-    resolution: {integrity: sha512-46cP5FCrl3TrvHeoHLb5SRuiDMKH5kc9Yvo36SAfzt8dqJI/qJRoY1GP3ioHn/gP7v2QIoUOTAzIl7Ml7MnfrA==}
+  '@cloudflare/workers-shared@https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/runs/12067079645/npm-package-cloudflare-workers-shared-7256':
+    resolution: {tarball: https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/runs/12067079645/npm-package-cloudflare-workers-shared-7256}
+    version: 0.0.0-f8382626f
     engines: {node: '>=16.7.0'}
 
   '@cloudflare/workers-types@4.20241112.0':
@@ -2030,6 +2032,12 @@ packages:
     engines: {node: '>=16.13'}
     hasBin: true
 
+  miniflare@https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/runs/12067079645/npm-package-miniflare-7256:
+    resolution: {tarball: https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/runs/12067079645/npm-package-miniflare-7256}
+    version: 0.0.0-f8382626f
+    engines: {node: '>=16.13'}
+    hasBin: true
+
   minimatch@9.0.5:
     resolution: {integrity: sha512-G6T0ZX48xgozx7587koeX9Ys2NYy6Gmv//P89sEte9V9whIapMNF4idKxnW2QtCcLiTWlb/wfCabAtAFWhhBow==}
     engines: {node: '>=16 || 14 >=14.17'}
@@ -2615,6 +2623,9 @@ packages:
   unenv-nightly@2.0.0-20241024-111401-d4156ac:
     resolution: {integrity: sha512-xJO1hfY+Te+/XnfCYrCbFbRcgu6XEODND1s5wnVbaBCkuQX7JXF7fHEXPrukFE2j8EOH848P8QN19VO47XN8hw==}
 
+  unenv-nightly@2.0.0-20241121-161142-806b5c0:
+    resolution: {integrity: sha512-RnFOasE/O0Q55gBkNB1b84OgKttgLEijGO0JCWpbn+O4XxpyCQg89NmcqQ5RGUiy4y+rMIrKzePTquQcLQF5pQ==}
+
   universal-user-agent@6.0.1:
     resolution: {integrity: sha512-yCzhz6FN2wU1NiiQRogkTQszlQSlpWaw8SvVegAc+bDxbzHgh1vX8uIe8OYyMH6DwH+sdTJsgMl36+mSMdRJIQ==}
 
@@ -2763,8 +2774,9 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
-  wrangler@3.87.0:
-    resolution: {integrity: sha512-BExktnSLeGgG+uxgnr4h9eZ5nefdpTVcTHR+gEIWRvqk07XL04nJwpPYAOIPKPpB7E2tMdDJgNLGQN/CY6e1xQ==}
+  wrangler@https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/runs/12067079645/npm-package-wrangler-7256:
+    resolution: {tarball: https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/runs/12067079645/npm-package-wrangler-7256}
+    version: 0.0.0-f8382626f
     engines: {node: '>=16.17.0'}
     hasBin: true
     peerDependencies:
@@ -2951,7 +2963,7 @@ snapshots:
     dependencies:
       mime: 2.6.0
 
-  '@cloudflare/kv-asset-handler@0.3.4':
+  '@cloudflare/kv-asset-handler@https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/runs/12067079645/npm-package-cloudflare-kv-asset-handler-7256':
     dependencies:
       mime: 3.0.0
 
@@ -2975,7 +2987,7 @@ snapshots:
       mime: 3.0.0
       zod: 3.23.8
 
-  '@cloudflare/workers-shared@0.7.1':
+  '@cloudflare/workers-shared@https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/runs/12067079645/npm-package-cloudflare-workers-shared-7256':
     dependencies:
       mime: 3.0.0
       zod: 3.23.8
@@ -4208,6 +4220,25 @@ snapshots:
       - supports-color
       - utf-8-validate
 
+  miniflare@https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/runs/12067079645/npm-package-miniflare-7256:
+    dependencies:
+      '@cspotcode/source-map-support': 0.8.1
+      acorn: 8.14.0
+      acorn-walk: 8.3.4
+      capnp-ts: 0.7.0
+      exit-hook: 2.2.1
+      glob-to-regexp: 0.4.1
+      stoppable: 1.1.0
+      undici: 5.28.4
+      workerd: 1.20241106.1
+      ws: 8.18.0
+      youch: 3.3.3
+      zod: 3.23.8
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+
   minimatch@9.0.5:
     dependencies:
       brace-expansion: 2.0.1
@@ -4745,6 +4776,13 @@ snapshots:
       pathe: 1.1.2
       ufo: 1.5.4
 
+  unenv-nightly@2.0.0-20241121-161142-806b5c0:
+    dependencies:
+      defu: 6.1.4
+      ohash: 1.1.4
+      pathe: 1.1.2
+      ufo: 1.5.4
+
   universal-user-agent@6.0.1: {}
 
   update-browserslist-db@1.1.1(browserslist@4.24.0):
@@ -4860,10 +4898,10 @@ snapshots:
       '@cloudflare/workerd-linux-arm64': 1.20241106.1
       '@cloudflare/workerd-windows-64': 1.20241106.1
 
-  wrangler@3.87.0(@cloudflare/workers-types@4.20241112.0):
+  wrangler@https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/runs/12067079645/npm-package-wrangler-7256(@cloudflare/workers-types@4.20241112.0):
     dependencies:
-      '@cloudflare/kv-asset-handler': 0.3.4
-      '@cloudflare/workers-shared': 0.7.1
+      '@cloudflare/kv-asset-handler': https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/runs/12067079645/npm-package-cloudflare-kv-asset-handler-7256
+      '@cloudflare/workers-shared': https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/runs/12067079645/npm-package-cloudflare-workers-shared-7256
       '@esbuild-plugins/node-globals-polyfill': 0.2.3(esbuild@0.17.19)
       '@esbuild-plugins/node-modules-polyfill': 0.2.2(esbuild@0.17.19)
       blake3-wasm: 2.1.5
@@ -4871,14 +4909,14 @@ snapshots:
       date-fns: 4.1.0
       esbuild: 0.17.19
       itty-time: 1.0.6
-      miniflare: 3.20241106.0
+      miniflare: https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/runs/12067079645/npm-package-miniflare-7256
       nanoid: 3.3.7
       path-to-regexp: 6.3.0
       resolve: 1.22.8
       resolve.exports: 2.0.2
       selfsigned: 2.4.1
       source-map: 0.6.1
-      unenv: unenv-nightly@2.0.0-20241024-111401-d4156ac
+      unenv: unenv-nightly@2.0.0-20241121-161142-806b5c0
       workerd: 1.20241106.1
       xxhash-wasm: 1.0.2
     optionalDependencies:
