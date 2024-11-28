@@ -36,7 +36,7 @@
 	},
 	"dependencies": {
 		"@hattip/adapter-node": "^0.0.48",
-		"miniflare": "^3.20241106.0"
+		"miniflare": "https://prerelease-registry.devprod.cloudflare.dev/workers-sdk/runs/12068777447/npm-package-miniflare-7256"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-shared": "^0.7.0",

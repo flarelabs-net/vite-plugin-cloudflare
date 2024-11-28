@@ -29,12 +29,17 @@ import type {
 export function cloudflare<T extends Record<string, WorkerOptions>>(
 	pluginConfig: PluginConfig<T>,
 ): vite.Plugin {
+	let mode: string | undefined;
 	let viteConfig: vite.ResolvedConfig;
 	let normalizedPluginConfig: NormalizedPluginConfig;
 
 	return {
 		name: 'vite-plugin-cloudflare',
 		config(userConfig) {
+			// We use the mode from the user config rather than the resolved config for now so that the mode has to be set explicitly
+			// Passing an `env` value to `readConfig` will lead to unexpected behaviour if the given environment does not exist in the user's config
+			mode = userConfig.mode;
+
 			return {
 				resolve: {
 					alias: getNodeCompatAliases(),
@@ -95,7 +100,22 @@ export function cloudflare<T extends Record<string, WorkerOptions>>(
 			normalizedPluginConfig = normalizePluginConfig(
 				pluginConfig,
 				resolvedConfig,
+				mode,
 			);
+		},
+		generateBundle(options, bundle) {
+			const config =
+				normalizedPluginConfig.workers[this.environment.name]?.wranglerConfig;
+
+			if (!config) {
+				return;
+			}
+
+			this.emitFile({
+				type: 'asset',
+				fileName: 'wrangler.json',
+				source: JSON.stringify(config),
+			});
 		},
 		async resolveId(source) {
 			const worker = normalizedPluginConfig.workers[this.environment.name];

@@ -1,8 +1,8 @@
 import * as path from 'node:path';
 import * as vite from 'vite';
-import { unstable_getMiniflareWorkerOptions } from 'wrangler';
+import { readConfig, unstable_getMiniflareWorkerOptions } from 'wrangler';
 import type { AssetConfig } from './assets';
-import type { SourcelessWorkerOptions } from 'wrangler';
+import type { Config, SourcelessWorkerOptions } from 'wrangler';
 
 export interface WorkerOptions {
 	main: string;
@@ -31,6 +31,7 @@ export interface NormalizedPluginConfig {
 		{
 			entryPath: string;
 			wranglerConfigPath: string;
+			wranglerConfig: Config;
 			assetsBinding?: string;
 			workerOptions: SourcelessWorkerOptions & { name: string };
 		}
@@ -46,6 +47,7 @@ const DEFAULT_PERSIST_PATH = '.wrangler/state/v3';
 export function normalizePluginConfig(
 	pluginConfig: PluginConfig,
 	viteConfig: vite.ResolvedConfig,
+	mode?: string,
 ): NormalizedPluginConfig {
 	const wranglerConfigPaths = new Set<string>();
 	const workers = Object.fromEntries(
@@ -61,10 +63,17 @@ export function normalizePluginConfig(
 				);
 			}
 
+			const wranglerConfig = readConfig(wranglerConfigPath, {
+				env: mode,
+			});
+
 			wranglerConfigPaths.add(wranglerConfigPath);
 
+			// We'll need to change this to `${name}-${mode}` when the `mode` is present but this is non-trivial because service bindings etc. will need updating
+			wranglerConfig.name;
+
 			const miniflareWorkerOptions =
-				unstable_getMiniflareWorkerOptions(wranglerConfigPath);
+				unstable_getMiniflareWorkerOptions(wranglerConfig);
 
 			const { ratelimits, ...workerOptions } =
 				miniflareWorkerOptions.workerOptions;
@@ -72,9 +81,11 @@ export function normalizePluginConfig(
 			return [
 				name,
 				{
+					assetsBinding: options.assetsBinding,
 					entryPath: options.main,
 					wranglerConfigPath,
-					assetsBinding: options.assetsBinding,
+					wranglerConfig,
+					// `unstable_getMiniflareWorkerOptions` always sets the `name` to undefined so we have to add it again here
 					workerOptions: { ...workerOptions, name },
 				},
 			];
