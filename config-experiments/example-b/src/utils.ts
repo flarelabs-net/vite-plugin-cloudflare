@@ -144,9 +144,9 @@ export function defineConfig<
 
 	type Workers = {
 		[TWorkerName in keyof TWorkers]: {
-			[K in keyof TWorkers[TWorkerName]['build']['module']]: WorkerDefinition<
+			[TEntrypoint in keyof TWorkers[TWorkerName]['build']['module']]: WorkerDefinition<
 				string & TWorkerName,
-				string & K
+				string & TEntrypoint
 			>;
 		};
 	};
