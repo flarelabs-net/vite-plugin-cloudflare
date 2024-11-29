@@ -1,5 +1,5 @@
 import { DurableObject } from 'cloudflare:workers';
-import { defineBindings } from '../../cloudflare.config';
+import { defineBindings } from '../../example';
 
 export const bindings = defineBindings(({ resources, vars, workers }) => ({
 	D1_BINDING: resources.d1Databases.exampleDatabase,

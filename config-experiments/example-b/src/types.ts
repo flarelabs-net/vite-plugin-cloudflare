@@ -22,7 +22,9 @@ interface Resources extends Record<string, any> {
 	d1Databases?: NormalizedRecord<
 		Defined<RawEnvironment['d1_databases']>[number]
 	>;
-	// dispatchNamespaces
+	dispatchNamespaces?: NormalizedRecord<
+		Defined<RawEnvironment['dispatch_namespaces']>[number]
+	>;
 	hyperdrive?: NormalizedRecord<Defined<RawEnvironment['hyperdrive']>[number]>;
 	kvNamespaces?: NormalizedRecord<
 		Defined<RawEnvironment['kv_namespaces']>[number]
@@ -99,6 +101,7 @@ interface WorkerDefinition<
 interface ResourceTypes {
 	analyticsEngineDatasets: AnalyticsEngineDataset;
 	d1Databases: D1Database;
+	dispatchNamespaces: DispatchNamespace;
 	hyperdrive: Hyperdrive;
 	kvNamespaces: KVNamespace;
 	mtlsCertificates: Fetcher;
@@ -144,10 +147,10 @@ export function defineConfig<
 
 	type Workers = {
 		[TWorkerName in keyof TWorkers]: {
-			[TEntrypoint in keyof TWorkers[TWorkerName]['build']['module']]: WorkerDefinition<
-				string & TWorkerName,
-				string & TEntrypoint
-			>;
+			[TEntrypoint in Exclude<
+				keyof TWorkers[TWorkerName]['build']['module'],
+				'bindings'
+			>]: WorkerDefinition<string & TWorkerName, string & TEntrypoint>;
 		};
 	};
 
