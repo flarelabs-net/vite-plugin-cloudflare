@@ -50,6 +50,7 @@ describe('module resolution', async () => {
 			// TODO: in dev as `DurableObject.name` we get 'DurableObject', but in
 			//       preview we get 'DurableObjectBase', this difference is most
 			//       likely incorrect and we need to investigate the reason
+			//       (https://github.com/flarelabs-net/vite-plugin-cloudflare/issues/81)
 			const durableObjectName = isBuild ? 'DurableObjectBase' : 'DurableObject';
 
 			expect(result).toEqual({
@@ -65,6 +66,7 @@ describe('module resolution', async () => {
 			// TODO: in dev as `DurableObject.name` we get 'DurableObject', but in
 			//       preview we get 'DurableObjectBase', this difference is most
 			//       likely incorrect and we need to investigate the reason
+			//       (https://github.com/flarelabs-net/vite-plugin-cloudflare/issues/81)
 			const durableObjectName = isBuild ? 'DurableObjectBase' : 'DurableObject';
 
 			expect(result).toEqual({
