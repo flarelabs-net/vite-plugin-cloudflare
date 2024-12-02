@@ -1,3 +1,4 @@
+import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vite from 'vite';
 import { readConfig } from 'wrangler';
@@ -41,26 +42,21 @@ export interface WorkersConfig extends BaseConfig {
 export type ResolvedPluginConfig = AssetsOnlyConfig | WorkersConfig;
 
 function getConfig(
+	configPath: string,
 	userConfig: vite.UserConfig,
 	wranglerConfigPaths: Set<string>,
-	isEntryWorker: boolean,
-	configPath?: string,
+	isEntryWorker?: boolean,
 ): AssetsOnlyResult | WorkerResult {
-	const root = userConfig.root ? path.resolve(userConfig.root) : process.cwd();
-	const resolvedConfigPath = configPath && path.join(root, configPath);
-	const wranglerConfig = readConfig(resolvedConfigPath, {
-		// We use the mode from the user config rather than the resolved config for now so that the mode has to be set explicitly
-		env: userConfig.mode,
-	});
-	invariant(wranglerConfig.configPath, `Unexpected error: No config path`);
-
-	if (wranglerConfigPaths.has(wranglerConfig.configPath)) {
-		throw new Error(
-			`Duplicate Wrangler config path found: ${wranglerConfig.configPath}`,
-		);
+	if (wranglerConfigPaths.has(configPath)) {
+		throw new Error(`Duplicate Wrangler config path found: ${configPath}`);
 	}
 
-	wranglerConfigPaths.add(wranglerConfig.configPath);
+	const wranglerConfig = readConfig(configPath, {
+		// We use the mode from the user config rather than the resolved config for now so that the mode has to be set explicitly. Otherwise, some things don't work as expected when a `development` and `production` environment are not set.
+		env: userConfig.mode,
+	});
+
+	wranglerConfigPaths.add(configPath);
 
 	if (isEntryWorker && !wranglerConfig.main) {
 		invariant(
@@ -91,6 +87,17 @@ function getConfig(
 	};
 }
 
+// We can't rely on `readConfig` from Wrangler to find the config as it may be relative to a different root set by the user.
+function findWranglerConfig(root: string): string | undefined {
+	for (const extension of ['json', 'jsonc', 'toml']) {
+		const configPath = path.join(root, `wrangler.${extension}`);
+
+		if (fs.existsSync(configPath)) {
+			return configPath;
+		}
+	}
+}
+
 // Worker names can only contain alphanumeric characters and '_' whereas environment names can only contain alphanumeric characters and '$', '_'
 function workerNameToEnvironmentName(workerName: string) {
 	return workerName.split('-').join('_');
@@ -101,12 +108,22 @@ export function resolvePluginConfig(
 	userConfig: vite.UserConfig,
 ): ResolvedPluginConfig {
 	const wranglerConfigPaths = new Set<string>();
+	const root = userConfig.root ? path.resolve(userConfig.root) : process.cwd();
+
+	const configPath = pluginConfig.wranglerConfig
+		? path.join(root, pluginConfig.wranglerConfig)
+		: findWranglerConfig(root);
+
+	invariant(
+		configPath,
+		`Config not found. Have you created a wrangler.json or wrangler.toml file?`,
+	);
 
 	const entryResult = getConfig(
+		configPath,
 		userConfig,
 		wranglerConfigPaths,
 		true,
-		pluginConfig.wranglerConfig,
 	);
 
 	if (entryResult.type === 'assets-only') {
@@ -125,10 +142,9 @@ export function resolvePluginConfig(
 
 	for (const auxiliaryWorker of pluginConfig.auxiliaryWorkers ?? []) {
 		const workerResult = getConfig(
+			path.join(root, auxiliaryWorker.wranglerConfig),
 			userConfig,
 			wranglerConfigPaths,
-			false,
-			auxiliaryWorker.wranglerConfig,
 		);
 
 		invariant(workerResult.type === 'worker', 'Unexpected error');

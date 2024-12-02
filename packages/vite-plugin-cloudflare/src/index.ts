@@ -23,11 +23,13 @@ import type { PluginConfig, ResolvedPluginConfig } from './plugin-config';
 let hasClientEnvironment = false;
 
 export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
+	let viteUserConfig: vite.UserConfig;
 	let resolvedPluginConfig: ResolvedPluginConfig;
 
 	return {
 		name: 'vite-plugin-cloudflare',
 		config(userConfig) {
+			viteUserConfig = userConfig;
 			resolvedPluginConfig = resolvePluginConfig(pluginConfig, userConfig);
 
 			return {
@@ -151,6 +153,11 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 				}
 
 				try {
+					resolvedPluginConfig = resolvePluginConfig(
+						pluginConfig,
+						viteUserConfig,
+					);
+
 					await miniflare.setOptions(
 						getDevMiniflareOptions(resolvedPluginConfig, viteDevServer),
 					);

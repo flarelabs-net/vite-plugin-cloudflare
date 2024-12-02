@@ -230,8 +230,10 @@ export function getDevMiniflareOptions(
 		resolvedPluginConfig.type === 'workers'
 			? Object.entries(resolvedPluginConfig.workers).map(
 					([environmentName, workerConfig]) => {
-						const miniflareWorkerOptions =
-							unstable_getMiniflareWorkerOptions(workerConfig);
+						const miniflareWorkerOptions = unstable_getMiniflareWorkerOptions({
+							...workerConfig,
+							assets: undefined,
+						});
 
 						const { ratelimits, ...workerOptions } =
 							miniflareWorkerOptions.workerOptions;
