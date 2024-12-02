@@ -20,12 +20,13 @@ import {
 import { resolvePluginConfig } from './plugin-config';
 import { invariant } from './shared';
 import { toMiniflareRequest } from './utils';
-import type { PluginConfig } from './plugin-config';
+import type { PluginConfig, ResolvedPluginConfig } from './plugin-config';
 
 // This is temporary
 let hasClientEnvironment = false;
 
 export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
+	let resolvedPluginConfig: ResolvedPluginConfig;
 	// let mode: string | undefined;
 	// let viteConfig: vite.ResolvedConfig;
 	// let normalizedPluginConfig: NormalizedPluginConfig;
@@ -33,12 +34,115 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 	return {
 		name: 'vite-plugin-cloudflare',
 		config(userConfig) {
-			const resolvedPluginConfig = resolvePluginConfig(
-				pluginConfig,
-				userConfig,
-			);
+			resolvedPluginConfig = resolvePluginConfig(pluginConfig, userConfig);
 
 			console.log(resolvedPluginConfig);
+
+			return {
+				appType: 'custom',
+				resolve: {
+					alias: getNodeCompatAliases(),
+				},
+				environments:
+					resolvedPluginConfig.type === 'workers'
+						? Object.fromEntries(
+								Object.entries(resolvedPluginConfig.workers).map(
+									([environmentName, workerConfig]) => {
+										workerConfig;
+
+										return [
+											environmentName,
+											createCloudflareEnvironmentOptions(
+												workerConfig,
+												userConfig,
+											),
+										];
+									},
+								),
+							)
+						: undefined,
+				builder: {
+					async buildApp(builder) {
+						const client = builder.environments.client;
+						const defaultHtmlPath = path.resolve(
+							builder.config.root,
+							'index.html',
+						);
+
+						if (
+							client &&
+							(client.config.build.rollupOptions.input ||
+								fs.existsSync(defaultHtmlPath))
+						) {
+							hasClientEnvironment = true;
+							await builder.build(client);
+						}
+
+						if (resolvedPluginConfig.type === 'assets-only') {
+							return;
+						}
+
+						const workerEnvironments = Object.keys(
+							resolvedPluginConfig.workers,
+						).map((environmentName) => {
+							const environment = builder.environments[environmentName];
+							invariant(
+								environment,
+								`${environmentName} environment not found`,
+							);
+
+							return environment;
+						});
+
+						await Promise.all(
+							workerEnvironments.map((environment) =>
+								builder.build(environment),
+							),
+						);
+					},
+				},
+			};
+		},
+		configEnvironment(name, options) {
+			options.build = {
+				...options.build,
+				// Puts all environment builds in subdirectories of the same build directory
+				outDir: path.join(options.build?.outDir ?? 'dist', name),
+			};
+		},
+		async resolveId(source) {
+			if (resolvedPluginConfig.type === 'assets-only') {
+				return;
+			}
+
+			const workerConfig = resolvedPluginConfig.workers[this.environment.name];
+
+			if (workerConfig) {
+				const aliased = resolveNodeAliases(source, workerConfig);
+
+				if (aliased) {
+					if (aliased.external) {
+						return aliased.id;
+					} else {
+						return await this.resolve(aliased.id);
+					}
+				}
+			}
+		},
+		async transform(code, id) {
+			if (resolvedPluginConfig.type === 'assets-only') {
+				return;
+			}
+
+			const workerConfig = resolvedPluginConfig.workers[this.environment.name];
+
+			if (workerConfig) {
+				const resolvedId = await this.resolve(workerConfig.main);
+
+				if (id === resolvedId?.id) {
+					return injectGlobalCode(id, code, workerConfig);
+				}
+			}
 		},
 		// config(userConfig) {
 		// 	// We use the mode from the user config rather than the resolved config for now so that the mode has to be set explicitly

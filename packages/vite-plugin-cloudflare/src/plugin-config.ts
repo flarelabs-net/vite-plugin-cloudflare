@@ -1,13 +1,8 @@
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vite from 'vite';
-import { readConfig, unstable_getMiniflareWorkerOptions } from 'wrangler';
+import { readConfig } from 'wrangler';
 import { invariant } from './shared';
-import type { AssetConfig } from './assets';
-import type {
-	SourcelessWorkerOptions,
-	Config as WranglerConfig,
-} from 'wrangler';
+import type { Config } from 'wrangler';
 
 export interface PluginConfig {
 	wranglerConfig?: string;
@@ -18,18 +13,39 @@ export interface PluginConfig {
 	}>;
 }
 
-export interface ResolvedPluginConfig {
-	workers: Record<string, WranglerConfig & { name: string }>;
+interface BaseConfig {
+	wranglerConfigPaths: Set<string>;
+}
+
+export type WorkerConfig = Config & { name: string; main: string };
+
+interface AssetsOnlyResult {
+	type: 'assets-only';
+	config: Config;
+}
+
+interface WorkerResult {
+	type: 'worker';
+	config: WorkerConfig;
+}
+
+type AssetsOnlyConfig = BaseConfig & AssetsOnlyResult;
+
+export interface WorkersConfig extends BaseConfig {
+	type: 'workers';
+	workers: Record<string, WorkerConfig>;
 	entryWorkerEnvironmentName: string;
 	wranglerConfigPaths: Set<string>;
 }
 
-function getWorkerConfig(
+export type ResolvedPluginConfig = AssetsOnlyConfig | WorkersConfig;
+
+function getConfig(
 	userConfig: vite.UserConfig,
 	wranglerConfigPaths: Set<string>,
 	isEntryWorker: boolean,
 	configPath?: string,
-): WranglerConfig & { name: string } {
+): AssetsOnlyResult | WorkerResult {
 	const root = userConfig.root ? path.resolve(userConfig.root) : process.cwd();
 	const resolvedConfigPath = configPath && path.join(root, configPath);
 	const wranglerConfig = readConfig(resolvedConfigPath, {
@@ -52,9 +68,7 @@ function getWorkerConfig(
 			`No main or assets field provided in ${wranglerConfig.configPath}`,
 		);
 
-		const workerName = wranglerConfig.name ?? 'assets-only';
-
-		return { ...wranglerConfig, name: workerName };
+		return { type: 'assets-only', config: wranglerConfig };
 	}
 
 	invariant(
@@ -67,7 +81,19 @@ function getWorkerConfig(
 		`No name field provided in ${wranglerConfig.configPath}`,
 	);
 
-	return { ...wranglerConfig, name: wranglerConfig.name };
+	return {
+		type: 'worker',
+		config: {
+			...wranglerConfig,
+			name: wranglerConfig.name,
+			main: wranglerConfig.main,
+		},
+	};
+}
+
+// Worker names can only contain alphanumeric characters and '_' whereas environment names can only contain alphanumeric characters and '$', '_'
+function workerNameToEnvironmentName(workerName: string) {
+	return workerName.split('-').join('_');
 }
 
 export function resolvePluginConfig(
@@ -76,30 +102,42 @@ export function resolvePluginConfig(
 ): ResolvedPluginConfig {
 	const wranglerConfigPaths = new Set<string>();
 
-	const entryWorkerConfig = getWorkerConfig(
+	const entryResult = getConfig(
 		userConfig,
 		wranglerConfigPaths,
 		true,
 		pluginConfig.wranglerConfig,
 	);
 
+	if (entryResult.type === 'assets-only') {
+		return { ...entryResult, wranglerConfigPaths };
+	}
+
+	const workerConfig = entryResult.config;
+
 	const entryWorkerEnvironmentName =
-		pluginConfig.viteEnvironmentName ?? entryWorkerConfig.name;
+		pluginConfig.viteEnvironmentName ??
+		workerNameToEnvironmentName(workerConfig.name);
 
 	const workers = {
-		[entryWorkerEnvironmentName]: entryWorkerConfig,
+		[entryWorkerEnvironmentName]: workerConfig,
 	};
 
 	for (const auxiliaryWorker of pluginConfig.auxiliaryWorkers ?? []) {
-		const workerConfig = getWorkerConfig(
+		const workerResult = getConfig(
 			userConfig,
 			wranglerConfigPaths,
 			false,
 			auxiliaryWorker.wranglerConfig,
 		);
 
+		invariant(workerResult.type === 'worker', 'Unexpected error');
+
+		const workerConfig = workerResult.config;
+
 		const workerEnvironmentName =
-			auxiliaryWorker.viteEnvironmentName ?? workerConfig.name;
+			auxiliaryWorker.viteEnvironmentName ??
+			workerNameToEnvironmentName(workerConfig.name);
 
 		if (workers[workerEnvironmentName]) {
 			throw new Error(
@@ -111,6 +149,7 @@ export function resolvePluginConfig(
 	}
 
 	return {
+		type: 'workers',
 		wranglerConfigPaths,
 		workers,
 		entryWorkerEnvironmentName,
