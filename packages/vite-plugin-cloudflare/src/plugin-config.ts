@@ -11,16 +11,16 @@ import type {
 
 export interface PluginConfig {
 	wranglerConfig?: string;
-	viteEnvironment?: string;
+	viteEnvironmentName?: string;
 	auxiliaryWorkers?: Array<{
 		wranglerConfig: string;
-		viteEnvironment?: string;
+		viteEnvironmentName?: string;
 	}>;
 }
 
 export interface ResolvedPluginConfig {
 	workers: Record<string, WranglerConfig & { name: string }>;
-	entryWorkerName: string;
+	entryWorkerEnvironmentName: string;
 	wranglerConfigPaths: Set<string>;
 }
 
@@ -83,8 +83,11 @@ export function resolvePluginConfig(
 		pluginConfig.wranglerConfig,
 	);
 
+	const entryWorkerEnvironmentName =
+		pluginConfig.viteEnvironmentName ?? entryWorkerConfig.name;
+
 	const workers = {
-		[entryWorkerConfig.name]: entryWorkerConfig,
+		[entryWorkerEnvironmentName]: entryWorkerConfig,
 	};
 
 	for (const auxiliaryWorker of pluginConfig.auxiliaryWorkers ?? []) {
@@ -95,13 +98,22 @@ export function resolvePluginConfig(
 			auxiliaryWorker.wranglerConfig,
 		);
 
-		workers[workerConfig.name] = workerConfig;
+		const workerEnvironmentName =
+			auxiliaryWorker.viteEnvironmentName ?? workerConfig.name;
+
+		if (workers[workerEnvironmentName]) {
+			throw new Error(
+				`Duplicate Vite environment name found: ${workerEnvironmentName}`,
+			);
+		}
+
+		workers[workerEnvironmentName] = workerConfig;
 	}
 
 	return {
 		wranglerConfigPaths,
 		workers,
-		entryWorkerName: entryWorkerConfig.name,
+		entryWorkerEnvironmentName,
 	};
 }
 

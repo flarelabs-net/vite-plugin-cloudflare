@@ -5,7 +5,11 @@ export default defineConfig({
 	plugins: [
 		cloudflare({
 			wranglerConfig: './worker-a/wrangler.toml',
-			auxiliaryWorkers: [{ wranglerConfig: './worker-b/wrangler.toml' }],
+			auxiliaryWorkers: [
+				{
+					wranglerConfig: './worker-b/wrangler.toml',
+				},
+			],
 		}),
 	],
 });
