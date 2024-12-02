@@ -453,7 +453,7 @@ export function getPreviewMiniflareOptions(
 				? {
 						modules: [
 							getEntryModule(miniflareWorkerOptions.main),
-							...getWorkerAssetsJsModules(
+							...getWorkerAdditionalJsModules(
 								workerOptions.name ?? 'worker',
 								viteConfig,
 							),
@@ -483,13 +483,13 @@ export function getPreviewMiniflareOptions(
 }
 
 /**
- * Collects the js modules that vite build outputs in the worker's assets directory
+ * Collects the js modules that vite build outputs in the worker's build output assets directory (`build.assetsDir`)
  *
  * @param workerName the name of the worker
  * @param viteConfig the resolved vite config
  * @returns array of the module info (ready to be passed to miniflare)
  */
-function getWorkerAssetsJsModules(
+function getWorkerAdditionalJsModules(
 	workerName: string,
 	viteConfig: vite.ResolvedConfig,
 ): { type: 'ESModule'; path: string }[] {
