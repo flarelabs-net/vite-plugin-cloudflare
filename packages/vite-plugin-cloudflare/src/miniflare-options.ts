@@ -389,14 +389,18 @@ export function getDevMiniflareOptions(
 	};
 }
 
-function getEntryModule(main: string | undefined) {
+function getEntryModule(main: string | undefined): {
+	type: 'ESModule';
+	path: string;
+} {
 	invariant(
 		main,
 		'Unexpected error: missing main field in miniflareWorkerOptions',
 	);
 
 	return {
-		scriptPath: main,
+		type: 'ESModule',
+		path: path.resolve(main),
 	};
 }
 
@@ -445,10 +449,18 @@ export function getPreviewMiniflareOptions(
 			...workerOptions,
 			// We have to add the name again because `unstable_getMiniflareWorkerOptions` sets it to `undefined`
 			name: config.name,
-			modules: true,
 			...(resolvedPluginConfig.type === 'workers'
-				? getEntryModule(miniflareWorkerOptions.main)
+				? {
+						modules: [
+							getEntryModule(miniflareWorkerOptions.main),
+							...getWorkerAssetsJsModules(
+								workerOptions.name ?? 'worker',
+								viteConfig,
+							),
+						],
+					}
 				: {
+						modules: true,
 						script: '',
 					}),
 		};
@@ -468,6 +480,42 @@ export function getPreviewMiniflareOptions(
 		...getPersistence(viteConfig.root),
 		workers,
 	};
+}
+
+/**
+ * Collects the js modules that vite build outputs in the worker's assets directory
+ *
+ * @param workerName the name of the worker
+ * @param viteConfig the resolved vite config
+ * @returns array of the module info (ready to be passed to miniflare)
+ */
+function getWorkerAssetsJsModules(
+	workerName: string,
+	viteConfig: vite.ResolvedConfig,
+): { type: 'ESModule'; path: string }[] {
+	const workerAssetsDir = path.resolve(
+		viteConfig.root,
+		viteConfig.build.outDir,
+		workerName,
+		viteConfig.build.assetsDir,
+	);
+
+	if (!fs.existsSync(workerAssetsDir)) {
+		return [];
+	}
+
+	const files = fs.readdirSync(workerAssetsDir);
+
+	const assetsJsModules = files
+		.filter((file) => file.endsWith('.js'))
+		.map((file) => {
+			return {
+				type: 'ESModule',
+				path: path.resolve(workerAssetsDir, file),
+			} as const;
+		});
+
+	return assetsJsModules;
 }
 
 /**
