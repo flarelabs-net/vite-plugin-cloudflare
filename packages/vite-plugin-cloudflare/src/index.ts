@@ -8,10 +8,7 @@ import {
 	createCloudflareEnvironmentOptions,
 	initRunners,
 } from './cloudflare-environment';
-import {
-	getDevMiniflareOptions,
-	getPreviewMiniflareOptions,
-} from './miniflare-options';
+import { getDevMiniflareOptions } from './miniflare-options';
 import {
 	getNodeCompatAliases,
 	injectGlobalCode,
@@ -27,16 +24,11 @@ let hasClientEnvironment = false;
 
 export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 	let resolvedPluginConfig: ResolvedPluginConfig;
-	// let mode: string | undefined;
-	// let viteConfig: vite.ResolvedConfig;
-	// let normalizedPluginConfig: NormalizedPluginConfig;
 
 	return {
 		name: 'vite-plugin-cloudflare',
 		config(userConfig) {
 			resolvedPluginConfig = resolvePluginConfig(pluginConfig, userConfig);
-
-			console.log(resolvedPluginConfig);
 
 			return {
 				appType: 'custom',
@@ -144,6 +136,59 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 				}
 			}
 		},
+		async configureServer(viteDevServer) {
+			let error: unknown;
+
+			const miniflare = new Miniflare(
+				getDevMiniflareOptions(resolvedPluginConfig, viteDevServer),
+			);
+
+			await initRunners(resolvedPluginConfig, miniflare, viteDevServer);
+
+			viteDevServer.watcher.on('all', async (_, path) => {
+				if (!resolvedPluginConfig.wranglerConfigPaths.has(path)) {
+					return;
+				}
+
+				try {
+					await miniflare.setOptions(
+						getDevMiniflareOptions(resolvedPluginConfig, viteDevServer),
+					);
+
+					await initRunners(resolvedPluginConfig, miniflare, viteDevServer);
+
+					error = undefined;
+					viteDevServer.environments.client.hot.send({ type: 'full-reload' });
+				} catch (err) {
+					error = err;
+					viteDevServer.environments.client.hot.send({ type: 'full-reload' });
+				}
+			});
+
+			const middleware = createMiddleware(async ({ request }) => {
+				const routerWorker = await getRouterWorker(miniflare);
+
+				return routerWorker.fetch(toMiniflareRequest(request), {
+					redirect: 'manual',
+				}) as any;
+			});
+
+			return () => {
+				viteDevServer.middlewares.use((req, res, next) => {
+					if (error) {
+						throw error;
+					}
+
+					if (!middleware) {
+						next();
+						return;
+					}
+
+					middleware(req, res, next);
+				});
+			};
+		},
+
 		// config(userConfig) {
 		// 	// We use the mode from the user config rather than the resolved config for now so that the mode has to be set explicitly
 		// 	// Passing an `env` value to `readConfig` will lead to unexpected behaviour if the given environment does not exist in the user's config

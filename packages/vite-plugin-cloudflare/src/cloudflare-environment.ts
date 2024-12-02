@@ -3,7 +3,11 @@ import * as vite from 'vite';
 import { getNodeCompatExternals } from './node-js-compat';
 import { INIT_PATH, invariant, UNKNOWN_HOST } from './shared';
 import { toMiniflareRequest } from './utils';
-import type { WorkerConfig, WorkersConfig } from './plugin-config';
+import type {
+	ResolvedPluginConfig,
+	WorkerConfig,
+	WorkersConfig,
+} from './plugin-config';
 import type { Fetcher } from '@cloudflare/workers-types/experimental';
 import type {
 	MessageEvent,
@@ -183,17 +187,25 @@ export function createCloudflareEnvironmentOptions(
 }
 
 export function initRunners(
-	normalizedPluginConfig: WorkersConfig,
+	resolvedPluginConfig: ResolvedPluginConfig,
 	miniflare: Miniflare,
 	viteDevServer: vite.ViteDevServer,
-): Promise<void[]> {
-	return Promise.all(
-		Object.keys(normalizedPluginConfig.workers).map(async (name) => {
-			const worker = await miniflare.getWorker(name);
+): Promise<void[]> | undefined {
+	if (resolvedPluginConfig.type === 'assets-only') {
+		return;
+	}
 
-			return (
-				viteDevServer.environments[name] as CloudflareDevEnvironment
-			).initRunner(worker);
-		}),
+	return Promise.all(
+		Object.entries(resolvedPluginConfig.workers).map(
+			async ([environmentName, workerConfig]) => {
+				const worker = await miniflare.getWorker(workerConfig.name);
+
+				return (
+					viteDevServer.environments[
+						environmentName
+					] as CloudflareDevEnvironment
+				).initRunner(worker);
+			},
+		),
 	);
 }
