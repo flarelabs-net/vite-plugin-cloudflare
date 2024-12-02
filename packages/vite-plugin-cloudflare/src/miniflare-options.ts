@@ -414,6 +414,10 @@ export function getPreviewMiniflareOptions(
 									'index.js',
 								),
 							} as const,
+							...getWorkerAssetsJsModules(
+								entryWorkerConfig.workerOptions.name,
+								viteConfig,
+							),
 						],
 					},
 				]
@@ -443,6 +447,7 @@ export function getPreviewMiniflareOptions(
 								'index.js',
 							),
 						} as const,
+						...getWorkerAssetsJsModules(config.workerOptions.name, viteConfig),
 					],
 				};
 			}),
@@ -462,6 +467,42 @@ export function getPreviewMiniflareOptions(
 		...getPersistence(normalizedPluginConfig.persistPath),
 		workers,
 	};
+}
+
+/**
+ * Collects the js modules that vite build outputs in the worker's assets directory
+ *
+ * @param workerName the name of the worker
+ * @param viteConfig the resolved vite config
+ * @returns array of the module info (ready to be passed to miniflare)
+ */
+function getWorkerAssetsJsModules(
+	workerName: string,
+	viteConfig: vite.ResolvedConfig,
+): { type: 'ESModule'; path: string }[] {
+	const workerAssetsDir = path.resolve(
+		viteConfig.root,
+		viteConfig.build.outDir,
+		workerName,
+		viteConfig.build.assetsDir,
+	);
+
+	if (!fs.existsSync(workerAssetsDir)) {
+		return [];
+	}
+
+	const files = fs.readdirSync(workerAssetsDir);
+
+	const assetsJsModules = files
+		.filter((file) => file.endsWith('.js'))
+		.map((file) => {
+			return {
+				type: 'ESModule',
+				path: path.resolve(workerAssetsDir, file),
+			} as const;
+		});
+
+	return assetsJsModules;
 }
 
 /**
