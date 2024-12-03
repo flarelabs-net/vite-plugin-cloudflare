@@ -1,7 +1,5 @@
 import assert from 'node:assert';
-import { builtinModules } from 'node:module';
 import * as vite from 'vite';
-import { getNodeCompatExternals } from './node-js-compat';
 import { INIT_PATH, UNKNOWN_HOST } from './shared';
 import { toMiniflareRequest } from './utils';
 import type { ResolvedPluginConfig, WorkerConfig } from './plugin-config';
@@ -153,7 +151,6 @@ export function createCloudflareEnvironmentOptions(
 				//       dev pre-bundling crawling (were we not to set this input field we'd have to appropriately set
 				//       optimizeDeps.entries in the dev config)
 				input: workerConfig.main,
-				external: [...getNodeCompatExternals()],
 			},
 		},
 		optimizeDeps: {

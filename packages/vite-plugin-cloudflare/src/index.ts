@@ -17,6 +17,7 @@ import {
 } from './miniflare-options';
 import {
 	getNodeCompatAliases,
+	getNodeCompatExternals,
 	injectGlobalCode,
 	isNodeCompat,
 	resolveNodeAliases,
@@ -97,6 +98,10 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 		},
 		configResolved(config) {
 			addNodeBuiltinsToWorkerEnvironmentsIfNeeded(config, resolvedPluginConfig);
+			addBuildNodeExternalsToWorkerEnvironmentsIfNeeded(
+				config,
+				resolvedPluginConfig,
+			);
 		},
 		configEnvironment(name, options) {
 			if (resolvedPluginConfig.type === 'workers') {
@@ -298,6 +303,84 @@ function addNodeBuiltinsToWorkerEnvironmentsIfNeeded(
 						.exclude ?? []),
 					...nodeCompatModules,
 				];
+			},
+		);
+	}
+}
+
+/**
+ * Adds to the worker resolved configuration the necessary node external modules config options if the worker is under nodejs compat
+ * (this config is under `build.rollupOptions.externals`)
+ *
+ * Note: this includes polyfill methods as well as nodejs builtins (given the `resolve.builtins` option maybe externals here should
+ *       not include such modules...?)
+ *
+ * @param resolvedConfig the vite resolved config (that will be side-effectfully updated)
+ * @param name the name of the worker
+ * @param resolvedPluginConfig the normalized/resolved plugin config
+ */
+function addBuildNodeExternalsToWorkerEnvironmentsIfNeeded(
+	resolvedConfig: vite.ResolvedConfig,
+	resolvedPluginConfig: ResolvedPluginConfig,
+) {
+	if (resolvedPluginConfig.type === 'workers') {
+		Object.entries(resolvedPluginConfig.workers).map(
+			([environmentName, workerConfig]) => {
+				invariant(
+					resolvedConfig.environments[environmentName],
+					`environment with name "${environmentName}" not found`,
+				);
+
+				const nodeCompat = isNodeCompat(workerConfig);
+
+				if (!nodeCompat) {
+					return;
+				}
+
+				const nodeCompatExternals = [...getNodeCompatExternals()];
+
+				const existingExternalOption =
+					resolvedConfig.environments[environmentName].build.rollupOptions
+						.external;
+				if (!existingExternalOption) {
+					resolvedConfig.environments[
+						environmentName
+					].build.rollupOptions.external = [...nodeCompatExternals];
+					return;
+				}
+
+				if (typeof existingExternalOption !== 'function') {
+					const existingExternals = Array.isArray(existingExternalOption)
+						? existingExternalOption
+						: [existingExternalOption];
+					resolvedConfig.environments[
+						environmentName
+					].build.rollupOptions.external = [
+						...nodeCompatExternals,
+						...existingExternals,
+					];
+					return;
+				}
+
+				const nodeCompatExternalsSet = new Set(nodeCompatExternals);
+
+				resolvedConfig.environments[
+					environmentName
+				].build.rollupOptions.external = (
+					source: string,
+					importer: string | undefined,
+					isResolved: boolean,
+				) => {
+					const existingOptionResult = existingExternalOption(
+						source,
+						importer,
+						isResolved,
+					);
+					if (existingOptionResult) {
+						return existingOptionResult;
+					}
+					return nodeCompatExternalsSet.has(source);
+				};
 			},
 		);
 	}
