@@ -111,9 +111,9 @@ function findWranglerConfig(root: string): string | undefined {
 	}
 }
 
-// Worker names can only contain alphanumeric characters and '_' whereas environment names can only contain alphanumeric characters and '$', '_'
+// Worker names can only contain alphanumeric characters and '-' whereas environment names can only contain alphanumeric characters and '$', '_'
 function workerNameToEnvironmentName(workerName: string) {
-	return workerName.split('-').join('_');
+	return workerName.replaceAll('-', '_');
 }
 
 export function resolvePluginConfig(
@@ -129,7 +129,7 @@ export function resolvePluginConfig(
 
 	invariant(
 		configPath,
-		`Config not found. Have you created a wrangler.json or wrangler.toml file?`,
+		`Config not found. Have you created a wrangler.json(c) or wrangler.toml file?`,
 	);
 
 	const entryConfigResult = getConfigResult(
