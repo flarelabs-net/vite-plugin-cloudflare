@@ -258,7 +258,7 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 				});
 			};
 		},
-		async configurePreviewServer(vitePreviewServer) {
+		configurePreviewServer(vitePreviewServer) {
 			const miniflare = new Miniflare(
 				getPreviewMiniflareOptions(resolvedPluginConfig, vitePreviewServer),
 			);
