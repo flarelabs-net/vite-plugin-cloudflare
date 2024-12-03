@@ -146,19 +146,22 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 				return injectGlobalCode(id, code, workerConfig);
 			}
 		},
-		generateBundle() {
+		generateBundle(_, bundle) {
 			let config: RawConfig | undefined;
 
 			if (resolvedPluginConfig.type === 'workers') {
 				const workerConfig =
 					resolvedPluginConfig.workers[this.environment.name];
 
-				if (!workerConfig) {
+				const entryChunk = Object.entries(bundle).find(
+					([_, chunk]) => chunk.type === 'chunk' && chunk.isEntry,
+				);
+
+				if (!workerConfig || !entryChunk) {
 					return;
 				}
 
-				// Currently assuming that the entrypoint of the build is `index.js`. Should we determine this from the config?
-				workerConfig.main = 'index.js';
+				workerConfig.main = entryChunk[0];
 
 				const isEntryWorker =
 					this.environment.name ===
