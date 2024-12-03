@@ -150,17 +150,32 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 			}
 		},
 		generateBundle() {
-			if (
-				this.environment.name === 'client' &&
-				resolvedPluginConfig.type === 'assets-only'
-			) {
-				const config: AssetsOnlyConfig = {
-					...resolvedPluginConfig.config,
-					assets: {
-						...resolvedPluginConfig.config.assets,
-						directory: '.',
-					},
-				};
+			if (resolvedPluginConfig.type === 'workers') {
+				const workerConfig =
+					resolvedPluginConfig.workers[this.environment.name];
+
+				if (!workerConfig) {
+					return;
+				}
+
+				workerConfig.main = './index.js';
+
+				const isEntryWorker =
+					this.environment.name ===
+					resolvedPluginConfig.entryWorkerEnvironmentName;
+
+				if (isEntryWorker && workerConfig.assets) {
+					workerConfig.assets.directory = path.join('..', 'client');
+				}
+
+				this.emitFile({
+					type: 'asset',
+					fileName: 'wrangler.json',
+					source: JSON.stringify(workerConfig),
+				});
+			} else if (this.environment.name === 'client') {
+				const assetsOnlyConfig = resolvedPluginConfig.config;
+				assetsOnlyConfig.assets.directory = '.';
 
 				this.emitFile({
 					type: 'asset',
@@ -171,7 +186,7 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 				this.emitFile({
 					type: 'asset',
 					fileName: 'wrangler.json',
-					source: JSON.stringify(config),
+					source: JSON.stringify(assetsOnlyConfig),
 				});
 			}
 		},
