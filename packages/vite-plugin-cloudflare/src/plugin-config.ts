@@ -14,15 +14,18 @@ export interface PluginConfig {
 	}>;
 }
 
-interface BaseConfig {
-	wranglerConfigPaths: Set<string>;
-}
+type Defined<T> = Exclude<T, undefined>;
 
-export type WorkerConfig = Config & { name: string; main: string };
+export type AssetsOnlyConfig = Config & { assets: Defined<Config['assets']> };
+
+export type WorkerConfig = Config & {
+	name: Defined<Config['name']>;
+	main: Defined<Config['main']>;
+};
 
 interface AssetsOnlyResult {
 	type: 'assets-only';
-	config: Config;
+	config: AssetsOnlyConfig;
 }
 
 interface WorkerResult {
@@ -30,18 +33,25 @@ interface WorkerResult {
 	config: WorkerConfig;
 }
 
-type AssetsOnlyConfig = BaseConfig & AssetsOnlyResult;
+interface BasePluginConfig {
+	wranglerConfigPaths: Set<string>;
+}
 
-export interface WorkersConfig extends BaseConfig {
+interface AssetsOnlyPluginConfig extends BasePluginConfig {
+	type: 'assets-only';
+	config: AssetsOnlyConfig;
+}
+
+export interface WorkersPluginConfig extends BasePluginConfig {
 	type: 'workers';
 	workers: Record<string, WorkerConfig>;
 	entryWorkerEnvironmentName: string;
 	wranglerConfigPaths: Set<string>;
 }
 
-export type ResolvedPluginConfig = AssetsOnlyConfig | WorkersConfig;
+export type ResolvedPluginConfig = AssetsOnlyPluginConfig | WorkersPluginConfig;
 
-function getConfig(
+function getConfigResult(
 	configPath: string,
 	userConfig: vite.UserConfig,
 	wranglerConfigPaths: Set<string>,
@@ -64,7 +74,10 @@ function getConfig(
 			`No main or assets field provided in ${wranglerConfig.configPath}`,
 		);
 
-		return { type: 'assets-only', config: wranglerConfig };
+		return {
+			type: 'assets-only',
+			config: { ...wranglerConfig, assets: wranglerConfig.assets },
+		};
 	}
 
 	invariant(
@@ -119,37 +132,40 @@ export function resolvePluginConfig(
 		`Config not found. Have you created a wrangler.json or wrangler.toml file?`,
 	);
 
-	const entryResult = getConfig(
+	const entryConfigResult = getConfigResult(
 		configPath,
 		userConfig,
 		wranglerConfigPaths,
 		true,
 	);
 
-	if (entryResult.type === 'assets-only') {
-		return { ...entryResult, wranglerConfigPaths };
+	if (entryConfigResult.type === 'assets-only') {
+		return { ...entryConfigResult, wranglerConfigPaths };
 	}
 
-	const workerConfig = entryResult.config;
+	const entryWorkerConfig = entryConfigResult.config;
 
 	const entryWorkerEnvironmentName =
 		pluginConfig.viteEnvironmentName ??
-		workerNameToEnvironmentName(workerConfig.name);
+		workerNameToEnvironmentName(entryWorkerConfig.name);
 
 	const workers = {
-		[entryWorkerEnvironmentName]: workerConfig,
+		[entryWorkerEnvironmentName]: entryWorkerConfig,
 	};
 
 	for (const auxiliaryWorker of pluginConfig.auxiliaryWorkers ?? []) {
-		const workerResult = getConfig(
+		const configResult = getConfigResult(
 			path.join(root, auxiliaryWorker.wranglerConfig),
 			userConfig,
 			wranglerConfigPaths,
 		);
 
-		invariant(workerResult.type === 'worker', 'Unexpected error');
+		invariant(
+			configResult.type === 'worker',
+			'Unexpected error: received AssetsOnlyResult with auxiliary workers.',
+		);
 
-		const workerConfig = workerResult.config;
+		const workerConfig = configResult.config;
 
 		const workerEnvironmentName =
 			auxiliaryWorker.viteEnvironmentName ??
@@ -171,110 +187,3 @@ export function resolvePluginConfig(
 		entryWorkerEnvironmentName,
 	};
 }
-
-// export interface WorkerOptions {
-// 	main: string;
-// 	wranglerConfig?: string;
-// 	// TODO: tighten up types so assets can only be bound to entry worker
-// 	assetsBinding?: string;
-// 	overrides?: vite.EnvironmentOptions;
-// }
-
-// export interface PluginConfig<
-// 	TWorkers extends Record<string, WorkerOptions> = Record<
-// 		string,
-// 		WorkerOptions
-// 	>,
-// 	TEntryWorker extends string = Extract<keyof TWorkers, string>,
-// > {
-// 	workers?: TWorkers;
-// 	entryWorker?: TEntryWorker;
-// 	assets?: AssetConfig;
-// 	persistTo?: string | false;
-// }
-
-// export interface NormalizedPluginConfig {
-// 	workers: Record<
-// 		string,
-// 		{
-// 			entryPath: string;
-// 			wranglerConfigPath: string;
-// 			wranglerConfig: Config;
-// 			assetsBinding?: string;
-// 			workerOptions: SourcelessWorkerOptions & { name: string };
-// 		}
-// 	>;
-// 	entryWorkerName?: string;
-// 	assets: AssetConfig;
-// 	persistPath: string | false;
-// 	wranglerConfigPaths: Set<string>;
-// }
-
-// const DEFAULT_PERSIST_PATH = '.wrangler/state/v3';
-
-// export function normalizePluginConfig(
-// 	pluginConfig: PluginConfig,
-// 	viteConfig: vite.ResolvedConfig,
-// 	mode?: string,
-// ): NormalizedPluginConfig {
-// 	const wranglerConfigPaths = new Set<string>();
-// 	const workers = Object.fromEntries(
-// 		Object.entries(pluginConfig.workers ?? {}).map(([name, options]) => {
-// 			const wranglerConfigPath = path.resolve(
-// 				viteConfig.root,
-// 				options.wranglerConfig ?? './wrangler.toml',
-// 			);
-
-// 			if (wranglerConfigPaths.has(wranglerConfigPath)) {
-// 				throw new Error(
-// 					`Duplicate Wrangler config path found: ${wranglerConfigPath}`,
-// 				);
-// 			}
-
-// 			const wranglerConfig = readConfig(wranglerConfigPath, {
-// 				env: mode,
-// 			});
-
-// 			wranglerConfigPaths.add(wranglerConfigPath);
-
-// 			// We'll need to change this to `${name}-${mode}` when the `mode` is present but this is non-trivial because service bindings etc. will need updating
-// 			wranglerConfig.name = name;
-
-// 			const miniflareWorkerOptions =
-// 				unstable_getMiniflareWorkerOptions(wranglerConfig);
-
-// 			const { ratelimits, ...workerOptions } =
-// 				miniflareWorkerOptions.workerOptions;
-
-// 			return [
-// 				name,
-// 				{
-// 					assetsBinding: options.assetsBinding,
-// 					entryPath: options.main,
-// 					wranglerConfigPath,
-// 					wranglerConfig,
-// 					// `unstable_getMiniflareWorkerOptions` always sets the `name` to undefined so we have to add it again here
-// 					workerOptions: { ...workerOptions, name },
-// 				},
-// 			];
-// 		}),
-// 	);
-
-// 	const assets = pluginConfig.assets ?? {};
-
-// 	const persistPath =
-// 		pluginConfig.persistTo === false
-// 			? false
-// 			: path.resolve(
-// 					viteConfig.root,
-// 					pluginConfig.persistTo ?? DEFAULT_PERSIST_PATH,
-// 				);
-
-// 	return {
-// 		workers,
-// 		entryWorkerName: pluginConfig.entryWorker,
-// 		assets,
-// 		persistPath,
-// 		wranglerConfigPaths,
-// 	};
-// }

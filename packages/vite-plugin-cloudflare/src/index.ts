@@ -17,7 +17,12 @@ import {
 import { resolvePluginConfig } from './plugin-config';
 import { invariant } from './shared';
 import { toMiniflareRequest } from './utils';
-import type { PluginConfig, ResolvedPluginConfig } from './plugin-config';
+import type {
+	AssetsOnlyConfig,
+	PluginConfig,
+	ResolvedPluginConfig,
+	WorkerConfig,
+} from './plugin-config';
 
 // This is temporary
 let hasClientEnvironment = false;
@@ -111,16 +116,20 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 
 			const workerConfig = resolvedPluginConfig.workers[this.environment.name];
 
-			if (workerConfig) {
-				const aliased = resolveNodeAliases(source, workerConfig);
+			if (!workerConfig) {
+				return;
+			}
 
-				if (aliased) {
-					if (aliased.external) {
-						return aliased.id;
-					} else {
-						return await this.resolve(aliased.id);
-					}
-				}
+			const aliased = resolveNodeAliases(source, workerConfig);
+
+			if (!aliased) {
+				return;
+			}
+
+			if (aliased.external) {
+				return aliased.id;
+			} else {
+				return await this.resolve(aliased.id);
 			}
 		},
 		async transform(code, id) {
@@ -130,12 +139,40 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 
 			const workerConfig = resolvedPluginConfig.workers[this.environment.name];
 
-			if (workerConfig) {
-				const resolvedId = await this.resolve(workerConfig.main);
+			if (!workerConfig) {
+				return;
+			}
 
-				if (id === resolvedId?.id) {
-					return injectGlobalCode(id, code, workerConfig);
-				}
+			const resolvedId = await this.resolve(workerConfig.main);
+
+			if (id === resolvedId?.id) {
+				return injectGlobalCode(id, code, workerConfig);
+			}
+		},
+		generateBundle() {
+			if (
+				this.environment.name === 'client' &&
+				resolvedPluginConfig.type === 'assets-only'
+			) {
+				const config: AssetsOnlyConfig = {
+					...resolvedPluginConfig.config,
+					assets: {
+						...resolvedPluginConfig.config.assets,
+						directory: '.',
+					},
+				};
+
+				this.emitFile({
+					type: 'asset',
+					fileName: '.assetsignore',
+					source: 'wrangler.json',
+				});
+
+				this.emitFile({
+					type: 'asset',
+					fileName: 'wrangler.json',
+					source: JSON.stringify(config),
+				});
 			}
 		},
 		async configureServer(viteDevServer) {
@@ -145,7 +182,7 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 				getDevMiniflareOptions(resolvedPluginConfig, viteDevServer),
 			);
 
-			await initRunners(resolvedPluginConfig, miniflare, viteDevServer);
+			await initRunners(resolvedPluginConfig, viteDevServer, miniflare);
 
 			viteDevServer.watcher.on('all', async (_, path) => {
 				if (!resolvedPluginConfig.wranglerConfigPaths.has(path)) {
@@ -162,7 +199,7 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 						getDevMiniflareOptions(resolvedPluginConfig, viteDevServer),
 					);
 
-					await initRunners(resolvedPluginConfig, miniflare, viteDevServer);
+					await initRunners(resolvedPluginConfig, viteDevServer, miniflare);
 
 					error = undefined;
 					viteDevServer.environments.client.hot.send({ type: 'full-reload' });

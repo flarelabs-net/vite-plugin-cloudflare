@@ -3,11 +3,7 @@ import * as vite from 'vite';
 import { getNodeCompatExternals } from './node-js-compat';
 import { INIT_PATH, invariant, UNKNOWN_HOST } from './shared';
 import { toMiniflareRequest } from './utils';
-import type {
-	ResolvedPluginConfig,
-	WorkerConfig,
-	WorkersConfig,
-} from './plugin-config';
+import type { ResolvedPluginConfig, WorkerConfig } from './plugin-config';
 import type { Fetcher } from '@cloudflare/workers-types/experimental';
 import type {
 	MessageEvent,
@@ -188,8 +184,8 @@ export function createCloudflareEnvironmentOptions(
 
 export function initRunners(
 	resolvedPluginConfig: ResolvedPluginConfig,
-	miniflare: Miniflare,
 	viteDevServer: vite.ViteDevServer,
+	miniflare: Miniflare,
 ): Promise<void[]> | undefined {
 	if (resolvedPluginConfig.type === 'assets-only') {
 		return;
