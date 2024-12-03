@@ -46,7 +46,6 @@ interface WorkersPluginConfig extends BasePluginConfig {
 	type: 'workers';
 	workers: Record<string, WorkerConfig>;
 	entryWorkerEnvironmentName: string;
-	wranglerConfigPaths: Set<string>;
 }
 
 export type ResolvedPluginConfig = AssetsOnlyPluginConfig | WorkersPluginConfig;
