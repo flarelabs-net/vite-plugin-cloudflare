@@ -25,10 +25,15 @@ type PersistOptions = Pick<
 	| 'r2Persist'
 >;
 
-export function getPersistence(persistPath: string | false): PersistOptions {
-	if (persistPath === false) {
+export function getPersistence(
+	root: string,
+	persistState = true,
+): PersistOptions {
+	if (persistState === false) {
 		return {};
 	}
+
+	const persistPath = path.join(root, '.wrangler', 'state', 'v3');
 
 	return {
 		cachePersist: path.join(persistPath, 'cache'),
@@ -325,7 +330,7 @@ export function getDevMiniflareOptions(
 				logger.logWithLevel(LogLevel.ERROR, decoder.decode(error)),
 			);
 		},
-		// ...getPersistence(normalizedPluginConfig.persistPath),
+		...getPersistence(viteConfig.root),
 		workers: [
 			...assetWorkers,
 			...userWorkers.map((workerOptions) => {
@@ -460,6 +465,7 @@ export function getPreviewMiniflareOptions(
 				logger.logWithLevel(LogLevel.ERROR, decoder.decode(error)),
 			);
 		},
+		...getPersistence(viteConfig.root),
 		workers,
 	};
 }
