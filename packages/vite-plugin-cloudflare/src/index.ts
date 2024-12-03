@@ -8,7 +8,10 @@ import {
 	createCloudflareEnvironmentOptions,
 	initRunners,
 } from './cloudflare-environment';
-import { getDevMiniflareOptions } from './miniflare-options';
+import {
+	getDevMiniflareOptions,
+	getPreviewMiniflareOptions,
+} from './miniflare-options';
 import {
 	getNodeCompatAliases,
 	injectGlobalCode,
@@ -17,15 +20,8 @@ import {
 import { resolvePluginConfig } from './plugin-config';
 import { invariant } from './shared';
 import { toMiniflareRequest } from './utils';
-import type {
-	AssetsOnlyConfig,
-	PluginConfig,
-	ResolvedPluginConfig,
-	WorkerConfig,
-} from './plugin-config';
-
-// This is temporary
-let hasClientEnvironment = false;
+import type { PluginConfig, ResolvedPluginConfig } from './plugin-config';
+import type { RawConfig } from 'wrangler';
 
 export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 	let viteUserConfig: vite.UserConfig;
@@ -47,8 +43,6 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 						? Object.fromEntries(
 								Object.entries(resolvedPluginConfig.workers).map(
 									([environmentName, workerConfig]) => {
-										workerConfig;
-
 										return [
 											environmentName,
 											createCloudflareEnvironmentOptions(
@@ -62,19 +56,18 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 						: undefined,
 				builder: {
 					async buildApp(builder) {
-						const client = builder.environments.client;
+						const clientEnvironment = builder.environments.client;
 						const defaultHtmlPath = path.resolve(
 							builder.config.root,
 							'index.html',
 						);
 
 						if (
-							client &&
-							(client.config.build.rollupOptions.input ||
+							clientEnvironment &&
+							(clientEnvironment.config.build.rollupOptions.input ||
 								fs.existsSync(defaultHtmlPath))
 						) {
-							hasClientEnvironment = true;
-							await builder.build(client);
+							await builder.build(clientEnvironment);
 						}
 
 						if (resolvedPluginConfig.type === 'assets-only') {
@@ -85,6 +78,7 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 							resolvedPluginConfig.workers,
 						).map((environmentName) => {
 							const environment = builder.environments[environmentName];
+
 							invariant(
 								environment,
 								`${environmentName} environment not found`,
@@ -103,11 +97,14 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 			};
 		},
 		configEnvironment(name, options) {
-			options.build = {
-				...options.build,
-				// Puts all environment builds in subdirectories of the same build directory
-				outDir: path.join(options.build?.outDir ?? 'dist', name),
-			};
+			if (resolvedPluginConfig.type === 'workers') {
+				options.build = {
+					...options.build,
+					// Puts all environment builds in subdirectories of the same build directory
+					// TODO: allow the user to override this
+					outDir: path.join(options.build?.outDir ?? 'dist', name),
+				};
+			}
 		},
 		async resolveId(source) {
 			if (resolvedPluginConfig.type === 'assets-only') {
@@ -150,6 +147,8 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 			}
 		},
 		generateBundle() {
+			let config: RawConfig | undefined;
+
 			if (resolvedPluginConfig.type === 'workers') {
 				const workerConfig =
 					resolvedPluginConfig.workers[this.environment.name];
@@ -158,7 +157,8 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 					return;
 				}
 
-				workerConfig.main = './index.js';
+				// Currently assuming that the entrypoint of the build is `index.js`. Should we determine this from the config?
+				workerConfig.main = 'index.js';
 
 				const isEntryWorker =
 					this.environment.name ===
@@ -168,13 +168,10 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 					workerConfig.assets.directory = path.join('..', 'client');
 				}
 
-				this.emitFile({
-					type: 'asset',
-					fileName: 'wrangler.json',
-					source: JSON.stringify(workerConfig),
-				});
+				config = workerConfig;
 			} else if (this.environment.name === 'client') {
 				const assetsOnlyConfig = resolvedPluginConfig.config;
+
 				assetsOnlyConfig.assets.directory = '.';
 
 				this.emitFile({
@@ -183,12 +180,23 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 					source: 'wrangler.json',
 				});
 
-				this.emitFile({
-					type: 'asset',
-					fileName: 'wrangler.json',
-					source: JSON.stringify(assetsOnlyConfig),
-				});
+				config = assetsOnlyConfig;
 			}
+
+			if (!config) {
+				return;
+			}
+
+			config.no_bundle = true;
+			config.rules = [{ type: 'ESModule', globs: ['**/*.js'] }];
+			// Setting this to `undefined` for now because `readConfig` will error when reading the output file if it's set to an empty object. This needs to be fixed in Wrangler.
+			config.unsafe = undefined;
+
+			this.emitFile({
+				type: 'asset',
+				fileName: 'wrangler.json',
+				source: JSON.stringify(config),
+			});
 		},
 		async configureServer(viteDevServer) {
 			let error: unknown;
@@ -247,224 +255,27 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 				});
 			};
 		},
+		async configurePreviewServer(vitePreviewServer) {
+			const miniflare = new Miniflare(
+				getPreviewMiniflareOptions(resolvedPluginConfig, vitePreviewServer),
+			);
 
-		// config(userConfig) {
-		// 	// We use the mode from the user config rather than the resolved config for now so that the mode has to be set explicitly
-		// 	// Passing an `env` value to `readConfig` will lead to unexpected behaviour if the given environment does not exist in the user's config
-		// 	// mode = userConfig.mode;
+			const middleware = createMiddleware(({ request }) => {
+				return miniflare.dispatchFetch(toMiniflareRequest(request), {
+					redirect: 'manual',
+				}) as any;
+			});
 
-		// 	return {
-		// 		resolve: {
-		// 			alias: getNodeCompatAliases(),
-		// 		},
-		// 		appType: 'custom',
-		// 		builder: {
-		// 			async buildApp(builder) {
-		// 				const client = builder.environments.client;
-		// 				const defaultHtmlPath = path.resolve(
-		// 					builder.config.root,
-		// 					'index.html',
-		// 				);
+			return () => {
+				vitePreviewServer.middlewares.use((req, res, next) => {
+					if (!middleware) {
+						next();
+						return;
+					}
 
-		// 				if (
-		// 					client &&
-		// 					(client.config.build.rollupOptions.input ||
-		// 						fs.existsSync(defaultHtmlPath))
-		// 				) {
-		// 					hasClientEnvironment = true;
-		// 					await builder.build(client);
-		// 				}
-
-		// 				const workerEnvironments = Object.keys(
-		// 					pluginConfig.workers ?? {},
-		// 				).map((name) => {
-		// 					const environment = builder.environments[name];
-		// 					invariant(environment, `${name} environment not found`);
-
-		// 					return environment;
-		// 				});
-
-		// 				await Promise.all(
-		// 					workerEnvironments.map((environment) =>
-		// 						builder.build(environment),
-		// 					),
-		// 				);
-		// 			},
-		// 		},
-		// 		// Ensure there is an environment for each worker
-		// 		environments: Object.fromEntries(
-		// 			Object.entries(pluginConfig.workers ?? {}).map(
-		// 				([name, workerOptions]) => [
-		// 					name,
-		// 					createCloudflareEnvironmentOptions(workerOptions, userConfig),
-		// 				],
-		// 			),
-		// 		),
-		// 	};
-		// },
-		// configEnvironment(name, options) {
-		// 	options.build = {
-		// 		...options.build,
-		// 		// Puts all environment builds in subdirectories of the same build directory
-		// 		outDir: path.join(options.build?.outDir ?? 'dist', name),
-		// 	};
-		// },
-		// configResolved(resolvedConfig) {
-		// 	viteConfig = resolvedConfig;
-		// 	normalizedPluginConfig = normalizePluginConfig(
-		// 		pluginConfig,
-		// 		resolvedConfig,
-		// 		mode,
-		// 	);
-		// },
-		// generateBundle() {
-		// 	let config: RawConfig;
-
-		// 	if (
-		// 		this.environment.name === 'client' &&
-		// 		!Object.keys(normalizedPluginConfig.workers).length
-		// 	) {
-		// 		config = {
-		// 			assets: {
-		// 				...normalizedPluginConfig.assets,
-		// 				directory: '.',
-		// 			},
-		// 		};
-		// 	} else {
-		// 		const worker = normalizedPluginConfig.workers[this.environment.name];
-
-		// 		if (!worker) {
-		// 			return;
-		// 		}
-
-		// 		config = worker.wranglerConfig;
-
-		// 		const isEntryWorker =
-		// 			this.environment.name === normalizedPluginConfig.entryWorkerName;
-
-		// 		if (isEntryWorker && hasClientEnvironment) {
-		// 			config.assets = {
-		// 				...normalizedPluginConfig.assets,
-		// 				directory: path.join('..', 'client'),
-		// 				binding:
-		// 					normalizedPluginConfig.workers[this.environment.name]
-		// 						?.assetsBinding,
-		// 			};
-		// 		}
-		// 	}
-
-		// 	this.emitFile({
-		// 		type: 'asset',
-		// 		fileName: 'wrangler.json',
-		// 		source: JSON.stringify(config),
-		// 	});
-		// },
-		// async resolveId(source) {
-		// 	const worker = normalizedPluginConfig.workers[this.environment.name];
-		// 	if (worker) {
-		// 		const aliased = resolveNodeAliases(source, worker.workerOptions);
-		// 		if (aliased) {
-		// 			if (aliased.external) {
-		// 				return aliased.id;
-		// 			} else {
-		// 				return await this.resolve(aliased.id);
-		// 			}
-		// 		}
-		// 	}
-		// },
-		// async transform(code, id) {
-		// 	const worker = normalizedPluginConfig.workers[this.environment.name];
-		// 	if (worker) {
-		// 		const rId = await this.resolve(worker.entryPath);
-		// 		if (id === rId?.id) {
-		// 			return injectGlobalCode(id, code, worker.workerOptions);
-		// 		}
-		// 	}
-		// },
-		// async configureServer(viteDevServer) {
-		// 	let error: unknown;
-
-		// 	const miniflare = new Miniflare(
-		// 		getDevMiniflareOptions(
-		// 			normalizedPluginConfig,
-		// 			viteConfig,
-		// 			viteDevServer,
-		// 		),
-		// 	);
-
-		// 	await initRunners(normalizedPluginConfig, miniflare, viteDevServer);
-
-		// 	viteDevServer.watcher.on('all', async (_, path) => {
-		// 		if (!normalizedPluginConfig.wranglerConfigPaths.has(path)) {
-		// 			return;
-		// 		}
-
-		// 		try {
-		// 			await miniflare.setOptions(
-		// 				getDevMiniflareOptions(
-		// 					normalizedPluginConfig,
-		// 					viteConfig,
-		// 					viteDevServer,
-		// 				),
-		// 			);
-
-		// 			await initRunners(normalizedPluginConfig, miniflare, viteDevServer);
-
-		// 			error = undefined;
-		// 			viteDevServer.environments.client.hot.send({ type: 'full-reload' });
-		// 		} catch (err) {
-		// 			error = err;
-		// 			viteDevServer.environments.client.hot.send({ type: 'full-reload' });
-		// 		}
-		// 	});
-
-		// 	const middleware = createMiddleware(async ({ request }) => {
-		// 		const routerWorker = await getRouterWorker(miniflare);
-
-		// 		return routerWorker.fetch(toMiniflareRequest(request), {
-		// 			redirect: 'manual',
-		// 		}) as any;
-		// 	});
-
-		// 	return () => {
-		// 		viteDevServer.middlewares.use((req, res, next) => {
-		// 			if (error) {
-		// 				throw error;
-		// 			}
-
-		// 			if (!middleware) {
-		// 				next();
-		// 				return;
-		// 			}
-
-		// 			middleware(req, res, next);
-		// 		});
-		// 	};
-		// },
-		// configurePreviewServer(vitePreviewServer) {
-		// 	const miniflare = new Miniflare(
-		// 		getPreviewMiniflareOptions(normalizedPluginConfig, viteConfig),
-		// 	);
-
-		// 	const middleware = createMiddleware(
-		// 		({ request }) => {
-		// 			return miniflare.dispatchFetch(toMiniflareRequest(request), {
-		// 				redirect: 'manual',
-		// 			}) as any;
-		// 		},
-		// 		{ alwaysCallNext: false },
-		// 	);
-
-		// 	return () => {
-		// 		vitePreviewServer.middlewares.use((req, res, next) => {
-		// 			if (!middleware) {
-		// 				next();
-		// 				return;
-		// 			}
-
-		// 			middleware(req, res, next);
-		// 		});
-		// 	};
-		// },
+					middleware(req, res, next);
+				});
+			};
+		},
 	};
 }

@@ -62,7 +62,7 @@ function getConfigResult(
 	}
 
 	const wranglerConfig = readConfig(configPath, {
-		// We use the mode from the user config rather than the resolved config for now so that the mode has to be set explicitly. Otherwise, some things don't work as expected when a `development` and `production` environment are not set.
+		// We use the mode from the user config rather than the resolved config for now so that the mode has to be set explicitly. Otherwise, some things don't work as expected when `development` and `production` environments are not present.
 		env: userConfig.mode,
 	});
 
@@ -100,7 +100,7 @@ function getConfigResult(
 	};
 }
 
-// We can't rely on `readConfig` from Wrangler to find the config as it may be relative to a different root set by the user.
+// We can't rely on `readConfig` from Wrangler to find the config as it may be relative to a different root that's set by the user.
 function findWranglerConfig(root: string): string | undefined {
 	for (const extension of ['json', 'jsonc', 'toml']) {
 		const configPath = path.join(root, `wrangler.${extension}`);

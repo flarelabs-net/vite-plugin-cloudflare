@@ -155,7 +155,7 @@ export function createCloudflareEnvironmentOptions(
 			},
 		},
 		optimizeDeps: {
-			// Note: ssr pre-bundling is opt-in, and we need to enabled it by setting noDiscovery to false
+			// Note: ssr pre-bundling is opt-in and we need to enable it by setting `noDiscovery` to false
 			noDiscovery: false,
 			exclude: [
 				...cloudflareBuiltInModules,

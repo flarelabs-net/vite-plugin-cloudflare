@@ -4,7 +4,7 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Log, LogLevel, Response as MiniflareResponse } from 'miniflare';
 import * as vite from 'vite';
-import { unstable_getMiniflareWorkerOptions } from 'wrangler';
+import { readConfig, unstable_getMiniflareWorkerOptions } from 'wrangler';
 import {
 	ASSET_WORKER_NAME,
 	ASSET_WORKERS_COMPATIBILITY_DATE,
@@ -384,110 +384,85 @@ export function getDevMiniflareOptions(
 	};
 }
 
-// export function getPreviewMiniflareOptions(
-// 	normalizedPluginConfig: NormalizedPluginConfig,
-// 	viteConfig: vite.ResolvedConfig,
-// ): MiniflareOptions {
-// 	const entryWorkerConfig = normalizedPluginConfig.entryWorkerName
-// 		? normalizedPluginConfig.workers[normalizedPluginConfig.entryWorkerName]
-// 		: undefined;
+function getEntryModule(main: string | undefined) {
+	invariant(
+		main,
+		'Unexpected error: missing main field in miniflareWorkerOptions',
+	);
 
-// 	const assetsDirectory = path.resolve(
-// 		viteConfig.root,
-// 		viteConfig.build.outDir,
-// 		'client',
-// 	);
-// 	const hasAssets = fs.existsSync(assetsDirectory);
-// 	const assetsOptions = hasAssets
-// 		? {
-// 				assets: {
-// 					routingConfig: {
-// 						has_user_worker: entryWorkerConfig ? true : false,
-// 					},
-// 					assetConfig: {
-// 						...(normalizedPluginConfig.assets.htmlHandling
-// 							? { html_handling: normalizedPluginConfig.assets.htmlHandling }
-// 							: {}),
-// 						...(normalizedPluginConfig.assets.notFoundHandling
-// 							? {
-// 									not_found_handling:
-// 										normalizedPluginConfig.assets.notFoundHandling,
-// 								}
-// 							: {}),
-// 					},
-// 					directory: assetsDirectory,
-// 					...(entryWorkerConfig?.assetsBinding
-// 						? { binding: entryWorkerConfig.assetsBinding }
-// 						: {}),
-// 				},
-// 			}
-// 		: {};
+	return {
+		scriptPath: main,
+	};
+}
 
-// 	const workers: Array<WorkerOptions> = [
-// 		...(entryWorkerConfig
-// 			? [
-// 					{
-// 						...entryWorkerConfig.workerOptions,
-// 						...assetsOptions,
-// 						modules: [
-// 							{
-// 								type: 'ESModule',
-// 								path: path.resolve(
-// 									viteConfig.root,
-// 									viteConfig.build.outDir,
-// 									entryWorkerConfig.workerOptions.name,
-// 									'index.js',
-// 								),
-// 							} as const,
-// 						],
-// 					},
-// 				]
-// 			: [
-// 					{
-// 						...assetsOptions,
-// 						name: 'assets-only',
-// 						script: '',
-// 						modules: true,
-// 					},
-// 				]),
-// 		...Object.values(normalizedPluginConfig.workers)
-// 			.filter(
-// 				(config) =>
-// 					config.workerOptions.name !== normalizedPluginConfig.entryWorkerName,
-// 			)
-// 			.map((config) => {
-// 				return {
-// 					...config.workerOptions,
-// 					modules: [
-// 						{
-// 							type: 'ESModule',
-// 							path: path.resolve(
-// 								viteConfig.root,
-// 								viteConfig.build.outDir,
-// 								config.workerOptions.name,
-// 								'index.js',
-// 							),
-// 						} as const,
-// 					],
-// 				};
-// 			}),
-// 	];
+export function getPreviewMiniflareOptions(
+	resolvedPluginConfig: ResolvedPluginConfig,
+	vitePreviewServer: vite.PreviewServer,
+): MiniflareOptions {
+	const viteConfig = vitePreviewServer.config;
+	// For now, we are enforcing that packages are always inside the same build directory
+	const buildDirectory = path.resolve(viteConfig.root, viteConfig.build.outDir);
 
-// 	const logger = new ViteMiniflareLogger(viteConfig);
+	const configs = [
+		readConfig(
+			resolvedPluginConfig.type === 'workers'
+				? path.join(
+						buildDirectory,
+						resolvedPluginConfig.entryWorkerEnvironmentName,
+						'wrangler.json',
+					)
+				: path.join(buildDirectory, 'wrangler.json'),
+			{},
+		),
+		...(resolvedPluginConfig.type === 'workers'
+			? Object.keys(resolvedPluginConfig.workers)
+					.filter(
+						(environmentName) =>
+							environmentName !==
+							resolvedPluginConfig.entryWorkerEnvironmentName,
+					)
+					.map((environmentName) =>
+						readConfig(
+							path.join(buildDirectory, environmentName, 'wrangler.json'),
+							{},
+						),
+					)
+			: []),
+	];
 
-// 	return {
-// 		log: logger,
-// 		handleRuntimeStdio(stdout, stderr) {
-// 			const decoder = new TextDecoder();
-// 			stdout.forEach((data) => logger.info(decoder.decode(data)));
-// 			stderr.forEach((error) =>
-// 				logger.logWithLevel(LogLevel.ERROR, decoder.decode(error)),
-// 			);
-// 		},
-// 		...getPersistence(normalizedPluginConfig.persistPath),
-// 		workers,
-// 	};
-// }
+	const workers: Array<WorkerOptions> = configs.map((config) => {
+		const miniflareWorkerOptions = unstable_getMiniflareWorkerOptions(config);
+
+		const { ratelimits, ...workerOptions } =
+			miniflareWorkerOptions.workerOptions;
+
+		return {
+			...workerOptions,
+			// We have to add the name again because `unstable_getMiniflareWorkerOptions` sets it to `undefined`
+			name: config.name,
+			modules: true,
+			...(resolvedPluginConfig.type === 'workers'
+				? getEntryModule(miniflareWorkerOptions.main)
+				: {
+						script: '',
+					}),
+		};
+	});
+
+	const logger = new ViteMiniflareLogger(viteConfig);
+
+	return {
+		log: logger,
+		handleRuntimeStdio(stdout, stderr) {
+			const decoder = new TextDecoder();
+			stdout.forEach((data) => logger.info(decoder.decode(data)));
+			stderr.forEach((error) =>
+				logger.logWithLevel(LogLevel.ERROR, decoder.decode(error)),
+			);
+		},
+		workers,
+	};
+}
 
 /**
  * A Miniflare logger that forwards messages onto a Vite logger.
