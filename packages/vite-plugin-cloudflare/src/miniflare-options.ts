@@ -290,17 +290,6 @@ export function getDevMiniflareOptions(
 
 									const [moduleId] = invokePayloadData.data;
 
-									// For some reason we need this here for cloudflare built-ins (e.g. `cloudflare:workers`) but not for node built-ins (e.g. `node:path`)
-									// See https://github.com/flarelabs-net/vite-plugin-cloudflare/issues/46
-									if (moduleId.startsWith('cloudflare:')) {
-										const result = {
-											externalize: moduleId,
-											type: 'builtin',
-										} satisfies vite.FetchResult;
-
-										return new MiniflareResponse(JSON.stringify({ result }));
-									}
-
 									// Sometimes Vite fails to resolve built-ins and converts them to "url-friendly" ids
 									// that start with `/@id/...`.
 									if (moduleId.startsWith('/@id/')) {

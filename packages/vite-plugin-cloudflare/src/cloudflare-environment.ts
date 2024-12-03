@@ -133,6 +133,7 @@ export function createCloudflareEnvironmentOptions(
 			noExternal: true,
 			// We want to use `workerd` package exports if available (e.g. for postgres).
 			conditions: ['workerd', 'module', 'browser', 'development|production'],
+			builtins: [...cloudflareBuiltInModules],
 		},
 		dev: {
 			createEnvironment(name, config) {
@@ -152,17 +153,12 @@ export function createCloudflareEnvironmentOptions(
 				//       dev pre-bundling crawling (were we not to set this input field we'd have to appropriately set
 				//       optimizeDeps.entries in the dev config)
 				input: workerConfig.main,
-				external: [...cloudflareBuiltInModules, ...getNodeCompatExternals()],
+				external: [...getNodeCompatExternals()],
 			},
 		},
 		optimizeDeps: {
 			// Note: ssr pre-bundling is opt-in and we need to enable it by setting `noDiscovery` to false
 			noDiscovery: false,
-			exclude: [
-				...cloudflareBuiltInModules,
-				// we have to exclude all node modules to work in dev-mode not just the unenv externals...
-				...builtinModules.concat(builtinModules.map((m) => `node:${m}`)),
-			],
 			esbuildOptions: {
 				platform: 'neutral',
 				resolveExtensions: [

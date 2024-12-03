@@ -1,9 +1,11 @@
 import assert from 'node:assert';
 import * as fs from 'node:fs';
+import { builtinModules } from 'node:module';
 import path from 'node:path';
 import { createMiddleware } from '@hattip/adapter-node';
 import { Miniflare } from 'miniflare';
 import * as vite from 'vite';
+import { unstable_getMiniflareWorkerOptions } from 'wrangler';
 import { getRouterWorker } from './assets';
 import {
 	createCloudflareEnvironmentOptions,
@@ -16,6 +18,7 @@ import {
 import {
 	getNodeCompatAliases,
 	injectGlobalCode,
+	isNodeCompat,
 	resolveNodeAliases,
 } from './node-js-compat';
 import { resolvePluginConfig } from './plugin-config';
@@ -91,6 +94,9 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 					},
 				},
 			};
+		},
+		configResolved(config) {
+			addNodeBuiltinsToWorkerEnvironmentsIfNeeded(config, resolvedPluginConfig);
 		},
 		configEnvironment(name, options) {
 			if (resolvedPluginConfig.type === 'workers') {
@@ -256,4 +262,43 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 			};
 		},
 	};
+}
+
+/**
+ * In the resolved configuration adds to all the worker environments the necessary node builtin config options
+ * if the worker is under nodejs compat
+ *
+ * @param resolvedConfig the vite resolved config (that will be side-effectfully updated)
+ * @param resolvedPluginConfig the resolved plugin config
+ */
+function addNodeBuiltinsToWorkerEnvironmentsIfNeeded(
+	resolvedConfig: vite.ResolvedConfig,
+	resolvedPluginConfig: ResolvedPluginConfig,
+) {
+	if (resolvedPluginConfig.type === 'workers') {
+		Object.entries(resolvedPluginConfig.workers).map(
+			([environmentName, workerConfig]) => {
+				invariant(
+					resolvedConfig.environments[environmentName],
+					`environment with name "${environmentName}" not found`,
+				);
+
+				const nodeCompat = isNodeCompat(workerConfig);
+
+				const nodeCompatModules = nodeCompat
+					? [...builtinModules.concat(builtinModules.map((m) => `node:${m}`))]
+					: [];
+
+				resolvedConfig.environments[environmentName].resolve.builtins = [
+					...resolvedConfig.environments[environmentName].resolve.builtins,
+					...nodeCompatModules,
+				];
+				resolvedConfig.environments[environmentName].optimizeDeps.exclude = [
+					...(resolvedConfig.environments[environmentName].optimizeDeps
+						.exclude ?? []),
+					...nodeCompatModules,
+				];
+			},
+		);
+	}
 }
