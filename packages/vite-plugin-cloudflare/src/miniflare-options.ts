@@ -25,10 +25,7 @@ type PersistOptions = Pick<
 	| 'r2Persist'
 >;
 
-export function getPersistence(
-	root: string,
-	persistState = true,
-): PersistOptions {
+function getPersistence(root: string, persistState = true): PersistOptions {
 	if (persistState === false) {
 		return {};
 	}
@@ -48,7 +45,7 @@ function missingWorkerErrorMessage(workerName: string) {
 	return `${workerName} does not match a worker name.`;
 }
 
-export function getWorkerToWorkerEntrypointNamesMap(
+function getWorkerToWorkerEntrypointNamesMap(
 	workers: Array<Pick<WorkerOptions, 'serviceBindings'> & { name: string }>,
 ) {
 	const workerToWorkerEntrypointNamesMap = new Map(
@@ -77,7 +74,7 @@ export function getWorkerToWorkerEntrypointNamesMap(
 	return workerToWorkerEntrypointNamesMap;
 }
 
-export function getWorkerToDurableObjectClassNamesMap(
+function getWorkerToDurableObjectClassNamesMap(
 	workers: Array<Pick<WorkerOptions, 'durableObjects'> & { name: string }>,
 ) {
 	const workerToDurableObjectClassNamesMap = new Map(
