@@ -47,10 +47,8 @@ describe('module resolution', async () => {
 		test('internal imports from `cloudflare:*`', async () => {
 			const result = await getJsonResponse('/cloudflare-imports');
 
-			// TODO: in dev as `DurableObject.name` we get 'DurableObject', but in
-			//       preview we get 'DurableObjectBase', this difference is most
-			//       likely incorrect and we need to investigate the reason
-			//       (https://github.com/flarelabs-net/vite-plugin-cloudflare/issues/81)
+			// Note: in some cases the DurableObject class name (erroneously) includes
+			//       the `Base` suffix, that's a workerd but and it happens for us on builds
 			const durableObjectName = isBuild ? 'DurableObjectBase' : 'DurableObject';
 
 			expect(result).toEqual({
@@ -63,10 +61,8 @@ describe('module resolution', async () => {
 		test('external imports from `cloudflare:*`', async () => {
 			const result = await getJsonResponse('/external-cloudflare-imports');
 
-			// TODO: in dev as `DurableObject.name` we get 'DurableObject', but in
-			//       preview we get 'DurableObjectBase', this difference is most
-			//       likely incorrect and we need to investigate the reason
-			//       (https://github.com/flarelabs-net/vite-plugin-cloudflare/issues/81)
+			// Note: in some cases the DurableObject class name (erroneously) includes
+			//       the `Base` suffix, that's a workerd but and it happens for us on builds
 			const durableObjectName = isBuild ? 'DurableObjectBase' : 'DurableObject';
 
 			expect(result).toEqual({
