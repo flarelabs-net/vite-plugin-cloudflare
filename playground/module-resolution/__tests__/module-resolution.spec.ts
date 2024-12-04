@@ -48,7 +48,7 @@ describe('module resolution', async () => {
 			const result = await getJsonResponse('/cloudflare-imports');
 
 			// Note: in some cases the DurableObject class name (erroneously) includes
-			//       the `Base` suffix, that's a workerd but and it happens for us on builds
+			//       the `Base` suffix, that's a workerd bug that happens for us on builds
 			const durableObjectName = isBuild ? 'DurableObjectBase' : 'DurableObject';
 
 			expect(result).toEqual({
@@ -62,7 +62,7 @@ describe('module resolution', async () => {
 			const result = await getJsonResponse('/external-cloudflare-imports');
 
 			// Note: in some cases the DurableObject class name (erroneously) includes
-			//       the `Base` suffix, that's a workerd but and it happens for us on builds
+			//       the `Base` suffix, that's a workerd bug that happens for us on builds
 			const durableObjectName = isBuild ? 'DurableObjectBase' : 'DurableObject';
 
 			expect(result).toEqual({
