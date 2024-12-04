@@ -21,7 +21,7 @@ import { resolvePluginConfig } from './plugin-config';
 import { invariant } from './shared';
 import { toMiniflareRequest } from './utils';
 import type { PluginConfig, ResolvedPluginConfig } from './plugin-config';
-import type { RawConfig } from 'wrangler';
+import type { UnstableRawConfig } from 'wrangler';
 
 export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 	let viteUserConfig: vite.UserConfig;
@@ -147,7 +147,7 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 			}
 		},
 		generateBundle(_, bundle) {
-			let config: RawConfig | undefined;
+			let config: UnstableRawConfig | undefined;
 
 			if (resolvedPluginConfig.type === 'workers') {
 				const workerConfig =

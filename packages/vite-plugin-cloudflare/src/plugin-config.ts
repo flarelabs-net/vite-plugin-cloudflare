@@ -1,9 +1,9 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vite from 'vite';
-import { readConfig } from 'wrangler';
+import { unstable_readConfig } from 'wrangler';
 import { invariant } from './shared';
-import type { Config } from 'wrangler';
+import type { UnstableConfig } from 'wrangler';
 
 export interface PluginConfig {
 	wranglerConfig?: string;
@@ -16,11 +16,13 @@ export interface PluginConfig {
 
 type Defined<T> = Exclude<T, undefined>;
 
-export type AssetsOnlyConfig = Config & { assets: Defined<Config['assets']> };
+export type AssetsOnlyConfig = UnstableConfig & {
+	assets: Defined<UnstableConfig['assets']>;
+};
 
-export type WorkerConfig = Config & {
-	name: Defined<Config['name']>;
-	main: Defined<Config['main']>;
+export type WorkerConfig = UnstableConfig & {
+	name: Defined<UnstableConfig['name']>;
+	main: Defined<UnstableConfig['main']>;
 };
 
 interface AssetsOnlyResult {
@@ -60,7 +62,7 @@ function getConfigResult(
 		throw new Error(`Duplicate Wrangler config path found: ${configPath}`);
 	}
 
-	const wranglerConfig = readConfig(configPath, {
+	const wranglerConfig = unstable_readConfig(configPath, {
 		// We use the mode from the user config rather than the resolved config for now so that the mode has to be set explicitly. Otherwise, some things don't work as expected when `development` and `production` environments are not present.
 		env: userConfig.mode,
 	});

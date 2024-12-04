@@ -4,7 +4,10 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Log, LogLevel, Response as MiniflareResponse } from 'miniflare';
 import * as vite from 'vite';
-import { readConfig, unstable_getMiniflareWorkerOptions } from 'wrangler';
+import {
+	unstable_getMiniflareWorkerOptions,
+	unstable_readConfig,
+} from 'wrangler';
 import {
 	ASSET_WORKER_NAME,
 	ASSET_WORKERS_COMPATIBILITY_DATE,
@@ -406,7 +409,7 @@ export function getPreviewMiniflareOptions(
 	const buildDirectory = path.resolve(viteConfig.root, viteConfig.build.outDir);
 
 	const configs = [
-		readConfig(
+		unstable_readConfig(
 			resolvedPluginConfig.type === 'workers'
 				? path.join(
 						buildDirectory,
@@ -424,7 +427,7 @@ export function getPreviewMiniflareOptions(
 							resolvedPluginConfig.entryWorkerEnvironmentName,
 					)
 					.map((environmentName) =>
-						readConfig(
+						unstable_readConfig(
 							path.join(buildDirectory, environmentName, 'wrangler.json'),
 							{},
 						),
