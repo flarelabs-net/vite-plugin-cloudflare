@@ -9,7 +9,7 @@ export default defineConfig({
 		cloudflare({
 			workers: {
 				worker: {
-					main: './worker-cross-env/index.ts',
+					main: './worker-cross-env/src/index.ts',
 					wranglerConfig: './worker-cross-env/wrangler.toml',
 				},
 			},
