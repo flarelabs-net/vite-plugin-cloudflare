@@ -1,5 +1,6 @@
 import { builtinModules } from 'node:module';
 import * as path from 'node:path';
+import replace from '@rollup/plugin-replace';
 import * as vite from 'vite';
 import { getNodeCompatExternals } from './node-js-compat';
 import { INIT_PATH, invariant, UNKNOWN_HOST } from './shared';
@@ -156,6 +157,11 @@ export function createCloudflareEnvironmentOptions(
 						? path.resolve(userConfig.root, options.main)
 						: path.resolve(options.main),
 					external: [...cloudflareBuiltInModules, ...getNodeCompatExternals()],
+					plugins: [
+						replace({
+							'process.env.NODE_ENV': JSON.stringify('production'),
+						}),
+					],
 				},
 			},
 			optimizeDeps: {
