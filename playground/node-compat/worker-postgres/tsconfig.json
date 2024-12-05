@@ -1,4 +1,0 @@
-{
-	"extends": "@vite-plugin-cloudflare/typescript-config/worker-node-compat.json",
-	"include": ["src"]
-}

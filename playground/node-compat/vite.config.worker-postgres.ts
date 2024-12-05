@@ -9,7 +9,7 @@ export default defineConfig({
 		cloudflare({
 			workers: {
 				worker: {
-					main: './worker-postgres/src/index.ts',
+					main: './worker-postgres/index.ts',
 					wranglerConfig: './worker-postgres/wrangler.toml',
 				},
 			},
