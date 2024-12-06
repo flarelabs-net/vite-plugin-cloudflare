@@ -54,7 +54,6 @@ export type ResolvedPluginConfig = AssetsOnlyPluginConfig | WorkersPluginConfig;
 
 function getConfigResult(
 	configPath: string,
-	userConfig: vite.UserConfig,
 	wranglerConfigPaths: Set<string>,
 	isEntryWorker?: boolean,
 ): AssetsOnlyResult | WorkerResult {
@@ -62,10 +61,7 @@ function getConfigResult(
 		throw new Error(`Duplicate Wrangler config path found: ${configPath}`);
 	}
 
-	const wranglerConfig = unstable_readConfig(configPath, {
-		// We use the mode from the user config rather than the resolved config for now so that the mode has to be set explicitly. Otherwise, some things don't work as expected when `development` and `production` environments are not present.
-		env: userConfig.mode,
-	});
+	const wranglerConfig = unstable_readConfig(configPath, {});
 
 	wranglerConfigPaths.add(configPath);
 
@@ -135,7 +131,6 @@ export function resolvePluginConfig(
 
 	const entryConfigResult = getConfigResult(
 		configPath,
-		userConfig,
 		wranglerConfigPaths,
 		true,
 	);
@@ -157,7 +152,6 @@ export function resolvePluginConfig(
 	for (const auxiliaryWorker of pluginConfig.auxiliaryWorkers ?? []) {
 		const configResult = getConfigResult(
 			path.join(root, auxiliaryWorker.wranglerConfig),
-			userConfig,
 			wranglerConfigPaths,
 		);
 
