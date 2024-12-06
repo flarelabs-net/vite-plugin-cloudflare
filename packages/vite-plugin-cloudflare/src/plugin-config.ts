@@ -5,9 +5,11 @@ import * as vite from 'vite';
 import { unstable_readConfig } from 'wrangler';
 import type { Unstable_Config } from 'wrangler';
 
+export type PersistState = boolean | { path: string };
+
 interface PluginWorkerConfig {
 	configPath: string;
-	persistState?: boolean | { path: string };
+	persistState?: PersistState;
 	viteEnvironment?: { name?: string };
 }
 
@@ -38,6 +40,7 @@ interface WorkerResult {
 
 interface BasePluginConfig {
 	configPaths: Set<string>;
+	persistState: PersistState;
 }
 
 interface AssetsOnlyPluginConfig extends BasePluginConfig {
@@ -119,6 +122,7 @@ export function resolvePluginConfig(
 	userConfig: vite.UserConfig,
 ): ResolvedPluginConfig {
 	const configPaths = new Set<string>();
+	const persistState = pluginConfig.persistState ?? true;
 	const root = userConfig.root ? path.resolve(userConfig.root) : process.cwd();
 
 	const configPath = pluginConfig.configPath
@@ -133,7 +137,7 @@ export function resolvePluginConfig(
 	const entryConfigResult = getConfigResult(configPath, configPaths, true);
 
 	if (entryConfigResult.type === 'assets-only') {
-		return { ...entryConfigResult, configPaths };
+		return { ...entryConfigResult, configPaths, persistState };
 	}
 
 	const entryWorkerConfig = entryConfigResult.config;
@@ -175,6 +179,7 @@ export function resolvePluginConfig(
 	return {
 		type: 'workers',
 		configPaths,
+		persistState,
 		workers,
 		entryWorkerEnvironmentName,
 	};
