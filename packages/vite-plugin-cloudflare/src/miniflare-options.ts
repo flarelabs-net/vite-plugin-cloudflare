@@ -43,10 +43,8 @@ function getPersistence(
 	const defaultPersistPath = '.wrangler/state';
 	const persistPath = path.resolve(
 		root,
-		path.join(
-			typeof persistState === 'object' ? persistState.path : defaultPersistPath,
-			'v3',
-		),
+		typeof persistState === 'object' ? persistState.path : defaultPersistPath,
+		'v3',
 	);
 
 	return {
