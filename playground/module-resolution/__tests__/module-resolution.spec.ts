@@ -80,7 +80,6 @@ describe('module resolution', async () => {
 	 */
 	describe('third party packages resolutions', () => {
 		// TODO: we skip this test on build because a `ReferenceError: process is not defined` is thrown
-		//       we need to investigate why
 		//       (https://github.com/flarelabs-net/vite-plugin-cloudflare/issues/82)
 		test.skipIf(isBuild)('react', async () => {
 			const result = await getJsonResponse('/third-party/react');
@@ -93,11 +92,7 @@ describe('module resolution', async () => {
 
 		// Note: this test is skipped during build because the remix import does not work in preview
 		//       because there seem to be an I/O operation being performed at the top level of the
-		//       generated remix bundled module, this is a legitimate issue and a workerd known quirk/bug.
-		//       We should however still investigate this and understand why the same does not apply in dev
-		//       mode (I think the reason can be either because esbuild bundles the code differently compared
-		//       to rollup during dev pre-bundling or because the extra runner orchestration we have in dev
-		//       somehow solves the issue)
+		//       generated remix bundled module, this is a legitimate issue and a workerd known quirk/bug
 		//       (https://github.com/flarelabs-net/vite-plugin-cloudflare/issues/83)
 		test.skipIf(isBuild)('@remix-run/cloudflare', async () => {
 			const result = await getJsonResponse('/third-party/remix');
