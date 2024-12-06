@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import * as vite from 'vite';
 import { unstable_readConfig } from 'wrangler';
 import { invariant } from './shared';
-import type { UnstableConfig } from 'wrangler';
+import type { Unstable_Config } from 'wrangler';
 
 export interface PluginConfig {
 	wranglerConfig?: string;
@@ -16,13 +16,13 @@ export interface PluginConfig {
 
 type Defined<T> = Exclude<T, undefined>;
 
-export type AssetsOnlyConfig = UnstableConfig & {
-	assets: Defined<UnstableConfig['assets']>;
+export type AssetsOnlyConfig = Unstable_Config & {
+	assets: Defined<Unstable_Config['assets']>;
 };
 
-export type WorkerConfig = UnstableConfig & {
-	name: Defined<UnstableConfig['name']>;
-	main: Defined<UnstableConfig['main']>;
+export type WorkerConfig = Unstable_Config & {
+	name: Defined<Unstable_Config['name']>;
+	main: Defined<Unstable_Config['main']>;
 };
 
 interface AssetsOnlyResult {
