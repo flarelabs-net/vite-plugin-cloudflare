@@ -47,15 +47,4 @@ describe.runIf(!isBuild)('module resolution without prebundling', async () => {
 			expect(result).toBe('OK!');
 		});
 	});
-
-	describe.skipIf(isBuild)('dev user errors', () => {
-		// TODO: reintroduce this
-		test.skip('imports from a non existing package', async () => {
-			await page.goto(`${viteTestUrl}/@non-existing/pkg`);
-			const errorText = await page
-				.locator('vite-error-overlay pre.message')
-				.textContent();
-			expect(errorText).toContain("Cannot find module '@non-existing/pkg'");
-		});
-	});
 });

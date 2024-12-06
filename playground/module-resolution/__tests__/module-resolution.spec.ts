@@ -10,10 +10,7 @@ import {
 
 describe('module resolution', async () => {
 	afterAll(() => {
-		const unexpectedErrors = serverLogs.errors.filter(
-			(error) => !error.includes('@non-existing/pkg'),
-		);
-		expect(unexpectedErrors).toEqual([]);
+		expect(serverLogs.errors).toEqual([]);
 	});
 
 	describe('basic module resolution', () => {
@@ -126,17 +123,6 @@ describe('module resolution', async () => {
 		test('imports from an aliased package', async () => {
 			const result = await getTextResponse('/@alias/test');
 			expect(result).toBe('OK!');
-		});
-	});
-
-	describe.skipIf(isBuild)('dev user errors', () => {
-		// TODO: reintroduce this
-		test.skip('imports from a non existing package', async () => {
-			await page.goto(`${viteTestUrl}/@non-existing/pkg`);
-			const errorText = await page
-				.locator('vite-error-overlay pre.message')
-				.textContent();
-			expect(errorText).toContain("Cannot find module '@non-existing/pkg'");
 		});
 	});
 });

@@ -17,12 +17,6 @@ export default {
 			return test();
 		}
 
-		// TODO: re-introduce this
-		// if (path === '/@non-existing/pkg') {
-		// 	const { test } = await import('@non-existing/pkg');
-		// 	return test();
-		// }
-
 		return new Response(
 			`path not found: '${path}' (the available paths are: ${Object.keys(
 				modules,
