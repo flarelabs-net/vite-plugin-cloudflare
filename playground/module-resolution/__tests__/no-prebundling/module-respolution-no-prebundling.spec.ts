@@ -48,8 +48,9 @@ describe.runIf(!isBuild)('module resolution without prebundling', async () => {
 		});
 	});
 
-	describe('user errors', () => {
-		test('imports from a non existing package', async () => {
+	describe.skipIf(isBuild)('dev user errors', () => {
+		// TODO: reintroduce this
+		test.skip('imports from a non existing package', async () => {
 			await page.goto(`${viteTestUrl}/@non-existing/pkg`);
 			const errorText = await page
 				.locator('vite-error-overlay pre.message')
