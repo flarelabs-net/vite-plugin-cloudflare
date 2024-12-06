@@ -36,6 +36,7 @@
 	},
 	"dependencies": {
 		"@hattip/adapter-node": "^0.0.49",
+		"@rollup/plugin-replace": "^6.0.1",
 		"miniflare": "^3.20241205.0"
 	},
 	"devDependencies": {
