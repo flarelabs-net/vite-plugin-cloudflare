@@ -2,7 +2,7 @@ import assert from 'node:assert';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vite from 'vite';
-import { unstable_readConfig } from 'wrangler';
+import { readWorkerConfig } from './worker-config';
 import type { Unstable_Config } from 'wrangler';
 
 export type PersistState = boolean | { path: string };
@@ -65,44 +65,44 @@ function getConfigResult(
 		throw new Error(`Duplicate Wrangler config path found: ${configPath}`);
 	}
 
-	const wranglerConfig = unstable_readConfig(configPath, {});
+	const { config: workerConfig } = readWorkerConfig(configPath);
 
 	configPaths.add(configPath);
 
-	if (isEntryWorker && !wranglerConfig.main) {
+	if (isEntryWorker && !workerConfig.main) {
 		assert(
-			wranglerConfig.assets,
-			`No main or assets field provided in ${wranglerConfig.configPath}`,
+			workerConfig.assets,
+			`No main or assets field provided in ${workerConfig.configPath}`,
 		);
 
 		return {
 			type: 'assets-only',
-			config: { ...wranglerConfig, assets: wranglerConfig.assets },
+			config: { ...workerConfig, assets: workerConfig.assets },
 		};
 	}
 
 	assert(
-		wranglerConfig.main,
-		`No main field provided in ${wranglerConfig.configPath}`,
+		workerConfig.main,
+		`No main field provided in ${workerConfig.configPath}`,
 	);
 
 	assert(
-		wranglerConfig.name,
-		`No name field provided in ${wranglerConfig.configPath}`,
+		workerConfig.name,
+		`No name field provided in ${workerConfig.configPath}`,
 	);
 
 	return {
 		type: 'worker',
 		config: {
-			...wranglerConfig,
-			name: wranglerConfig.name,
-			main: wranglerConfig.main,
+			...workerConfig,
+			name: workerConfig.name,
+			main: workerConfig.main,
 		},
 	};
 }
 
 // We can't rely on `readConfig` from Wrangler to find the config as it may be relative to a different root that's set by the user.
-function findWranglerConfig(root: string): string | undefined {
+function findworkerConfig(root: string): string | undefined {
 	for (const extension of ['json', 'jsonc', 'toml']) {
 		const configPath = path.join(root, `wrangler.${extension}`);
 
@@ -127,7 +127,7 @@ export function resolvePluginConfig(
 
 	const configPath = pluginConfig.configPath
 		? path.join(root, pluginConfig.configPath)
-		: findWranglerConfig(root);
+		: findworkerConfig(root);
 
 	assert(
 		configPath,

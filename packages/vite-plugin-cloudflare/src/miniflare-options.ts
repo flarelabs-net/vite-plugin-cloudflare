@@ -5,15 +5,13 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Log, LogLevel, Response as MiniflareResponse } from 'miniflare';
 import * as vite from 'vite';
-import {
-	unstable_getMiniflareWorkerOptions,
-	unstable_readConfig,
-} from 'wrangler';
+import { unstable_getMiniflareWorkerOptions } from 'wrangler';
 import {
 	ASSET_WORKER_NAME,
 	ASSET_WORKERS_COMPATIBILITY_DATE,
 	ROUTER_WORKER_NAME,
 } from './assets';
+import { readWorkerConfig } from './worker-config';
 import type { CloudflareDevEnvironment } from './cloudflare-environment';
 import type {
 	PersistState,
@@ -420,8 +418,8 @@ export function getPreviewMiniflareOptions(
 	// For now, we are enforcing that packages are always inside the same build directory
 	const buildDirectory = path.resolve(viteConfig.root, viteConfig.build.outDir);
 
-	const configs = [
-		unstable_readConfig(
+	const configsDetails = [
+		readWorkerConfig(
 			resolvedPluginConfig.type === 'workers'
 				? path.join(
 						buildDirectory,
@@ -429,7 +427,7 @@ export function getPreviewMiniflareOptions(
 						'wrangler.json',
 					)
 				: path.join(buildDirectory, 'wrangler.json'),
-			{},
+			'preview',
 		),
 		...(resolvedPluginConfig.type === 'workers'
 			? Object.keys(resolvedPluginConfig.workers)
@@ -439,15 +437,15 @@ export function getPreviewMiniflareOptions(
 							resolvedPluginConfig.entryWorkerEnvironmentName,
 					)
 					.map((environmentName) =>
-						unstable_readConfig(
+						readWorkerConfig(
 							path.join(buildDirectory, environmentName, 'wrangler.json'),
-							{},
+							'preview',
 						),
 					)
 			: []),
 	];
 
-	const workers: Array<WorkerOptions> = configs.map((config) => {
+	const workers: Array<WorkerOptions> = configsDetails.map(({ config }) => {
 		const miniflareWorkerOptions = unstable_getMiniflareWorkerOptions(config);
 
 		const { ratelimits, ...workerOptions } =
