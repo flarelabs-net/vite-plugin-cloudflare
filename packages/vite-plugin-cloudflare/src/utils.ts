@@ -22,3 +22,5 @@ export function toMiniflareRequest(request: Request): MiniflareRequest {
 		duplex: 'half',
 	});
 }
+
+export type Optional<T, K extends keyof T> = Omit<T, K> & Pick<Partial<T>, K>;

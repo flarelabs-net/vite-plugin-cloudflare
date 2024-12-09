@@ -4,9 +4,12 @@
 	"type": "module",
 	"scripts": {
 		"build": "vite build --app",
+		"build:with-wrangler-warning": "vite build --app -c vite.config.with-wrangler-warning.ts",
 		"check:types": "tsc --build",
 		"dev": "vite dev",
-		"preview": "vite preview"
+		"dev:with-wrangler-warning": "vite dev -c vite.config.with-wrangler-warning.ts",
+		"preview": "vite preview",
+		"preview:with-wrangler-warning": "vite preview -c vite.config.with-wrangler-warning.ts"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "catalog:default",

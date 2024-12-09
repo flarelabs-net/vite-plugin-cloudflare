@@ -5,16 +5,14 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Log, LogLevel, Response as MiniflareResponse } from 'miniflare';
 import * as vite from 'vite';
-import {
-	unstable_getMiniflareWorkerOptions,
-	unstable_readConfig,
-} from 'wrangler';
+import { unstable_getMiniflareWorkerOptions } from 'wrangler';
 import {
 	ASSET_WORKER_NAME,
 	ASSET_WORKERS_COMPATIBILITY_DATE,
 	ROUTER_WORKER_NAME,
 } from './constants';
 import { getWorkerConfigPaths } from './deploy-config';
+import { getWorkerConfig } from './workers-configs';
 import type { CloudflareDevEnvironment } from './cloudflare-environment';
 import type {
 	PersistState,
@@ -458,13 +456,15 @@ export function getPreviewMiniflareOptions(
 	vitePreviewServer: vite.PreviewServer,
 	persistState: PersistState,
 ): MiniflareOptions {
+	const viteConfig = vitePreviewServer.config;
+
 	const resolvedViteConfig = vitePreviewServer.config;
 	const configPaths = getWorkerConfigPaths(resolvedViteConfig.root);
-	const configs = configPaths.map((configPath) =>
-		unstable_readConfig({ config: configPath }),
+	const workerConfigs = configPaths.map((configPath) =>
+		getWorkerConfig(configPath, { isEntryWorker: true }),
 	);
 
-	const workers: Array<WorkerOptions> = configs.map((config) => {
+	const workers: Array<WorkerOptions> = workerConfigs.map(({ config }) => {
 		const miniflareWorkerOptions = unstable_getMiniflareWorkerOptions(config);
 
 		const { ratelimits, ...workerOptions } =

@@ -21,6 +21,7 @@ import {
 } from './node-js-compat';
 import { resolvePluginConfig } from './plugin-config';
 import { getOutputDirectory, toMiniflareRequest } from './utils';
+import { getWarningForWorkersConfigs } from './workers-configs';
 import type { PluginConfig, ResolvedPluginConfig } from './plugin-config';
 import type { Unstable_RawConfig } from 'wrangler';
 
@@ -68,6 +69,11 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 							}
 						: undefined,
 				builder: {
+					// Note: when running `vite build` our plugin is called once per environment, this is usually not
+					//       a problem, but if we present logs etc those would get duplicated, so in order to avoid such
+					//       duplication we set this flag, we can come up with some different solution for the duplicated
+					//       logs if this config becomes problematic for whatever reason
+					sharedConfigBuild: true,
 					async buildApp(builder) {
 						const clientEnvironment = builder.environments.client;
 						const defaultHtmlPath = path.resolve(
@@ -108,6 +114,16 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 		},
 		configResolved(config) {
 			resolvedViteConfig = config;
+			const runningPreview =
+				config.command === 'serve' && config.isProduction === true;
+			if (!runningPreview) {
+				const workersConfigsWarning = getWarningForWorkersConfigs(
+					resolvedPluginConfig.rawConfigs,
+				);
+				if (workersConfigsWarning) {
+					console.warn(workersConfigsWarning);
+				}
+			}
 		},
 		async resolveId(source) {
 			if (resolvedPluginConfig.type === 'assets-only') {

@@ -1,7 +1,12 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { describe, expect, test } from 'vitest';
-import { getJsonResponse, isBuild, rootDir } from '../../__test-utils__';
+import {
+	getJsonResponse,
+	isBuild,
+	rootDir,
+	serverLogs,
+} from '../../__test-utils__';
 
 describe.runIf(isBuild)('output directories', () => {
 	test('creates the correct output directories', () => {
@@ -11,6 +16,10 @@ describe.runIf(isBuild)('output directories', () => {
 });
 
 describe('multi-worker basic functionality', async () => {
+	test('worker configs warnings are not present in the terminal', async () => {
+		expect(serverLogs.warns).toEqual([]);
+	});
+
 	test('entry worker returns a response', async () => {
 		const result = await getJsonResponse();
 		expect(result).toEqual({ name: 'Worker A' });
