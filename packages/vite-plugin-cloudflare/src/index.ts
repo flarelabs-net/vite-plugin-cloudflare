@@ -198,6 +198,9 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 				source: JSON.stringify(config),
 			});
 		},
+		// hotUpdate(options) {
+		// },
+		// handleHotUpdate(options) {},
 		async configureServer(viteDevServer) {
 			let error: unknown;
 
@@ -207,30 +210,30 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 
 			await initRunners(resolvedPluginConfig, viteDevServer, miniflare);
 
-			viteDevServer.watcher.on('all', async (_, path) => {
-				if (!resolvedPluginConfig.configPaths.has(path)) {
-					return;
-				}
+			// viteDevServer.watcher.on('all', async (_, path) => {
+			// 	if (!resolvedPluginConfig.configPaths.has(path)) {
+			// 		return;
+			// 	}
 
-				try {
-					resolvedPluginConfig = resolvePluginConfig(
-						pluginConfig,
-						viteUserConfig,
-					);
+			// 	try {
+			// 		resolvedPluginConfig = resolvePluginConfig(
+			// 			pluginConfig,
+			// 			viteUserConfig,
+			// 		);
 
-					await miniflare.setOptions(
-						getDevMiniflareOptions(resolvedPluginConfig, viteDevServer),
-					);
+			// 		await miniflare.setOptions(
+			// 			getDevMiniflareOptions(resolvedPluginConfig, viteDevServer),
+			// 		);
 
-					await initRunners(resolvedPluginConfig, viteDevServer, miniflare);
+			// 		await initRunners(resolvedPluginConfig, viteDevServer, miniflare);
 
-					error = undefined;
-					viteDevServer.environments.client.hot.send({ type: 'full-reload' });
-				} catch (err) {
-					error = err;
-					viteDevServer.environments.client.hot.send({ type: 'full-reload' });
-				}
-			});
+			// 		error = undefined;
+			// 		viteDevServer.environments.client.hot.send({ type: 'full-reload' });
+			// 	} catch (err) {
+			// 		error = err;
+			// 		viteDevServer.environments.client.hot.send({ type: 'full-reload' });
+			// 	}
+			// });
 
 			const middleware = createMiddleware(async ({ request }) => {
 				const routerWorker = await getRouterWorker(miniflare);
