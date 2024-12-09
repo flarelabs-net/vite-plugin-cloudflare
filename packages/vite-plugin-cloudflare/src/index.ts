@@ -25,7 +25,7 @@ import type { Unstable_RawConfig } from 'wrangler';
 
 export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 	let resolvedPluginConfig: ResolvedPluginConfig;
-	let miniflare: Miniflare;
+	let miniflare: Miniflare | undefined;
 
 	return {
 		name: 'vite-plugin-cloudflare',
@@ -203,7 +203,10 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 			}
 		},
 		async buildEnd() {
-			await miniflare?.dispose();
+			if (miniflare) {
+				await miniflare?.dispose();
+				miniflare = undefined;
+			}
 		},
 		async configureServer(viteDevServer) {
 			miniflare = new Miniflare(
@@ -231,7 +234,7 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 			};
 		},
 		configurePreviewServer(vitePreviewServer) {
-			miniflare = new Miniflare(
+			const miniflare = new Miniflare(
 				getPreviewMiniflareOptions(resolvedPluginConfig, vitePreviewServer),
 			);
 
