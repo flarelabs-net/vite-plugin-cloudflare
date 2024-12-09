@@ -204,7 +204,7 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 		},
 		async buildEnd() {
 			if (miniflare) {
-				await miniflare?.dispose();
+				await miniflare.dispose();
 				miniflare = undefined;
 			}
 		},
