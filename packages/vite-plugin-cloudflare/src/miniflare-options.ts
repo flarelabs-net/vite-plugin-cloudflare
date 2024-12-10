@@ -303,14 +303,14 @@ export function getDevMiniflareOptions(
 
 									// Sometimes Vite fails to resolve built-ins and converts them to "url-friendly" ids
 									// that start with `/@id/...`.
-									if (moduleId.startsWith('/@id/')) {
-										const result = {
-											externalize: moduleId.slice('/@id/'.length),
-											type: 'builtin',
-										} satisfies vite.FetchResult;
+									// if (moduleId.startsWith('/@id/')) {
+									// 	const result = {
+									// 		externalize: moduleId.slice('/@id/'.length),
+									// 		type: 'builtin',
+									// 	} satisfies vite.FetchResult;
 
-										return new MiniflareResponse(JSON.stringify({ result }));
-									}
+									// 	return new MiniflareResponse(JSON.stringify({ result }));
+									// }
 
 									const devEnvironment = viteDevServer.environments[
 										environmentName
