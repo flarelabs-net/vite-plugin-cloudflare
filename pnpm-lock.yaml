@@ -71,6 +71,9 @@ importers:
       miniflare:
         specifier: ^3.20241205.0
         version: 3.20241205.0
+      unenv:
+        specifier: catalog:default
+        version: unenv-nightly@2.0.0-20241204-140205-a5d5190
     devDependencies:
       '@cloudflare/workers-shared':
         specifier: ^0.7.0
@@ -93,9 +96,6 @@ importers:
       typescript:
         specifier: catalog:default
         version: 5.7.2
-      unenv:
-        specifier: catalog:default
-        version: unenv-nightly@2.0.0-20241204-140205-a5d5190
       vite:
         specifier: catalog:default
         version: 6.0.3(@types/node@22.10.1)
