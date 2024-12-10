@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { getJsonResponse, getTextResponse } from '../../../__test-utils__';
 
-// TODO: reintroduce test
+// TODO: reintroduce test in #63
 test.skip('should be able to create a pg Client', async () => {
 	const result = await getTextResponse();
 	expect(result).toMatchInlineSnapshot(`"hh-pgsql-public.ebi.ac.uk"`);

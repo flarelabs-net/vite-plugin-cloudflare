@@ -303,6 +303,8 @@ export function getDevMiniflareOptions(
 
 									// Sometimes Vite fails to resolve built-ins and converts them to "url-friendly" ids
 									// that start with `/@id/...`.
+									// This was necessary for `nodejs_compat` to work but has been removed as it had unintended side-effects.
+									// An alternative will be implemented in #63
 									// if (moduleId.startsWith('/@id/')) {
 									// 	const result = {
 									// 		externalize: moduleId.slice('/@id/'.length),
