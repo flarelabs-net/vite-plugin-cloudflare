@@ -136,15 +136,28 @@ describe('getWarningForWorkersResolvedConfigs', () => {
 				},
 			],
 		);
-		expect(warning).toMatchInlineSnapshot(`
-			"[43mWARNING[0m: your workers configs contain configuration options which are ignored since they are not applicable when using Vite:
-			  - (entry) worker "entry-worker" (config at \`wrangler.json\`)
-			    - \`alias\` which is replaced by Vite's \`resolve.alias\` (docs: https://vite.dev/config/shared-options.html#resolve-alias)
-			    - \`build\` which is not relevant in the context of a Vite project
-			  - (auxiliary) worker "worker-a" (config at \`a/wrangler.json\`)
-			    - \`find_additional_modules\`, \`no_bundle\` which are not relevant in the context of a Vite project
-			  - (auxiliary) worker (config at \`b/wrangler.json\`)
-			    - \`site\` which is not relevant in the context of a Vite project"
-		`);
+		if (process.platform === 'win32') {
+			expect(warning).toMatchInlineSnapshot(`
+				"[43mWARNING[0m: your workers configs contain configuration options which are ignored since they are not applicable when using Vite:
+				  - (entry) worker "entry-worker" (config at \`wrangler.json\`)
+				    - \`alias\` which is replaced by Vite's \`resolve.alias\` (docs: https://vite.dev/config/shared-options.html#resolve-alias)
+				    - \`build\` which is not relevant in the context of a Vite project
+				  - (auxiliary) worker "worker-a" (config at \`a\\wrangler.json\`)
+				    - \`find_additional_modules\`, \`no_bundle\` which are not relevant in the context of a Vite project
+				  - (auxiliary) worker (config at \`b\\wrangler.json\`)
+				    - \`site\` which is not relevant in the context of a Vite project"
+			`);
+		} else {
+			expect(warning).toMatchInlineSnapshot(`
+				"[43mWARNING[0m: your workers configs contain configuration options which are ignored since they are not applicable when using Vite:
+				  - (entry) worker "entry-worker" (config at \`wrangler.json\`)
+				    - \`alias\` which is replaced by Vite's \`resolve.alias\` (docs: https://vite.dev/config/shared-options.html#resolve-alias)
+				    - \`build\` which is not relevant in the context of a Vite project
+				  - (auxiliary) worker "worker-a" (config at \`a/wrangler.json\`)
+				    - \`find_additional_modules\`, \`no_bundle\` which are not relevant in the context of a Vite project
+				  - (auxiliary) worker (config at \`b/wrangler.json\`)
+				    - \`site\` which is not relevant in the context of a Vite project"
+			`);
+		}
 	});
 });
