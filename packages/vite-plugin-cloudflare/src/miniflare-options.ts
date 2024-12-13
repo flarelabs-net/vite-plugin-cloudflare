@@ -30,6 +30,7 @@ type PersistOptions = Pick<
 	| 'durableObjectsPersist'
 	| 'kvPersist'
 	| 'r2Persist'
+	| 'workflowsPersist'
 >;
 
 function getPersistence(
@@ -53,6 +54,7 @@ function getPersistence(
 		durableObjectsPersist: path.join(persistPath, 'do'),
 		kvPersist: path.join(persistPath, 'kv'),
 		r2Persist: path.join(persistPath, 'r2'),
+		workflowsPersist: path.join(persistPath, 'workflows'),
 	};
 }
 
