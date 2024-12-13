@@ -150,6 +150,8 @@ function getWorkerToWorkflowClassNamesMap(
 			}
 		}
 	}
+
+	return workerToWorkflowClassNamesMap;
 }
 
 // We want module names to be their absolute path without the leading slash
