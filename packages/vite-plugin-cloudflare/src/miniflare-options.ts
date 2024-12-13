@@ -128,6 +128,30 @@ function getWorkerToDurableObjectClassNamesMap(
 	return workerToDurableObjectClassNamesMap;
 }
 
+function getWorkerToWorkflowClassNamesMap(
+	workers: Array<Pick<WorkerOptions, 'workflows'> & { name: string }>,
+) {
+	const workerToWorkflowClassNamesMap = new Map(
+		workers.map((workerOptions) => [workerOptions.name, new Set<string>()]),
+	);
+
+	for (const worker of workers) {
+		for (const value of Object.values(worker.workflows ?? {})) {
+			if (value.scriptName) {
+				const classNames = workerToWorkflowClassNamesMap.get(value.scriptName);
+				assert(classNames, missingWorkerErrorMessage(value.scriptName));
+
+				classNames.add(value.className);
+			} else {
+				const classNames = workerToWorkflowClassNamesMap.get(worker.name);
+				assert(classNames, missingWorkerErrorMessage(worker.name));
+
+				classNames.add(value.className);
+			}
+		}
+	}
+}
+
 // We want module names to be their absolute path without the leading slash
 // (i.e. the modules root should be the root directory). On Windows, we need
 // paths to include the drive letter (i.e. `C:/a/b/c/index.mjs`).
@@ -334,6 +358,8 @@ export function getDevMiniflareOptions(
 		getWorkerToWorkerEntrypointNamesMap(userWorkers);
 	const workerToDurableObjectClassNamesMap =
 		getWorkerToDurableObjectClassNamesMap(userWorkers);
+	const workerToWorkflowClassNamesMap =
+		getWorkerToWorkflowClassNamesMap(userWorkers);
 
 	const logger = new ViteMiniflareLogger(viteConfig);
 
