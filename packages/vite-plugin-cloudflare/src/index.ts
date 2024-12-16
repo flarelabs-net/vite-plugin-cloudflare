@@ -4,11 +4,11 @@ import path from 'node:path';
 import { createMiddleware } from '@hattip/adapter-node';
 import { Miniflare } from 'miniflare';
 import * as vite from 'vite';
-import { getRouterWorker } from './assets';
 import {
 	createCloudflareEnvironmentOptions,
 	initRunners,
 } from './cloudflare-environment';
+import { getDevEntryWorker } from './dev';
 import {
 	getDevMiniflareOptions,
 	getPreviewMiniflareOptions,
@@ -209,10 +209,13 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 			);
 
 			await initRunners(resolvedPluginConfig, viteDevServer, miniflare);
-			const routerWorker = await getRouterWorker(miniflare);
+			const entryWorker = await getDevEntryWorker(
+				resolvedPluginConfig,
+				miniflare,
+			);
 
 			const middleware = createMiddleware(async ({ request }) => {
-				return routerWorker.fetch(toMiniflareRequest(request), {
+				return entryWorker.fetch(toMiniflareRequest(request), {
 					redirect: 'manual',
 				}) as any;
 			});
