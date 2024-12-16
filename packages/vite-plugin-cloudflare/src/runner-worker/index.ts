@@ -347,53 +347,27 @@ export function createDurableObjectWrapper(
 	return Wrapper;
 }
 
-interface WorkflowEntrypointInstance {
-	ctor: WorkflowEntrypointConstructor;
-	instance: WorkflowEntrypoint;
-}
-
-interface WorkflowEntrypointWrapper extends WorkflowEntrypoint<WrapperEnv> {
-	[kInstance]?: WorkflowEntrypointInstance;
-	[kEnsureInstance](): Promise<WorkflowEntrypointInstance>;
-}
-
 export function createWorkflowEntrypointWrapper(
 	className: string,
 ): WorkflowEntrypointConstructor<WrapperEnv> {
-	class Wrapper
-		extends WorkflowEntrypoint<WrapperEnv>
-		implements WorkflowEntrypointWrapper
-	{
-		[kInstance]?: WorkflowEntrypointInstance;
+	class Wrapper extends WorkflowEntrypoint<WrapperEnv> {}
 
-		async [kEnsureInstance]() {
+	for (const key of WORKFLOW_ENTRYPOINT_KEYS) {
+		Wrapper.prototype[key] = async function (...args: unknown[]) {
 			const entryPath = this.env.__VITE_ENTRY_PATH__;
 			const ctor = (await getWorkerEntryExport(
 				entryPath,
 				className,
 			)) as WorkflowEntrypointConstructor;
+			const userEnv = stripInternalEnv(this.env);
+			const instance = new ctor(this.ctx, userEnv);
 
-			if (typeof ctor !== 'function') {
+			if (!(instance instanceof WorkflowEntrypoint)) {
 				throw new TypeError(
-					`${entryPath} does not export a ${className} WorkflowEntrypoint`,
+					`Expected ${className} export of ${entryPath} to be a subclass of \`WorkflowEntrypoint\`.`,
 				);
 			}
 
-			if (!this[kInstance] || this[kInstance].ctor !== ctor) {
-				const userEnv = stripInternalEnv(this.env);
-				const instance = new ctor(this.ctx, userEnv);
-
-				this[kInstance] = { ctor, instance };
-			}
-
-			return this[kInstance];
-		}
-	}
-
-	for (const key of WORKFLOW_ENTRYPOINT_KEYS) {
-		Wrapper.prototype[key] = async function (...args: unknown[]) {
-			const entryPath = this.env.__VITE_ENTRY_PATH__;
-			const { instance } = await this[kEnsureInstance]();
 			const maybeFn = instance[key];
 
 			if (typeof maybeFn !== 'function') {
