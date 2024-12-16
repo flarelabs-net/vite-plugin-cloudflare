@@ -222,11 +222,6 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 
 			return () => {
 				viteDevServer.middlewares.use((req, res, next) => {
-					if (!middleware) {
-						next();
-						return;
-					}
-
 					middleware(req, res, next);
 				});
 			};
@@ -244,11 +239,6 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 
 			return () => {
 				vitePreviewServer.middlewares.use((req, res, next) => {
-					if (!middleware) {
-						next();
-						return;
-					}
-
 					middleware(req, res, next);
 				});
 			};
