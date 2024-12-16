@@ -179,6 +179,7 @@ export function createCloudflareEnvironmentOptions(
 				],
 			},
 		},
+		keepProcessEnv: false,
 	};
 }
 
