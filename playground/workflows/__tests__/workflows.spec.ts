@@ -4,14 +4,17 @@ import { getJsonResponse } from '../../__test-utils__';
 test('creates a Workflow with an ID', async () => {
 	const instanceId = 'test-id';
 
-	expect(await getJsonResponse(`/create?instance-id=${instanceId}`)).toEqual({
-		status: 'running',
-		output: [],
+	expect(await getJsonResponse(`/create?id=${instanceId}`)).toEqual({
+		id: instanceId,
+		status: {
+			status: 'running',
+			output: [],
+		},
 	});
 
 	await vi.waitFor(
 		async () => {
-			expect(await getJsonResponse(`/?instance-id=${instanceId}`)).toEqual({
+			expect(await getJsonResponse(`/get?id=${instanceId}`)).toEqual({
 				status: 'running',
 				output: [{ output: 'First step result' }],
 			});
@@ -21,7 +24,7 @@ test('creates a Workflow with an ID', async () => {
 
 	await vi.waitFor(
 		async () => {
-			expect(await getJsonResponse(`/?instance-id=${instanceId}`)).toEqual({
+			expect(await getJsonResponse(`/get?id=${instanceId}`)).toEqual({
 				status: 'complete',
 				output: [
 					{ output: 'First step result' },
