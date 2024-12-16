@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import * as fs from 'node:fs';
-import path from 'node:path';
+import * as path from 'node:path';
 import { createMiddleware } from '@hattip/adapter-node';
 import { Miniflare } from 'miniflare';
 import * as vite from 'vite';
