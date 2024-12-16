@@ -90,7 +90,7 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 			};
 		},
 		configEnvironment(name, options) {
-			if (resolvedPluginConfig.type === 'workers' && !options.build?.outDir) {
+			if (resolvedPluginConfig.type === 'workers') {
 				options.build = {
 					...options.build,
 					outDir: path.join('dist', name),
