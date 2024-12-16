@@ -214,7 +214,7 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 				miniflare,
 			);
 
-			const middleware = createMiddleware(async ({ request }) => {
+			const middleware = createMiddleware(({ request }) => {
 				return entryWorker.fetch(toMiniflareRequest(request), {
 					redirect: 'manual',
 				}) as any;
