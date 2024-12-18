@@ -9,8 +9,12 @@ describe('multi-worker basic functionality', async () => {
 		expect(serverLogs.warns).toEqual(
 			!isBuild
 				? [expectedWarning]
-				: // when testing builds we this warning twice, once when we build the application and once when we preview it
-					[expectedWarning, expectedWarning],
+				: /**
+					note: when testing previews we want this warning only onces, just for the build process
+					      previewing the application should not trigger the warning since that'll rely on the
+					      wrangler.json we generate (which should be sanitized)
+				   */
+					[expectedWarning],
 		);
 	});
 
