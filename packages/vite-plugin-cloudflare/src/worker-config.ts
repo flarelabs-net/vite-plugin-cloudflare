@@ -134,9 +134,9 @@ export function readWorkerConfig(configPath: string): WorkerRawConfigDetails {
 
 export function getWarningForWorkersResolvedConfigs(
 	entryWorkerResolvedConfig: WorkerResolvedConfig,
-	auxiliaryWorkersResolvedConfigs: WorkerResolvedConfig[],
+	auxiliaryWorkersResolvedConfigs?: WorkerResolvedConfig[],
 ): string | undefined {
-	if (auxiliaryWorkersResolvedConfigs.length === 0) {
+	if (!auxiliaryWorkersResolvedConfigs?.length) {
 		const nonApplicableLines = getWorkerNonApplicableWarnLines(
 			entryWorkerResolvedConfig,
 			`  - `,

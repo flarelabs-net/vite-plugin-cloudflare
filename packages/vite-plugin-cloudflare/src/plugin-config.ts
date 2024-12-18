@@ -79,6 +79,13 @@ export function resolvePluginConfig(
 	);
 
 	if (entryWorkerResolvedConfig.type === 'assets-only') {
+		const workersConfigsWarning = getWarningForWorkersResolvedConfigs(
+			entryWorkerResolvedConfig,
+		);
+		if (workersConfigsWarning) {
+			console.warn(workersConfigsWarning);
+		}
+
 		return { ...entryWorkerResolvedConfig, configPaths, persistState };
 	}
 
