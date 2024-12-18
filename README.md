@@ -12,6 +12,12 @@ Your Worker code runs inside [workerd](https://github.com/cloudflare/workerd), m
 - Leverages Vite's hot-module reloading for consistently fast updates
 - Supports `vite preview` for previewing your build output in the Workers runtime prior to deployment
 
+## Table of contents
+
+- [Quick Start](#quick-start)
+- [Tutorial](#tutorial)
+- [API](#api)
+
 ## Quick Start
 
 ### Install the dependencies
@@ -340,7 +346,7 @@ It accepts an optional `PluginConfig` parameter.
 > [!NOTE]
 > When running `wrangler deploy`, only your main (entry) Worker will be deployed.
 > If using multiple Workers, it is your responsibility to deploy them individually.
-> You can inspect the `dist` directory and then run `wrangler deploy -c path-to-worker-output-directory` for each.
+> You can inspect the `dist` directory and then run `wrangler deploy -c path-to-worker-output-config` for each.
 
 ### `interface AuxiliaryWorkerConfig`
 
