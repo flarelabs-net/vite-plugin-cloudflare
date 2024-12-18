@@ -25,11 +25,11 @@ npm install @cloudflare/vite-plugin wrangler --save-dev
 ```ts
 // vite.config.ts
 
-import { cloudflare } from '@cloudflare/vite-plugin';
 import { defineConfig } from 'vite';
+import { cloudflare } from '@cloudflare/vite-plugin';
 
 export default defineConfig({
-	plugins: [cloudflare()],
+  plugins: [cloudflare()],
 });
 ```
 
@@ -49,9 +49,9 @@ compatibility_date = "2024-12-05"
 // src/index.ts
 
 export default {
-	fetch() {
-		return new Response(`Running in ${navigator.userAgent}!`);
-	},
+  fetch() {
+    return new Response(`Running in ${navigator.userAgent}!`);
+  },
 };
 ```
 
@@ -82,12 +82,12 @@ npm install @cloudflare/vite-plugin wrangler --save-dev
 ```ts
 // vite.config.ts
 
-import { cloudflare } from '@cloudflare/vite-plugin';
-import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { cloudflare } from '@cloudflare/vite-plugin';
 
 export default defineConfig({
-	plugins: [react(), cloudflare()],
+  plugins: [react(), cloudflare()],
 });
 ```
 
@@ -134,12 +134,12 @@ npm install @cloudflare/workers-types --save-dev
 // tsconfig.worker.json
 
 {
-	"extends": "./tsconfig.node.json",
-	"compilerOptions": {
-		"tsBuildInfoFile": "./node_modules/.tmp/tsconfig.worker.tsbuildinfo",
-		"types": ["@cloudflare/workers-types/2023-07-01", "vite/client"],
-	},
-	"include": ["api"],
+  "extends": "./tsconfig.node.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.worker.tsbuildinfo",
+    "types": ["@cloudflare/workers-types/2023-07-01", "vite/client"],
+  },
+  "include": ["api"],
 }
 ```
 
@@ -147,12 +147,12 @@ npm install @cloudflare/workers-types --save-dev
 // tsconfig.json
 
 {
-	"files": [],
-	"references": [
-		{ "path": "./tsconfig.app.json" },
-		{ "path": "./tsconfig.node.json" },
-		{ "path": "./tsconfig.worker.json" },
-	],
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" },
+    { "path": "./tsconfig.worker.json" },
+  ],
 }
 ```
 
@@ -175,21 +175,21 @@ The assets `binding` defined here will allow us to access the assets functionali
 // api/index.ts
 
 interface Env {
-	ASSETS: Fetcher;
+  ASSETS: Fetcher;
 }
 
 export default {
-	fetch(request, env) {
-		const url = new URL(request.url);
+  fetch(request, env) {
+    const url = new URL(request.url);
 
-		if (url.pathname.startsWith('/api/')) {
-			return Response.json({
-				name: 'Cloudflare',
-			});
-		}
+    if (url.pathname.startsWith('/api/')) {
+      return Response.json({
+        name: 'Cloudflare',
+      });
+    }
 
-		return env.ASSETS.fetch(request);
-	},
+    return env.ASSETS.fetch(request);
+  },
 } satisfies ExportedHandler<Env>;
 ```
 
@@ -204,9 +204,9 @@ Edit `src/App.tsx` so that it includes an additional button that calls the API a
 ```ts
 // src/App.tsx
 
-import viteLogo from '/vite.svg';
 import { useState } from 'react';
 import reactLogo from './assets/react.svg';
+import viteLogo from '/vite.svg';
 import './App.css';
 
 function App() {
@@ -301,11 +301,11 @@ The `cloudflare` plugin should be included in the Vite `plugins` array:
 ```ts
 // vite.config.ts
 
-import { cloudflare } from '@cloudflare/vite-plugin';
 import { defineConfig } from 'vite';
+import { cloudflare } from '@cloudflare/vite-plugin';
 
 export default defineConfig({
-	plugins: [cloudflare()],
+  plugins: [cloudflare()],
 });
 ```
 
