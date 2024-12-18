@@ -130,20 +130,20 @@ We're going to go a step further, however, and add an API Worker.
 npm install @cloudflare/workers-types --save-dev
 ```
 
-```json
+```jsonc
 // tsconfig.worker.json
 
 {
 	"extends": "./tsconfig.node.json",
 	"compilerOptions": {
 		"tsBuildInfoFile": "./node_modules/.tmp/tsconfig.worker.tsbuildinfo",
-		"types": ["@cloudflare/workers-types/2023-07-01", "vite/client"]
+		"types": ["@cloudflare/workers-types/2023-07-01", "vite/client"],
 	},
-	"include": ["api"]
+	"include": ["api"],
 }
 ```
 
-```json
+```jsonc
 // tsconfig.json
 
 {
@@ -151,8 +151,8 @@ npm install @cloudflare/workers-types --save-dev
 	"references": [
 		{ "path": "./tsconfig.app.json" },
 		{ "path": "./tsconfig.node.json" },
-		{ "path": "./tsconfig.worker.json" }
-	]
+		{ "path": "./tsconfig.worker.json" },
+	],
 }
 ```
 
