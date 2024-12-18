@@ -337,10 +337,10 @@ It accepts an optional `PluginConfig` parameter.
   You can use [service bindings](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/) to call auxiliary workers from your main Worker.
   During the build, each Worker is output in a separate subdirectory of `dist`.
 
-  > [!NOTE]
-  > When running `wrangler deploy`, only your main (entry) Worker will be deployed.
-  > If using multiple Workers, it is your responsibility to deploy them individually.
-  > You can inspect the `dist` directory and then run `wrangler deploy -c path-to-worker-output-directory` for each.
+> [!NOTE]
+> When running `wrangler deploy`, only your main (entry) Worker will be deployed.
+> If using multiple Workers, it is your responsibility to deploy them individually.
+> You can inspect the `dist` directory and then run `wrangler deploy -c path-to-worker-output-directory` for each.
 
 ### `interface AuxiliaryWorkerConfig`
 
