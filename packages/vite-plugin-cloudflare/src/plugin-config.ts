@@ -7,13 +7,20 @@ import type { Unstable_Config } from 'wrangler';
 
 export type PersistState = boolean | { path: string };
 
-interface PluginWorkerConfig {
-	configPath: string;
+interface BaseWorkerConfig {
 	viteEnvironment?: { name?: string };
 }
 
-export interface PluginConfig extends Partial<PluginWorkerConfig> {
-	auxiliaryWorkers?: PluginWorkerConfig[];
+interface EntryWorkerConfig extends BaseWorkerConfig {
+	configPath?: string;
+}
+
+interface AuxiliaryWorkerConfig extends BaseWorkerConfig {
+	configPath: string;
+}
+
+export interface PluginConfig extends EntryWorkerConfig {
+	auxiliaryWorkers?: AuxiliaryWorkerConfig[];
 	persistState?: PersistState;
 }
 

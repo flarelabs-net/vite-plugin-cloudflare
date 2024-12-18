@@ -57,7 +57,9 @@ export default {
 
 ## Tutorial
 
-In this tutorial, we're going to create a React SPA that can be deployed to Workers Assets. We'll then add an API Worker that can be accessed from the front end code. We will develop, build and preview the application using Vite before finally deploying to Cloudflare.
+In this tutorial, we're going to create a React SPA that can be deployed to Workers Assets.
+We'll then add an API Worker that can be accessed from the front-end code.
+We will develop, build and preview the application using Vite before finally deploying to Cloudflare.
 
 ### Scaffold a Vite project
 
@@ -67,11 +69,7 @@ Let's start by creating a React TypeScript project with Vite.
 npm create vite@latest cloudflare-vite-tutorial -- --template react-ts
 ```
 
-Open the `cloudflare-vite-tutorial` directory in your editor of choice and install the dependencies.
-
-```sh
-npm install
-```
+Open the `cloudflare-vite-tutorial` directory in your editor of choice.
 
 ### Add the Cloudflare dependencies
 
@@ -101,11 +99,11 @@ export default defineConfig({
 assets = {}
 ```
 
-The `directory` field is not required when configuring assets with Vite.
+The `directory` field is not used when configuring assets with Vite.
 The `directory` in the output configuration will automatically point to the client build output.
 
 > [!NOTE]
-> When using the Cloudflare Vite plugin, the `wrangler.toml` or `wrangler.json(c)` that you provide is the input configuration file.
+> When using the Cloudflare Vite plugin, the Worker config (e.g. `wrangler.toml`) that you provide is the input configuration file.
 > A separate output `wrangler.json` file is created when you run `vite build`.
 > This output file is a snapshot of your configuration at the time of the build and is the configuration used for preview and deployment.
 
@@ -114,7 +112,7 @@ The `directory` in the output configuration will automatically point to the clie
 If you run `vite dev` you will see that your app is running.
 If you navigate to a different path, however, you will get a 404 response.
 This is because the not found handling is now being handled by the Cloudflare plugin rather than Vite and replicates the production behaviour that is specified in your configuration.
-To make all not found requests direct to the `index.html` file, set the value to `single-page-application` in your config.
+To make all not found requests direct to the `index.html` file, set the value to `single-page-application` in your Worker config.
 
 ```toml
 # wrangler.toml
@@ -129,7 +127,7 @@ We're going to go a step further, however, and add an API Worker.
 ### Add the `@cloudflare/workers-types` dependency and configure TypeScript
 
 ```sh
-npm install @cloudflare/vite-plugin --save-dev
+npm install @cloudflare/workers-types --save-dev
 ```
 
 ```json
@@ -169,7 +167,7 @@ compatibility_date = "2024-12-05"
 assets = { not_found_handling = "single-page-application", binding = "ASSETS" }
 ```
 
-The assets `binding` will allow us to access the assets functionality from our Worker.
+The assets `binding` defined here will allow us to access the assets functionality from our Worker.
 
 ### Add your API Worker
 
@@ -263,27 +261,31 @@ export default App;
 ```
 
 Now, if you click the button, it will display 'Name from API is: Cloudflare'.
-Try incrementing the counter and then changing the `name` that is returned in `api/index.ts`
-If you click the button again it will display the new value while the counter state is preserved.
+
+Try incrementing the counter and then changing the `name` that is returned in `api/index.ts`.
+If you click the button again, it will display the new value while preserving the counter state.
 
 ### Build your application
 
-Run `vite build` to build the application.
+Run `vite build` to build your application.
+
 If you inspect the `dist` directory, you will see that it contains two subdirectories: `client` and `api`.
 The `api` directory contains your Worker code and the output `wrangler.json` configuration.
 
 ### Preview your application
 
-Run `vite preview` to validate that your application runs as expected. This command will run your build output locally in the Workers runtime.
+Run `vite preview` to validate that your application runs as expected.
+This command will run your build output locally in the Workers runtime.
 
 ### Deploy to Cloudflare
 
-To deploy your application to Cloudflare, run `wrangler deploy`. This command will automatically use the output `wrangler.json` that was included in the build output.
+Run `wrangler deploy` to deploy your application to Cloudflare.
+This command will automatically use the output `wrangler.json` that was included in the build output.
 
 ### Next steps
 
-In this tutorial we created an SPA that could be deployed using Workers Assets.
-We then added an API Worker that could be accessed from the front end code.
+In this tutorial, we created an SPA that could be deployed using Workers Assets.
+We then added an API Worker that could be accessed from the front-end code.
 Possible next steps include:
 
 - Adding a binding to another Cloudflare service such as a [KV namespace](https://developers.cloudflare.com/kv/) or [D1 database](https://developers.cloudflare.com/d1/)
@@ -308,7 +310,6 @@ export default defineConfig({
 ```
 
 It accepts an optional `PluginConfig` parameter.
-By default, a `wrangler.toml`, `wrangler.json` or `wrangler.jsonc` file in the root of your application will be used as the Worker config.
 
 ### `interface PluginConfig`
 
@@ -327,20 +328,20 @@ By default, a `wrangler.toml`, `wrangler.json` or `wrangler.jsonc` file in the r
 
   An optional override for state persistence.
   By default, state is persisted to `.wrangler/state/v3`.
-  A custom `path` can be provided or state persistence can be disabled by setting the value to `false`.
+  A custom `path` can be provided or, alternatively, persistence can be disabled by setting the value to `false`.
 
-- `auxiliaryWorkers?: Array<PluginWorkerConfig>`
+- `auxiliaryWorkers?: Array<AuxiliaryWorkerConfig>`
 
   An optional array of auxiliary workers.
   You can use [service bindings](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/) to call auxiliary workers from your main Worker.
-  Each Worker is configured separately and output in a separate subdirectory of `dist` as part of the build.
+  During the build, each Worker is output in a separate subdirectory of `dist`.
 
   > [!NOTE]
   > When running `wrangler deploy`, only your main (entry) Worker will be deployed.
   > If using multiple Workers, it is your responsibility to deploy them individually.
   > You can inspect the `dist` directory and then run `wrangler deploy -c path-to-worker-output-directory` for each.
 
-### `interface PluginWorkerConfig`
+### `interface AuxiliaryWorkerConfig`
 
 - `configPath: string`
 
@@ -363,6 +364,6 @@ This output file is a snapshot of your configuration at the time of the build an
 
 ### Redundant fields in the Wrangler config file
 
-There are various options in the Worker config file that are ignored when using Vite as they are either no longer applicable or Vite has its own equivalents.
+There are various options in the Worker config file that are ignored when using Vite, as they are either no longer applicable or are replaced by Vite equivalents.
+If these options are provided then warnings will be printed to the console with suggestions for how to proceed.
 Examples where the Vite configuration should be used instead include `alias` and `define`.
-If these options are provided then warnings will be printed to the console with suggestions of how to proceed.
