@@ -107,7 +107,7 @@ The `directory` in the output configuration will automatically point to the clie
 > [!NOTE]
 > When using the Cloudflare Vite plugin, the `wrangler.toml` or `wrangler.json(c)` that you provide is the input configuration file.
 > A separate output `wrangler.json` file is created when you run `vite build`.
-> This output file is a snapshot of your configuration at the time of the build and is the configuration used for deployment.
+> This output file is a snapshot of your configuration at the time of the build and is the configuration used for preview and deployment.
 
 ### Configure not found handling
 
@@ -351,3 +351,18 @@ By default, a `wrangler.toml`, `wrangler.json` or `wrangler.jsonc` file in the r
   Optional Vite environment options.
   By default, the environment name is the Worker name with `-` characters replaced with `_`.
   Setting the name here will override this.
+
+## Migrating from `wrangler dev`
+
+Migrating from `wrangler dev` should be straightforward but there are a few key differences to highlight:
+
+### Input and output Worker config files
+
+In the Vite integration, your Worker config file (e.g. `wrangler.toml`) is the input configuration and a separate output configuration is created as part of the build.
+This output file is a snapshot of your configuration at the time of the build and is the configuration used for preview and deployment.
+
+### Redundant fields in the Wrangler config file
+
+There are various options in the Worker config file that are ignored when using Vite as they are either no longer applicable or Vite has its own equivalents.
+Examples where the Vite configuration should be used instead include `alias` and `define`.
+If these options are provided then warnings will be printed to the console with suggestions of how to proceed.
