@@ -284,4 +284,70 @@ To deploy your application to Cloudflare, run `wrangler deploy`. This command wi
 
 In this tutorial we created an SPA that could be deployed using Workers Assets.
 We then added an API Worker that could be accessed from the front end code.
-Next, you could try expanding the API and adding a binding to another Cloudflare service such as a [KV namespace](https://developers.cloudflare.com/kv/) or [D1 database](https://developers.cloudflare.com/d1/).
+Possible next steps include:
+
+- Adding a binding to another Cloudflare service such as a [KV namespace](https://developers.cloudflare.com/kv/) or [D1 database](https://developers.cloudflare.com/d1/)
+- Expanding the API to include additional routes
+- Using a library, such as [tRPC](https://trpc.io/) or [Hono](https://hono.dev/), in your API Worker
+
+## API
+
+### `cloudflare`
+
+The `cloudflare` plugin should be included in the Vite `plugins` array:
+
+```ts
+// vite.config.ts
+
+import { cloudflare } from '@cloudflare/vite-plugin';
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+	plugins: [cloudflare()],
+});
+```
+
+It accepts an optional `PluginConfig` parameter.
+By default, a `wrangler.toml`, `wrangler.json` or `wrangler.jsonc` file in the root of your application will be used as the Worker config.
+
+### `interface PluginConfig`
+
+- `configPath?: string`
+
+  An optional path to your Worker config file.
+  By default, a `wrangler.toml`, `wrangler.json` or `wrangler.jsonc` file in the root of your application will be used as the Worker config.
+
+- `viteEnvironment?: { name?: string }`
+
+  Optional Vite environment options.
+  By default, the environment name is the Worker name with `-` characters replaced with `_`.
+  Setting the name here will override this.
+
+- `persistState?: boolean | { path: string }`
+
+  An optional override for state persistence.
+  By default, state is persisted to `.wrangler/state/v3`.
+  A custom `path` can be provided or state persistence can be disabled by setting the value to `false`.
+
+- `auxiliaryWorkers?: Array<PluginWorkerConfig>`
+
+  An optional array of auxiliary workers.
+  You can use [service bindings](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/) to call auxiliary workers from your main Worker.
+  Each Worker is configured separately and output in a separate subdirectory of `dist` as part of the build.
+
+  > [!NOTE]
+  > When running `wrangler deploy`, only your main (entry) Worker will be deployed.
+  > If using multiple Workers, it is your responsibility to deploy them individually.
+  > You can inspect the `dist` directory and then run `wrangler deploy -c path-to-worker-output-directory` for each.
+
+### `interface PluginWorkerConfig`
+
+- `configPath: string`
+
+  A required path to your Worker config file.
+
+- `viteEnvironment?: { name?: string }`
+
+  Optional Vite environment options.
+  By default, the environment name is the Worker name with `-` characters replaced with `_`.
+  Setting the name here will override this.
