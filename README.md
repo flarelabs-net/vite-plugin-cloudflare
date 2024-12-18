@@ -109,7 +109,7 @@ The `directory` in the output configuration will automatically point to the clie
 
 ### Configure not found handling
 
-If you run `vite dev` you will see that your app is running.
+If you run `vite dev`, you will see that your app is running.
 If you navigate to a different path, however, you will get a 404 response.
 This is because the not found handling is now being handled by the Cloudflare plugin rather than Vite and replicates the production behaviour that is specified in your configuration.
 To make all not found requests direct to the `index.html` file, set the value to `single-page-application` in your Worker config.
@@ -121,6 +121,7 @@ assets = { not_found_handling = "single-page-application" }
 ```
 
 Now, if you navigate to a different path, you will still see your application.
+
 For a purely front-end application, you could now proceed to build and deploy your application.
 We're going to go a step further, however, and add an API Worker.
 
@@ -195,13 +196,13 @@ export default {
 
 The Worker above will be invoked for any not found path.
 It returns a JSON response if the `pathname` starts with `/api/` and otherwise passes the incoming request through to the asset binding.
-This means that for paths that do not start with `/api/`, the `not_found_handling` behaviour defined in the Worker config will be evaluated.
+This means that for paths that do not start with `/api/`, the `not_found_handling` behaviour defined in the Worker config will be evaluated and the `index.html` file will be returned.
 
 ### Call the API from the client
 
 Edit `src/App.tsx` so that it includes an additional button that calls the API and sets some state. You can replace the file contents with the following code.
 
-```ts
+```tsx
 // src/App.tsx
 
 import { useState } from 'react';
@@ -210,51 +211,51 @@ import viteLogo from '/vite.svg';
 import './App.css';
 
 function App() {
-	const [count, setCount] = useState(0);
-	const [name, setName] = useState('unknown');
+  const [count, setCount] = useState(0);
+  const [name, setName] = useState('unknown');
 
-	return (
-		<>
-			<div>
-				<a href="https://vite.dev" target="_blank">
-					<img src={viteLogo} className="logo" alt="Vite logo" />
-				</a>
-				<a href="https://react.dev" target="_blank">
-					<img src={reactLogo} className="logo react" alt="React logo" />
-				</a>
-			</div>
-			<h1>Vite + React</h1>
-			<div className="card">
-				<button
-					onClick={() => setCount((count) => count + 1)}
-					aria-label="increment"
-				>
-					count is {count}
-				</button>
-				<p>
-					Edit <code>src/App.tsx</code> and save to test HMR
-				</p>
-			</div>
-			<div className="card">
-				<button
-					onClick={() => {
-						fetch('/api/')
-							.then((res) => res.json() as Promise<{ name: string }>)
-							.then((data) => setName(data.name));
-					}}
-					aria-label="get-name"
-				>
-					Name from API is: {name}
-				</button>
-				<p>
-					Edit <code>api/index.ts</code> to change the name
-				</p>
-			</div>
-			<p className="read-the-docs">
-				Click on the Vite and React logos to learn more
-			</p>
-		</>
-	);
+  return (
+    <>
+      <div>
+        <a href="https://vite.dev" target="_blank">
+          <img src={viteLogo} className="logo" alt="Vite logo" />
+        </a>
+        <a href="https://react.dev" target="_blank">
+          <img src={reactLogo} className="logo react" alt="React logo" />
+        </a>
+      </div>
+      <h1>Vite + React</h1>
+      <div className="card">
+        <button
+          onClick={() => setCount((count) => count + 1)}
+          aria-label="increment"
+        >
+          count is {count}
+        </button>
+        <p>
+          Edit <code>src/App.tsx</code> and save to test HMR
+        </p>
+      </div>
+      <div className="card">
+        <button
+          onClick={() => {
+            fetch('/api/')
+              .then((res) => res.json() as Promise<{ name: string }>)
+              .then((data) => setName(data.name));
+          }}
+          aria-label="get-name"
+        >
+          Name from API is: {name}
+        </button>
+        <p>
+          Edit <code>api/index.ts</code> to change the name
+        </p>
+      </div>
+      <p className="read-the-docs">
+        Click on the Vite and React logos to learn more
+      </p>
+    </>
+  );
 }
 
 export default App;
