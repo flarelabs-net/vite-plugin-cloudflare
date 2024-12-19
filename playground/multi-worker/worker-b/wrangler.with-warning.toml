@@ -1,0 +1,6 @@
+name = "worker-b"
+main = "./index.ts"
+compatibility_date = "2024-09-09"
+
+[build]
+command = "npm run build"

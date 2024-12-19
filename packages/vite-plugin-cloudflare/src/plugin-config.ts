@@ -1,8 +1,12 @@
 import assert from 'node:assert';
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vite from 'vite';
-import { unstable_readConfig } from 'wrangler';
+import { findWranglerConfig, getWorkerResolvedConfig } from './worker-config';
+import type {
+	AssetsOnlyWorkerResolvedConfig,
+	WorkerResolvedConfig,
+	WorkerWithServerLogicResolvedConfig,
+} from './worker-config';
 import type { Unstable_Config } from 'wrangler';
 
 export type PersistState = boolean | { path: string };
@@ -28,16 +32,6 @@ export type WorkerConfig = Unstable_Config & {
 	main: Defined<Unstable_Config['main']>;
 };
 
-interface AssetsOnlyResult {
-	type: 'assets-only';
-	config: AssetsOnlyConfig;
-}
-
-interface WorkerResult {
-	type: 'worker';
-	config: WorkerConfig;
-}
-
 interface BasePluginConfig {
 	configPaths: Set<string>;
 	persistState: PersistState;
@@ -46,71 +40,22 @@ interface BasePluginConfig {
 interface AssetsOnlyPluginConfig extends BasePluginConfig {
 	type: 'assets-only';
 	config: AssetsOnlyConfig;
+	rawConfigs: {
+		entryWorker: AssetsOnlyWorkerResolvedConfig;
+	};
 }
 
 interface WorkersPluginConfig extends BasePluginConfig {
 	type: 'workers';
 	workers: Record<string, WorkerConfig>;
 	entryWorkerEnvironmentName: string;
-}
-
-export type ResolvedPluginConfig = AssetsOnlyPluginConfig | WorkersPluginConfig;
-
-function getConfigResult(
-	configPath: string,
-	configPaths: Set<string>,
-	isEntryWorker?: boolean,
-): AssetsOnlyResult | WorkerResult {
-	if (configPaths.has(configPath)) {
-		throw new Error(`Duplicate Wrangler config path found: ${configPath}`);
-	}
-
-	const wranglerConfig = unstable_readConfig({ config: configPath }, {});
-
-	configPaths.add(configPath);
-
-	if (isEntryWorker && !wranglerConfig.main) {
-		assert(
-			wranglerConfig.assets,
-			`No main or assets field provided in ${wranglerConfig.configPath}`,
-		);
-
-		return {
-			type: 'assets-only',
-			config: { ...wranglerConfig, assets: wranglerConfig.assets },
-		};
-	}
-
-	assert(
-		wranglerConfig.main,
-		`No main field provided in ${wranglerConfig.configPath}`,
-	);
-
-	assert(
-		wranglerConfig.name,
-		`No name field provided in ${wranglerConfig.configPath}`,
-	);
-
-	return {
-		type: 'worker',
-		config: {
-			...wranglerConfig,
-			name: wranglerConfig.name,
-			main: wranglerConfig.main,
-		},
+	rawConfigs: {
+		entryWorker: WorkerWithServerLogicResolvedConfig;
+		auxiliaryWorkers: WorkerResolvedConfig[];
 	};
 }
 
-// We can't rely on `readConfig` from Wrangler to find the config as it may be relative to a different root that's set by the user.
-function findWranglerConfig(root: string): string | undefined {
-	for (const extension of ['json', 'jsonc', 'toml']) {
-		const configPath = path.join(root, `wrangler.${extension}`);
-
-		if (fs.existsSync(configPath)) {
-			return configPath;
-		}
-	}
-}
+export type ResolvedPluginConfig = AssetsOnlyPluginConfig | WorkersPluginConfig;
 
 // Worker names can only contain alphanumeric characters and '-' whereas environment names can only contain alphanumeric characters and '$', '_'
 function workerNameToEnvironmentName(workerName: string) {
@@ -134,13 +79,24 @@ export function resolvePluginConfig(
 		`Config not found. Have you created a wrangler.json(c) or wrangler.toml file?`,
 	);
 
-	const entryConfigResult = getConfigResult(configPath, configPaths, true);
+	const entryWorkerResolvedConfig = getWorkerResolvedConfig(
+		configPath,
+		configPaths,
+		true,
+	);
 
-	if (entryConfigResult.type === 'assets-only') {
-		return { ...entryConfigResult, configPaths, persistState };
+	if (entryWorkerResolvedConfig.type === 'assets-only') {
+		return {
+			...entryWorkerResolvedConfig,
+			configPaths,
+			persistState,
+			rawConfigs: {
+				entryWorker: entryWorkerResolvedConfig,
+			},
+		};
 	}
 
-	const entryWorkerConfig = entryConfigResult.config;
+	const entryWorkerConfig = entryWorkerResolvedConfig.config;
 
 	const entryWorkerEnvironmentName =
 		pluginConfig.viteEnvironment?.name ??
@@ -150,18 +106,22 @@ export function resolvePluginConfig(
 		[entryWorkerEnvironmentName]: entryWorkerConfig,
 	};
 
+	const auxiliaryWorkersResolvedConfigs: WorkerResolvedConfig[] = [];
+
 	for (const auxiliaryWorker of pluginConfig.auxiliaryWorkers ?? []) {
-		const configResult = getConfigResult(
+		const workerResolvedConfig = getWorkerResolvedConfig(
 			path.resolve(root, auxiliaryWorker.configPath),
 			configPaths,
 		);
 
+		auxiliaryWorkersResolvedConfigs.push(workerResolvedConfig);
+
 		assert(
-			configResult.type === 'worker',
+			workerResolvedConfig.type === 'worker',
 			'Unexpected error: received AssetsOnlyResult with auxiliary workers.',
 		);
 
-		const workerConfig = configResult.config;
+		const workerConfig = workerResolvedConfig.config;
 
 		const workerEnvironmentName =
 			auxiliaryWorker.viteEnvironment?.name ??
@@ -182,5 +142,9 @@ export function resolvePluginConfig(
 		persistState,
 		workers,
 		entryWorkerEnvironmentName,
+		rawConfigs: {
+			entryWorker: entryWorkerResolvedConfig,
+			auxiliaryWorkers: auxiliaryWorkersResolvedConfigs,
+		},
 	};
 }
