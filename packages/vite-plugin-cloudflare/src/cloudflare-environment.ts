@@ -114,6 +114,7 @@ const cloudflareBuiltInModules = [
 	'cloudflare:email',
 	'cloudflare:sockets',
 	'cloudflare:workers',
+	'cloudflare:workflows',
 ];
 
 export function createCloudflareEnvironmentOptions(

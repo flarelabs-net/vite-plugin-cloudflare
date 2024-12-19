@@ -30,6 +30,7 @@ type PersistOptions = Pick<
 	| 'durableObjectsPersist'
 	| 'kvPersist'
 	| 'r2Persist'
+	| 'workflowsPersist'
 >;
 
 function getPersistence(
@@ -53,6 +54,7 @@ function getPersistence(
 		durableObjectsPersist: path.join(persistPath, 'do'),
 		kvPersist: path.join(persistPath, 'kv'),
 		r2Persist: path.join(persistPath, 'r2'),
+		workflowsPersist: path.join(persistPath, 'workflows'),
 	};
 }
 
@@ -124,6 +126,36 @@ function getWorkerToDurableObjectClassNamesMap(
 	}
 
 	return workerToDurableObjectClassNamesMap;
+}
+
+function getWorkerToWorkflowEntrypointClassNamesMap(
+	workers: Array<Pick<WorkerOptions, 'workflows'> & { name: string }>,
+) {
+	const workerToWorkflowEntrypointClassNamesMap = new Map(
+		workers.map((workerOptions) => [workerOptions.name, new Set<string>()]),
+	);
+
+	for (const worker of workers) {
+		for (const value of Object.values(worker.workflows ?? {})) {
+			if (value.scriptName) {
+				const classNames = workerToWorkflowEntrypointClassNamesMap.get(
+					value.scriptName,
+				);
+				assert(classNames, missingWorkerErrorMessage(value.scriptName));
+
+				classNames.add(value.className);
+			} else {
+				const classNames = workerToWorkflowEntrypointClassNamesMap.get(
+					worker.name,
+				);
+				assert(classNames, missingWorkerErrorMessage(worker.name));
+
+				classNames.add(value.className);
+			}
+		}
+	}
+
+	return workerToWorkflowEntrypointClassNamesMap;
 }
 
 // We want module names to be their absolute path without the leading slash
@@ -332,6 +364,8 @@ export function getDevMiniflareOptions(
 		getWorkerToWorkerEntrypointNamesMap(userWorkers);
 	const workerToDurableObjectClassNamesMap =
 		getWorkerToDurableObjectClassNamesMap(userWorkers);
+	const workerToWorkflowEntrypointClassNamesMap =
+		getWorkerToWorkflowEntrypointClassNamesMap(userWorkers);
 
 	const logger = new ViteMiniflareLogger(viteConfig);
 
@@ -349,35 +383,48 @@ export function getDevMiniflareOptions(
 			...assetWorkers,
 			...userWorkers.map((workerOptions) => {
 				const wrappers = [
-					`import { createWorkerEntrypointWrapper, createDurableObjectWrapper } from '${RUNNER_PATH}';`,
+					`import { createWorkerEntrypointWrapper, createDurableObjectWrapper, createWorkflowEntrypointWrapper } from '${RUNNER_PATH}';`,
 					`export default createWorkerEntrypointWrapper('default');`,
 				];
 
-				const entrypointNames = workerToWorkerEntrypointNamesMap.get(
+				const workerEntrypointNames = workerToWorkerEntrypointNamesMap.get(
 					workerOptions.name,
 				);
 				assert(
-					entrypointNames,
+					workerEntrypointNames,
 					`WorkerEntrypoint names not found for worker ${workerOptions.name}`,
 				);
 
-				for (const entrypointName of [...entrypointNames].sort()) {
+				for (const entrypointName of [...workerEntrypointNames].sort()) {
 					wrappers.push(
 						`export const ${entrypointName} = createWorkerEntrypointWrapper('${entrypointName}');`,
 					);
 				}
 
-				const classNames = workerToDurableObjectClassNamesMap.get(
+				const durableObjectClassNames = workerToDurableObjectClassNamesMap.get(
 					workerOptions.name,
 				);
 				assert(
-					classNames,
+					durableObjectClassNames,
 					`DurableObject class names not found for worker ${workerOptions.name}`,
 				);
 
-				for (const className of [...classNames].sort()) {
+				for (const className of [...durableObjectClassNames].sort()) {
 					wrappers.push(
 						`export const ${className} = createDurableObjectWrapper('${className}');`,
+					);
+				}
+
+				const workflowEntrypointClassNames =
+					workerToWorkflowEntrypointClassNamesMap.get(workerOptions.name);
+				assert(
+					workflowEntrypointClassNames,
+					`WorkflowEntrypoint class names not found for worker ${workerOptions.name}`,
+				);
+
+				for (const className of [...workflowEntrypointClassNames].sort()) {
+					wrappers.push(
+						`export const ${className} = createWorkflowEntrypointWrapper('${className}');`,
 					);
 				}
 
