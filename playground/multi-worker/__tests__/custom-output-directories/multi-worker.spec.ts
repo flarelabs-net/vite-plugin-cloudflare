@@ -11,7 +11,7 @@ describe.runIf(isBuild)('output directories', () => {
 			),
 		).toBe(true);
 		expect(
-			fs.existsSync(path.join(rootDir, 'custom-environment-output-directory')),
+			fs.existsSync(path.join(rootDir, 'custom-worker-output-directory')),
 		).toBe(true);
 	});
 });

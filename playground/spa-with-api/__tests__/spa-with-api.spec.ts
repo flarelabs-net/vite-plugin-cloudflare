@@ -16,5 +16,5 @@ test('returns the response from the API', async () => {
 	await button.click();
 	await responsePromise;
 	const contentAfter = await button.innerText();
-	expect(contentAfter).toBe('Name from API is: Jack');
+	expect(contentAfter).toBe('Name from API is: Cloudflare');
 });

@@ -8,7 +8,7 @@ export default {
 
 		if (url.pathname.startsWith('/api/')) {
 			return Response.json({
-				name: 'Jack',
+				name: 'Cloudflare',
 			});
 		}
 
