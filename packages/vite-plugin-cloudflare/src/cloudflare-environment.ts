@@ -3,7 +3,7 @@ import { builtinModules } from 'node:module';
 import * as vite from 'vite';
 import { getNodeCompatExternals } from './node-js-compat';
 import { INIT_PATH, UNKNOWN_HOST } from './shared';
-import { toMiniflareRequest } from './utils';
+import { getOutputDirectory } from './utils';
 import type { ResolvedPluginConfig, WorkerConfig } from './plugin-config';
 import type { Fetcher } from '@cloudflare/workers-types/experimental';
 import type {
@@ -118,6 +118,8 @@ const cloudflareBuiltInModules = [
 
 export function createCloudflareEnvironmentOptions(
 	workerConfig: WorkerConfig,
+	userConfig: vite.UserConfig,
+	environmentName: string,
 ): vite.EnvironmentOptions {
 	return {
 		resolve: {
@@ -136,6 +138,7 @@ export function createCloudflareEnvironmentOptions(
 			createEnvironment(name, config) {
 				return new vite.BuildEnvironment(name, config);
 			},
+			outDir: getOutputDirectory(userConfig, environmentName),
 			ssr: true,
 			rollupOptions: {
 				// Note: vite starts dev pre-bundling crawling from either optimizeDeps.entries or rollupOptions.input
