@@ -25,6 +25,7 @@ import type { Unstable_RawConfig } from 'wrangler';
 
 export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 	let resolvedPluginConfig: ResolvedPluginConfig;
+	let resolvedViteConfig: vite.ResolvedConfig;
 	let miniflare: Miniflare | undefined;
 
 	return {
@@ -100,6 +101,9 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 				},
 			};
 		},
+		configResolved(config) {
+			resolvedViteConfig = config;
+		},
 		async resolveId(source) {
 			if (resolvedPluginConfig.type === 'assets-only') {
 				return;
@@ -162,7 +166,19 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 					resolvedPluginConfig.entryWorkerEnvironmentName;
 
 				if (isEntryWorker && workerConfig.assets) {
-					workerConfig.assets.directory = path.join('..', 'client');
+					const workerOutputDirectory = this.environment.config.build.outDir;
+					const clientOutputDirectory =
+						resolvedViteConfig.environments.client?.build.outDir;
+
+					assert(
+						clientOutputDirectory,
+						'Unexpected error: client output directory is undefined',
+					);
+
+					workerConfig.assets.directory = path.relative(
+						path.resolve(resolvedViteConfig.root, workerOutputDirectory),
+						path.resolve(resolvedViteConfig.root, clientOutputDirectory),
+					);
 				}
 
 				config = workerConfig;
