@@ -5,10 +5,14 @@ import { getJsonResponse, isBuild, rootDir } from '../../../__test-utils__';
 
 describe.runIf(isBuild)('output directories', () => {
 	test('creates the correct output directories', () => {
-		expect(fs.existsSync(path.join(rootDir, 'dist', 'worker_a'))).toBe(true);
-		expect(fs.existsSync(path.join(rootDir, 'custom-output-directory'))).toBe(
-			true,
-		);
+		expect(
+			fs.existsSync(
+				path.join(rootDir, 'custom-root-output-directory', 'worker_a'),
+			),
+		).toBe(true);
+		expect(
+			fs.existsSync(path.join(rootDir, 'custom-environment-output-directory')),
+		).toBe(true);
 	});
 });
 
