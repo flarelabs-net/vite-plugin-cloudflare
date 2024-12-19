@@ -5,8 +5,8 @@ import type { WorkerConfig } from '../plugin-config';
 describe('getWarningForWorkersResolvedConfigs', () => {
 	describe('no warning needed', () => {
 		test('entry worker only', () => {
-			const warning = getWarningForWorkersResolvedConfigs(
-				{
+			const warning = getWarningForWorkersResolvedConfigs({
+				entryWorker: {
 					type: 'worker',
 					config: {
 						name: 'entry-worker',
@@ -18,14 +18,14 @@ describe('getWarningForWorkersResolvedConfigs', () => {
 						overridden: new Set([]),
 					},
 				},
-				[],
-			);
+				auxiliaryWorkers: [],
+			});
 			expect(warning).toBeUndefined();
 		});
 
 		test('multi workers', () => {
-			const warning = getWarningForWorkersResolvedConfigs(
-				{
+			const warning = getWarningForWorkersResolvedConfigs({
+				entryWorker: {
 					type: 'worker',
 					config: {
 						name: 'entry-worker',
@@ -37,7 +37,7 @@ describe('getWarningForWorkersResolvedConfigs', () => {
 						overridden: new Set(),
 					},
 				},
-				[
+				auxiliaryWorkers: [
 					{
 						type: 'worker',
 						config: {
@@ -62,14 +62,14 @@ describe('getWarningForWorkersResolvedConfigs', () => {
 						},
 					},
 				],
-			);
+			});
 			expect(warning).toBeUndefined();
 		});
 	});
 
 	test('entry worker only', () => {
-		const warning = getWarningForWorkersResolvedConfigs(
-			{
+		const warning = getWarningForWorkersResolvedConfigs({
+			entryWorker: {
 				type: 'worker',
 				config: {
 					name: 'entry-worker',
@@ -85,20 +85,23 @@ describe('getWarningForWorkersResolvedConfigs', () => {
 					overridden: new Set(['rules']),
 				},
 			},
-			[],
-		);
+			auxiliaryWorkers: [],
+		});
 		expect(warning).toMatchInlineSnapshot(`
-			"[43mWARNING[0m: your worker config (at \`wrangler.json\`) contains the following configuration options which are ignored since they are not applicable when using Vite:
+			"
+
+			[43mWARNING[0m: your worker config (at \`wrangler.json\`) contains the following configuration options which are ignored since they are not applicable when using Vite:
 			  - \`alias\` which is replaced by Vite's \`resolve.alias\` (docs: https://vite.dev/config/shared-options.html#resolve-alias)
 			  - \`minify\` which is replaced by Vite's \`build.minify\` (docs: https://vite.dev/config/build-options.html#build-minify)
 			  - \`build\`, \`find_additional_modules\`, \`no_bundle\` which are not relevant in the context of a Vite project
-			  - \`rules\` which is overridden by \`@flarelabs-net/vite-plugin-cloudflare\`"
+			  - \`rules\` which is overridden by \`@flarelabs-net/vite-plugin-cloudflare\`
+			"
 		`);
 	});
 
 	test('multi workers', () => {
-		const warning = getWarningForWorkersResolvedConfigs(
-			{
+		const warning = getWarningForWorkersResolvedConfigs({
+			entryWorker: {
 				type: 'worker',
 				config: {
 					name: 'entry-worker',
@@ -110,7 +113,7 @@ describe('getWarningForWorkersResolvedConfigs', () => {
 					overridden: new Set(),
 				},
 			},
-			[
+			auxiliaryWorkers: [
 				{
 					type: 'worker',
 					config: {
@@ -135,7 +138,7 @@ describe('getWarningForWorkersResolvedConfigs', () => {
 					},
 				},
 			],
-		);
+		});
 		if (process.platform === 'win32') {
 			expect(warning).toMatchInlineSnapshot(`
 				"[43mWARNING[0m: your workers configs contain configuration options which are ignored since they are not applicable when using Vite:
@@ -149,14 +152,16 @@ describe('getWarningForWorkersResolvedConfigs', () => {
 			`);
 		} else {
 			expect(warning).toMatchInlineSnapshot(`
-				"[43mWARNING[0m: your workers configs contain configuration options which are ignored since they are not applicable when using Vite:
+				"
+				[43mWARNING[0m: your workers configs contain configuration options which are ignored since they are not applicable when using Vite:
 				  - (entry) worker "entry-worker" (config at \`wrangler.json\`)
 				    - \`alias\` which is replaced by Vite's \`resolve.alias\` (docs: https://vite.dev/config/shared-options.html#resolve-alias)
 				    - \`build\` which is not relevant in the context of a Vite project
 				  - (auxiliary) worker "worker-a" (config at \`a/wrangler.json\`)
 				    - \`find_additional_modules\`, \`no_bundle\` which are not relevant in the context of a Vite project
 				  - (auxiliary) worker (config at \`b/wrangler.json\`)
-				    - \`site\` which is not relevant in the context of a Vite project"
+				    - \`site\` which is not relevant in the context of a Vite project
+				"
 			`);
 		}
 	});

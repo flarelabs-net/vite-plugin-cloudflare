@@ -133,12 +133,21 @@ export function readWorkerConfig(configPath: string): WorkerRawConfigDetails {
 }
 
 export function getWarningForWorkersResolvedConfigs(
-	entryWorkerResolvedConfig: WorkerResolvedConfig,
-	auxiliaryWorkersResolvedConfigs?: WorkerResolvedConfig[],
+	configs:
+		| {
+				entryWorker: AssetsOnlyWorkerResolvedConfig;
+		  }
+		| {
+				entryWorker: WorkerWithServerLogicResolvedConfig;
+				auxiliaryWorkers: WorkerResolvedConfig[];
+		  },
 ): string | undefined {
-	if (!auxiliaryWorkersResolvedConfigs?.length) {
+	if (
+		!('auxiliaryWorkers' in configs) ||
+		configs.auxiliaryWorkers.length === 0
+	) {
 		const nonApplicableLines = getWorkerNonApplicableWarnLines(
-			entryWorkerResolvedConfig,
+			configs.entryWorker,
 			`  - `,
 		);
 
@@ -147,12 +156,13 @@ export function getWarningForWorkersResolvedConfigs(
 		}
 
 		const lines = [
-			`\x1b[43mWARNING\x1b[0m: your worker config${entryWorkerResolvedConfig.config.configPath ? ` (at \`${path.relative('', entryWorkerResolvedConfig.config.configPath)}\`)` : ''} contains` +
+			`\n\n\x1b[43mWARNING\x1b[0m: your worker config${configs.entryWorker.config.configPath ? ` (at \`${path.relative('', configs.entryWorker.config.configPath)}\`)` : ''} contains` +
 				' the following configuration options which are ignored since they are not applicable when using Vite:',
 		];
 
 		nonApplicableLines.forEach((line) => lines.push(line));
 
+		lines.push('');
 		return lines.join('\n');
 	}
 
@@ -175,8 +185,8 @@ export function getWarningForWorkersResolvedConfigs(
 		}
 	};
 
-	processWorkerResolvedConfig(entryWorkerResolvedConfig, true);
-	auxiliaryWorkersResolvedConfigs.forEach((resolvedConfig) =>
+	processWorkerResolvedConfig(configs.entryWorker, true);
+	configs.auxiliaryWorkers.forEach((resolvedConfig) =>
 		processWorkerResolvedConfig(resolvedConfig),
 	);
 
@@ -185,8 +195,9 @@ export function getWarningForWorkersResolvedConfigs(
 	}
 
 	return [
-		'\x1b[43mWARNING\x1b[0m: your workers configs contain configuration options which are ignored since they are not applicable when using Vite:',
+		'\n\x1b[43mWARNING\x1b[0m: your workers configs contain configuration options which are ignored since they are not applicable when using Vite:',
 		...lines,
+		'',
 	].join('\n');
 }
 

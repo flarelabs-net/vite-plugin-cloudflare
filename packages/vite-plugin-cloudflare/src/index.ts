@@ -20,6 +20,7 @@ import {
 } from './node-js-compat';
 import { resolvePluginConfig } from './plugin-config';
 import { toMiniflareRequest } from './utils';
+import { getWarningForWorkersResolvedConfigs } from './worker-config';
 import type { PluginConfig, ResolvedPluginConfig } from './plugin-config';
 import type { Unstable_RawConfig } from 'wrangler';
 
@@ -93,6 +94,18 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 					},
 				},
 			};
+		},
+		configResolved(config) {
+			const runningPreview =
+				config.command === 'serve' && config.isProduction === true;
+			if (!runningPreview) {
+				const workersConfigsWarning = getWarningForWorkersResolvedConfigs(
+					resolvedPluginConfig.rawConfigs,
+				);
+				if (workersConfigsWarning) {
+					console.warn(workersConfigsWarning);
+				}
+			}
 		},
 		configEnvironment(name, options) {
 			if (resolvedPluginConfig.type === 'workers' && !options.build?.outDir) {

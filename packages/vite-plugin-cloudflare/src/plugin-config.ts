@@ -1,12 +1,12 @@
 import assert from 'node:assert';
 import * as path from 'node:path';
 import * as vite from 'vite';
-import {
-	findWranglerConfig,
-	getWarningForWorkersResolvedConfigs,
-	getWorkerResolvedConfig,
+import { findWranglerConfig, getWorkerResolvedConfig } from './worker-config';
+import type {
+	AssetsOnlyWorkerResolvedConfig,
+	WorkerResolvedConfig,
+	WorkerWithServerLogicResolvedConfig,
 } from './worker-config';
-import type { WorkerResolvedConfig } from './worker-config';
 import type { Unstable_Config } from 'wrangler';
 
 export type PersistState = boolean | { path: string };
@@ -40,12 +40,19 @@ interface BasePluginConfig {
 interface AssetsOnlyPluginConfig extends BasePluginConfig {
 	type: 'assets-only';
 	config: AssetsOnlyConfig;
+	rawConfigs: {
+		entryWorker: AssetsOnlyWorkerResolvedConfig;
+	};
 }
 
 interface WorkersPluginConfig extends BasePluginConfig {
 	type: 'workers';
 	workers: Record<string, WorkerConfig>;
 	entryWorkerEnvironmentName: string;
+	rawConfigs: {
+		entryWorker: WorkerWithServerLogicResolvedConfig;
+		auxiliaryWorkers: WorkerResolvedConfig[];
+	};
 }
 
 export type ResolvedPluginConfig = AssetsOnlyPluginConfig | WorkersPluginConfig;
@@ -79,14 +86,14 @@ export function resolvePluginConfig(
 	);
 
 	if (entryWorkerResolvedConfig.type === 'assets-only') {
-		const workersConfigsWarning = getWarningForWorkersResolvedConfigs(
-			entryWorkerResolvedConfig,
-		);
-		if (workersConfigsWarning) {
-			console.warn(workersConfigsWarning);
-		}
-
-		return { ...entryWorkerResolvedConfig, configPaths, persistState };
+		return {
+			...entryWorkerResolvedConfig,
+			configPaths,
+			persistState,
+			rawConfigs: {
+				entryWorker: entryWorkerResolvedConfig,
+			},
+		};
 	}
 
 	const entryWorkerConfig = entryWorkerResolvedConfig.config;
@@ -129,19 +136,15 @@ export function resolvePluginConfig(
 		workers[workerEnvironmentName] = workerConfig;
 	}
 
-	const workersConfigsWarning = getWarningForWorkersResolvedConfigs(
-		entryWorkerResolvedConfig,
-		auxiliaryWorkersResolvedConfigs,
-	);
-	if (workersConfigsWarning) {
-		console.warn(workersConfigsWarning);
-	}
-
 	return {
 		type: 'workers',
 		configPaths,
 		persistState,
 		workers,
 		entryWorkerEnvironmentName,
+		rawConfigs: {
+			entryWorker: entryWorkerResolvedConfig,
+			auxiliaryWorkers: auxiliaryWorkersResolvedConfigs,
+		},
 	};
 }

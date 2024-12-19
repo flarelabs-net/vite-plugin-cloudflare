@@ -1,21 +1,18 @@
 import { describe, expect, test } from 'vitest';
-import { getJsonResponse, isBuild, serverLogs } from '../../../__test-utils__';
+import { getJsonResponse, serverLogs } from '../../../__test-utils__';
 
 describe('multi-worker basic functionality', async () => {
 	test('wrangler warnings are present in the terminal', async () => {
-		const expectedWarning = expect.stringMatching(
-			/your workers configs contain configuration options which are ignored[\s\S]+preserve_file_names[\s\S]+tsconfig[\s\S]+build/,
-		);
-		expect(serverLogs.warns).toEqual(
-			!isBuild
-				? [expectedWarning]
-				: /**
-					note: when testing previews we want this warning only onces, just for the build process
-					      previewing the application should not trigger the warning since that'll rely on the
-					      wrangler.json we generate (which should be sanitized)
-				   */
-					[expectedWarning],
-		);
+		/**
+		 * Note: we always expect the warning once for both values of `isBuild`.
+		 *       For dev is obvious, for builds we do get the warning onces because we get it when we
+		 *       build the application but not when we run its preview (since that reads the generated wrangler.json)
+		 */
+		expect(serverLogs.warns).toEqual([
+			expect.stringMatching(
+				/your workers configs contain configuration options which are ignored[\s\S]+preserve_file_names[\s\S]+tsconfig[\s\S]+build/,
+			),
+		]);
 	});
 
 	test('entry worker returns a response', async () => {
