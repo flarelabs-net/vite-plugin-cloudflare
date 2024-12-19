@@ -19,12 +19,13 @@ import {
 	resolveNodeAliases,
 } from './node-js-compat';
 import { resolvePluginConfig } from './plugin-config';
-import { toMiniflareRequest } from './utils';
+import { getOutputDirectory, toMiniflareRequest } from './utils';
 import type { PluginConfig, ResolvedPluginConfig } from './plugin-config';
 import type { Unstable_RawConfig } from 'wrangler';
 
 export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 	let resolvedPluginConfig: ResolvedPluginConfig;
+	let resolvedViteConfig: vite.ResolvedConfig;
 	let miniflare: Miniflare | undefined;
 
 	return {
@@ -39,16 +40,27 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 				},
 				environments:
 					resolvedPluginConfig.type === 'workers'
-						? Object.fromEntries(
-								Object.entries(resolvedPluginConfig.workers).map(
-									([environmentName, workerConfig]) => {
-										return [
-											environmentName,
-											createCloudflareEnvironmentOptions(workerConfig),
-										];
-									},
+						? {
+								...Object.fromEntries(
+									Object.entries(resolvedPluginConfig.workers).map(
+										([environmentName, workerConfig]) => {
+											return [
+												environmentName,
+												createCloudflareEnvironmentOptions(
+													workerConfig,
+													userConfig,
+													environmentName,
+												),
+											];
+										},
+									),
 								),
-							)
+								client: {
+									build: {
+										outDir: getOutputDirectory(userConfig, 'client'),
+									},
+								},
+							}
 						: undefined,
 				builder: {
 					async buildApp(builder) {
@@ -89,13 +101,8 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 				},
 			};
 		},
-		configEnvironment(name, options) {
-			if (resolvedPluginConfig.type === 'workers' && !options.build?.outDir) {
-				options.build = {
-					...options.build,
-					outDir: path.join('dist', name),
-				};
-			}
+		configResolved(config) {
+			resolvedViteConfig = config;
 		},
 		async resolveId(source) {
 			if (resolvedPluginConfig.type === 'assets-only') {
@@ -159,7 +166,19 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 					resolvedPluginConfig.entryWorkerEnvironmentName;
 
 				if (isEntryWorker && workerConfig.assets) {
-					workerConfig.assets.directory = path.join('..', 'client');
+					const workerOutputDirectory = this.environment.config.build.outDir;
+					const clientOutputDirectory =
+						resolvedViteConfig.environments.client?.build.outDir;
+
+					assert(
+						clientOutputDirectory,
+						'Unexpected error: client output directory is undefined',
+					);
+
+					workerConfig.assets.directory = path.relative(
+						path.resolve(resolvedViteConfig.root, workerOutputDirectory),
+						path.resolve(resolvedViteConfig.root, clientOutputDirectory),
+					);
 				}
 
 				config = workerConfig;
