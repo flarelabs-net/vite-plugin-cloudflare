@@ -97,7 +97,7 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 							);
 						}
 
-						await writeDeployConfig(resolvedPluginConfig, resolvedViteConfig);
+						writeDeployConfig(resolvedPluginConfig, resolvedViteConfig);
 					},
 				},
 			};
