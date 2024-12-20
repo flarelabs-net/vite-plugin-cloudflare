@@ -8,6 +8,7 @@ import {
 	createCloudflareEnvironmentOptions,
 	initRunners,
 } from './cloudflare-environment';
+import { writeDeployConfig } from './deploy-config';
 import { getDevEntryWorker } from './dev';
 import {
 	getDevMiniflareOptions,
@@ -78,25 +79,25 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 							await builder.build(clientEnvironment);
 						}
 
-						if (resolvedPluginConfig.type === 'assets-only') {
-							return;
+						if (resolvedPluginConfig.type === 'workers') {
+							const workerEnvironments = Object.keys(
+								resolvedPluginConfig.workers,
+							).map((environmentName) => {
+								const environment = builder.environments[environmentName];
+
+								assert(environment, `${environmentName} environment not found`);
+
+								return environment;
+							});
+
+							await Promise.all(
+								workerEnvironments.map((environment) =>
+									builder.build(environment),
+								),
+							);
 						}
 
-						const workerEnvironments = Object.keys(
-							resolvedPluginConfig.workers,
-						).map((environmentName) => {
-							const environment = builder.environments[environmentName];
-
-							assert(environment, `${environmentName} environment not found`);
-
-							return environment;
-						});
-
-						await Promise.all(
-							workerEnvironments.map((environment) =>
-								builder.build(environment),
-							),
-						);
+						await writeDeployConfig(resolvedPluginConfig, resolvedViteConfig);
 					},
 				},
 			};
