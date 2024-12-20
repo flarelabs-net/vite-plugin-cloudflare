@@ -1,4 +1,8 @@
-import { DurableObject, WorkerEntrypoint } from 'cloudflare:workers';
+import {
+	DurableObject,
+	WorkerEntrypoint,
+	WorkflowEntrypoint,
+} from 'cloudflare:workers';
 import { INIT_PATH } from '../shared';
 import { stripInternalEnv } from './env';
 import { createModuleRunner, getWorkerEntryExport } from './module-runner';
@@ -14,6 +18,15 @@ interface DurableObjectConstructor<T = unknown> {
 	new (
 		...args: ConstructorParameters<typeof DurableObject<T>>
 	): DurableObject<T>;
+}
+
+interface WorkflowEntrypointConstructor<T = unknown> {
+	new (
+		// Constructor type to be added in https://github.com/cloudflare/workerd/pull/3239
+		// ...args: ConstructorParameters<typeof WorkflowEntrypoint<T>>
+		ctx: ExecutionContext,
+		env: T,
+	): WorkflowEntrypoint<T>;
 }
 
 const WORKER_ENTRYPOINT_KEYS = [
@@ -32,6 +45,8 @@ const DURABLE_OBJECT_KEYS = [
 	'webSocketClose',
 	'webSocketError',
 ] as const;
+
+const WORKFLOW_ENTRYPOINT_KEYS = ['run'] as const;
 
 function getRpcProperty(
 	ctor: WorkerEntrypointConstructor | DurableObjectConstructor,
@@ -315,6 +330,42 @@ export function createDurableObjectWrapper(
 		Wrapper.prototype[key] = async function (...args: unknown[]) {
 			const entryPath = this.env.__VITE_ENTRY_PATH__;
 			const { instance } = await this[kEnsureInstance]();
+			const maybeFn = instance[key];
+
+			if (typeof maybeFn !== 'function') {
+				throw new TypeError(
+					`Expected ${className} export of ${entryPath} to define a \`${key}()\` function.`,
+				);
+			}
+
+			return (maybeFn as (...args: unknown[]) => any).apply(instance, args);
+		};
+	}
+
+	return Wrapper;
+}
+
+export function createWorkflowEntrypointWrapper(
+	className: string,
+): WorkflowEntrypointConstructor<WrapperEnv> {
+	class Wrapper extends WorkflowEntrypoint<WrapperEnv> {}
+
+	for (const key of WORKFLOW_ENTRYPOINT_KEYS) {
+		Wrapper.prototype[key] = async function (...args: unknown[]) {
+			const entryPath = this.env.__VITE_ENTRY_PATH__;
+			const ctor = (await getWorkerEntryExport(
+				entryPath,
+				className,
+			)) as WorkflowEntrypointConstructor;
+			const userEnv = stripInternalEnv(this.env);
+			const instance = new ctor(this.ctx, userEnv);
+
+			if (!(instance instanceof WorkflowEntrypoint)) {
+				throw new TypeError(
+					`Expected ${className} export of ${entryPath} to be a subclass of \`WorkflowEntrypoint\`.`,
+				);
+			}
+
 			const maybeFn = instance[key];
 
 			if (typeof maybeFn !== 'function') {
