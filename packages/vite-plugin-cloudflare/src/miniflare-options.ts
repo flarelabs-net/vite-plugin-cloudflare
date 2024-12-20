@@ -14,7 +14,7 @@ import {
 	ASSET_WORKERS_COMPATIBILITY_DATE,
 	ROUTER_WORKER_NAME,
 } from './constants';
-import { getConfigPaths } from './deploy-config';
+import { getWorkerConfigPaths } from './deploy-config';
 import type { CloudflareDevEnvironment } from './cloudflare-environment';
 import type {
 	PersistState,
@@ -459,7 +459,7 @@ export function getPreviewMiniflareOptions(
 	vitePreviewServer: vite.PreviewServer,
 ): MiniflareOptions {
 	const resolvedViteConfig = vitePreviewServer.config;
-	const configPaths = getConfigPaths(resolvedViteConfig.root);
+	const configPaths = getWorkerConfigPaths(resolvedViteConfig.root);
 	const configs = configPaths.map((configPath) =>
 		unstable_readConfig({ config: configPath }),
 	);

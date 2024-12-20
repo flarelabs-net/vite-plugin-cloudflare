@@ -13,7 +13,7 @@ function getDeployConfigPath(root: string) {
 	return path.resolve(root, '.wrangler', 'deploy', 'config.json');
 }
 
-export function getConfigPaths(root: string) {
+export function getWorkerConfigPaths(root: string) {
 	const deployConfigPath = getDeployConfigPath(root);
 	const deployConfig = JSON.parse(
 		fs.readFileSync(deployConfigPath, 'utf-8'),
@@ -24,6 +24,17 @@ export function getConfigPaths(root: string) {
 		...deployConfig.auxiliaryWorkers,
 	].map(({ configPath }) =>
 		path.resolve(path.dirname(deployConfigPath), configPath),
+	);
+}
+
+function getRelativePathToWorkerConfig(
+	deployConfigDirectory: string,
+	root: string,
+	outputDirectory: string,
+) {
+	return path.relative(
+		deployConfigDirectory,
+		path.resolve(root, outputDirectory, 'wrangler.json'),
 	);
 }
 
@@ -46,13 +57,10 @@ export function writeDeployConfig(
 		);
 
 		const deployConfig: DeployConfig = {
-			configPath: path.relative(
+			configPath: getRelativePathToWorkerConfig(
 				deployConfigDirectory,
-				path.resolve(
-					resolvedViteConfig.root,
-					clientOutputDirectory,
-					'wrangler.json',
-				),
+				resolvedViteConfig.root,
+				clientOutputDirectory,
 			),
 			auxiliaryWorkers: [],
 		};
@@ -69,16 +77,14 @@ export function writeDeployConfig(
 					`Unexpected error: ${environmentName} environment output directory is undefined`,
 				);
 
-				const configPath = path.relative(
-					deployConfigDirectory,
-					path.resolve(
+				return [
+					environmentName,
+					getRelativePathToWorkerConfig(
+						deployConfigDirectory,
 						resolvedViteConfig.root,
 						outputDirectory,
-						'wrangler.json',
 					),
-				);
-
-				return [environmentName, configPath];
+				];
 			}),
 		);
 
