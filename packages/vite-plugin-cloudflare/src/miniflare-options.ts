@@ -5,15 +5,13 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Log, LogLevel, Response as MiniflareResponse } from 'miniflare';
 import * as vite from 'vite';
-import {
-	unstable_getMiniflareWorkerOptions,
-	unstable_readConfig,
-} from 'wrangler';
+import { unstable_getMiniflareWorkerOptions } from 'wrangler';
 import {
 	ASSET_WORKER_NAME,
 	ASSET_WORKERS_COMPATIBILITY_DATE,
 	ROUTER_WORKER_NAME,
 } from './constants';
+import { readWorkerConfig } from './worker-config';
 import type { CloudflareDevEnvironment } from './cloudflare-environment';
 import type {
 	PersistState,
@@ -480,17 +478,14 @@ export function getPreviewMiniflareOptions(
 ): MiniflareOptions {
 	const viteConfig = vitePreviewServer.config;
 
-	const configs = [
-		unstable_readConfig(
-			{
-				config: getConfigPath(
-					viteConfig,
-					resolvedPluginConfig.type === 'workers'
-						? resolvedPluginConfig.entryWorkerEnvironmentName
-						: 'client',
-				),
-			},
-			{},
+	const rawConfigsDetails = [
+		readWorkerConfig(
+			getConfigPath(
+				viteConfig,
+				resolvedPluginConfig.type === 'workers'
+					? resolvedPluginConfig.entryWorkerEnvironmentName
+					: 'client',
+			),
 		),
 		...(resolvedPluginConfig.type === 'workers'
 			? Object.keys(resolvedPluginConfig.workers)
@@ -500,17 +495,12 @@ export function getPreviewMiniflareOptions(
 							resolvedPluginConfig.entryWorkerEnvironmentName,
 					)
 					.map((environmentName) =>
-						unstable_readConfig(
-							{
-								config: getConfigPath(viteConfig, environmentName),
-							},
-							{},
-						),
+						readWorkerConfig(getConfigPath(viteConfig, environmentName)),
 					)
 			: []),
 	];
 
-	const workers: Array<WorkerOptions> = configs.map((config) => {
+	const workers: Array<WorkerOptions> = rawConfigsDetails.map(({ config }) => {
 		const miniflareWorkerOptions = unstable_getMiniflareWorkerOptions(config);
 
 		const { ratelimits, ...workerOptions } =
