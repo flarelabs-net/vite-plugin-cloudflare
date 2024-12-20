@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import * as fsp from 'node:fs/promises';
+import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vite from 'vite';
 import type { ResolvedPluginConfig } from './plugin-config';
@@ -9,17 +9,32 @@ interface DeployConfig {
 	auxiliaryWorkers: Array<{ configPath: string }>;
 }
 
-export async function writeDeployConfig(
+function getDeployConfigPath(root: string) {
+	return path.resolve(root, '.wrangler', 'deploy', 'config.json');
+}
+
+export function getConfigPaths(root: string) {
+	const deployConfigPath = getDeployConfigPath(root);
+	const deployConfig = JSON.parse(
+		fs.readFileSync(deployConfigPath, 'utf-8'),
+	) as DeployConfig;
+
+	return [
+		{ configPath: deployConfig.configPath },
+		...deployConfig.auxiliaryWorkers,
+	].map(({ configPath }) =>
+		path.resolve(path.dirname(deployConfigPath), configPath),
+	);
+}
+
+export function writeDeployConfig(
 	resolvedPluginConfig: ResolvedPluginConfig,
 	resolvedViteConfig: vite.ResolvedConfig,
 ) {
-	const deployConfigDirectory = path.resolve(
-		resolvedViteConfig.root,
-		'.wrangler',
-		'deploy',
-	);
+	const deployConfigPath = getDeployConfigPath(resolvedViteConfig.root);
+	const deployConfigDirectory = path.dirname(deployConfigPath);
 
-	await fsp.mkdir(deployConfigDirectory, { recursive: true });
+	fs.mkdirSync(deployConfigDirectory, { recursive: true });
 
 	if (resolvedPluginConfig.type === 'assets-only') {
 		const clientOutputDirectory =
@@ -33,15 +48,16 @@ export async function writeDeployConfig(
 		const deployConfig: DeployConfig = {
 			configPath: path.relative(
 				deployConfigDirectory,
-				path.resolve(clientOutputDirectory, 'wrangler.json'),
+				path.resolve(
+					resolvedViteConfig.root,
+					clientOutputDirectory,
+					'wrangler.json',
+				),
 			),
 			auxiliaryWorkers: [],
 		};
 
-		await fsp.writeFile(
-			path.join(deployConfigDirectory, 'config.json'),
-			JSON.stringify(deployConfig),
-		);
+		fs.writeFileSync(deployConfigPath, JSON.stringify(deployConfig));
 	} else {
 		const workerConfigPaths = Object.fromEntries(
 			Object.keys(resolvedPluginConfig.workers).map((environmentName) => {
@@ -82,9 +98,6 @@ export async function writeDeployConfig(
 
 		const deployConfig: DeployConfig = { configPath, auxiliaryWorkers };
 
-		await fsp.writeFile(
-			path.join(deployConfigDirectory, 'config.json'),
-			JSON.stringify(deployConfig),
-		);
+		fs.writeFileSync(deployConfigPath, JSON.stringify(deployConfig));
 	}
 }
