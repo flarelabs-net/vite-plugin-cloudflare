@@ -8,6 +8,7 @@ import {
 	createCloudflareEnvironmentOptions,
 	initRunners,
 } from './cloudflare-environment';
+import { writeDeployConfig } from './deploy-config';
 import { getDevEntryWorker } from './dev';
 import {
 	getDevMiniflareOptions,
@@ -30,7 +31,11 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 
 	return {
 		name: 'vite-plugin-cloudflare',
-		config(userConfig) {
+		config(userConfig, env) {
+			if (env.isPreview) {
+				return { appType: 'custom' };
+			}
+
 			resolvedPluginConfig = resolvePluginConfig(pluginConfig, userConfig);
 
 			return {
@@ -78,25 +83,25 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 							await builder.build(clientEnvironment);
 						}
 
-						if (resolvedPluginConfig.type === 'assets-only') {
-							return;
+						if (resolvedPluginConfig.type === 'workers') {
+							const workerEnvironments = Object.keys(
+								resolvedPluginConfig.workers,
+							).map((environmentName) => {
+								const environment = builder.environments[environmentName];
+
+								assert(environment, `${environmentName} environment not found`);
+
+								return environment;
+							});
+
+							await Promise.all(
+								workerEnvironments.map((environment) =>
+									builder.build(environment),
+								),
+							);
 						}
 
-						const workerEnvironments = Object.keys(
-							resolvedPluginConfig.workers,
-						).map((environmentName) => {
-							const environment = builder.environments[environmentName];
-
-							assert(environment, `${environmentName} environment not found`);
-
-							return environment;
-						});
-
-						await Promise.all(
-							workerEnvironments.map((environment) =>
-								builder.build(environment),
-							),
-						);
+						writeDeployConfig(resolvedPluginConfig, resolvedViteConfig);
 					},
 				},
 			};
@@ -247,7 +252,10 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 		},
 		configurePreviewServer(vitePreviewServer) {
 			const miniflare = new Miniflare(
-				getPreviewMiniflareOptions(resolvedPluginConfig, vitePreviewServer),
+				getPreviewMiniflareOptions(
+					vitePreviewServer,
+					pluginConfig.persistState ?? true,
+				),
 			);
 
 			const middleware = createMiddleware(({ request }) => {

@@ -14,6 +14,7 @@ import {
 	ASSET_WORKERS_COMPATIBILITY_DATE,
 	ROUTER_WORKER_NAME,
 } from './constants';
+import { getWorkerConfigPaths } from './deploy-config';
 import type { CloudflareDevEnvironment } from './cloudflare-environment';
 import type {
 	PersistState,
@@ -187,7 +188,7 @@ export function getDevMiniflareOptions(
 	resolvedPluginConfig: ResolvedPluginConfig,
 	viteDevServer: vite.ViteDevServer,
 ): MiniflareOptions {
-	const viteConfig = viteDevServer.config;
+	const resolvedViteConfig = viteDevServer.config;
 	const entryWorkerConfig = getEntryWorkerConfig(resolvedPluginConfig);
 	const assetsConfig =
 		resolvedPluginConfig.type === 'assets-only'
@@ -244,7 +245,7 @@ export function getDevMiniflareOptions(
 			serviceBindings: {
 				__VITE_ASSET_EXISTS__: async (request) => {
 					const { pathname } = new URL(request.url);
-					const filePath = path.join(viteConfig.root, pathname);
+					const filePath = path.join(resolvedViteConfig.root, pathname);
 
 					let exists: boolean;
 
@@ -258,7 +259,7 @@ export function getDevMiniflareOptions(
 				},
 				__VITE_FETCH_ASSET__: async (request) => {
 					const { pathname } = new URL(request.url);
-					const filePath = path.join(viteConfig.root, pathname);
+					const filePath = path.join(resolvedViteConfig.root, pathname);
 
 					try {
 						let html = await fsp.readFile(filePath, 'utf-8');
@@ -295,7 +296,7 @@ export function getDevMiniflareOptions(
 							unsafeEvalBinding: '__VITE_UNSAFE_EVAL__',
 							bindings: {
 								...workerOptions.bindings,
-								__VITE_ROOT__: viteConfig.root,
+								__VITE_ROOT__: resolvedViteConfig.root,
 								__VITE_ENTRY_PATH__: workerConfig.main,
 							},
 							serviceBindings: {
@@ -367,7 +368,7 @@ export function getDevMiniflareOptions(
 	const workerToWorkflowEntrypointClassNamesMap =
 		getWorkerToWorkflowEntrypointClassNamesMap(userWorkers);
 
-	const logger = new ViteMiniflareLogger(viteConfig);
+	const logger = new ViteMiniflareLogger(resolvedViteConfig);
 
 	return {
 		log: logger,
@@ -378,7 +379,10 @@ export function getDevMiniflareOptions(
 				logger.logWithLevel(LogLevel.ERROR, decoder.decode(error)),
 			);
 		},
-		...getPersistence(viteConfig.root, resolvedPluginConfig.persistState),
+		...getPersistence(
+			resolvedViteConfig.root,
+			resolvedPluginConfig.persistState,
+		),
 		workers: [
 			...assetWorkers,
 			...userWorkers.map((workerOptions) => {
@@ -450,65 +454,15 @@ export function getDevMiniflareOptions(
 	};
 }
 
-function getConfigPath(
-	viteConfig: vite.ResolvedConfig,
-	environmentName: string,
-) {
-	const outDir = viteConfig.environments[environmentName]?.build.outDir;
-
-	assert(outDir, `No output directory for environment ${environmentName}`);
-
-	const configPath = path.resolve(viteConfig.root, outDir, 'wrangler.json');
-
-	return configPath;
-}
-
-function getEntryModule(main: string | undefined) {
-	assert(
-		main,
-		'Unexpected error: missing main field in miniflareWorkerOptions',
-	);
-
-	return {
-		scriptPath: main,
-	};
-}
-
 export function getPreviewMiniflareOptions(
-	resolvedPluginConfig: ResolvedPluginConfig,
 	vitePreviewServer: vite.PreviewServer,
+	persistState: PersistState,
 ): MiniflareOptions {
-	const viteConfig = vitePreviewServer.config;
-
-	const configs = [
-		unstable_readConfig(
-			{
-				config: getConfigPath(
-					viteConfig,
-					resolvedPluginConfig.type === 'workers'
-						? resolvedPluginConfig.entryWorkerEnvironmentName
-						: 'client',
-				),
-			},
-			{},
-		),
-		...(resolvedPluginConfig.type === 'workers'
-			? Object.keys(resolvedPluginConfig.workers)
-					.filter(
-						(environmentName) =>
-							environmentName !==
-							resolvedPluginConfig.entryWorkerEnvironmentName,
-					)
-					.map((environmentName) =>
-						unstable_readConfig(
-							{
-								config: getConfigPath(viteConfig, environmentName),
-							},
-							{},
-						),
-					)
-			: []),
-	];
+	const resolvedViteConfig = vitePreviewServer.config;
+	const configPaths = getWorkerConfigPaths(resolvedViteConfig.root);
+	const configs = configPaths.map((configPath) =>
+		unstable_readConfig({ config: configPath }),
+	);
 
 	const workers: Array<WorkerOptions> = configs.map((config) => {
 		const miniflareWorkerOptions = unstable_getMiniflareWorkerOptions(config);
@@ -521,15 +475,13 @@ export function getPreviewMiniflareOptions(
 			// We have to add the name again because `unstable_getMiniflareWorkerOptions` sets it to `undefined`
 			name: config.name,
 			modules: true,
-			...(resolvedPluginConfig.type === 'workers'
-				? getEntryModule(miniflareWorkerOptions.main)
-				: {
-						script: '',
-					}),
+			...(miniflareWorkerOptions.main
+				? { scriptPath: miniflareWorkerOptions.main }
+				: { script: '' }),
 		};
 	});
 
-	const logger = new ViteMiniflareLogger(viteConfig);
+	const logger = new ViteMiniflareLogger(resolvedViteConfig);
 
 	return {
 		log: logger,
@@ -540,7 +492,7 @@ export function getPreviewMiniflareOptions(
 				logger.logWithLevel(LogLevel.ERROR, decoder.decode(error)),
 			);
 		},
-		...getPersistence(viteConfig.root, resolvedPluginConfig.persistState),
+		...getPersistence(resolvedViteConfig.root, persistState),
 		workers,
 	};
 }
