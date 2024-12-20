@@ -455,8 +455,8 @@ export function getDevMiniflareOptions(
 }
 
 export function getPreviewMiniflareOptions(
-	resolvedPluginConfig: ResolvedPluginConfig,
 	vitePreviewServer: vite.PreviewServer,
+	persistState: PersistState,
 ): MiniflareOptions {
 	const resolvedViteConfig = vitePreviewServer.config;
 	const configPaths = getWorkerConfigPaths(resolvedViteConfig.root);
@@ -492,10 +492,7 @@ export function getPreviewMiniflareOptions(
 				logger.logWithLevel(LogLevel.ERROR, decoder.decode(error)),
 			);
 		},
-		...getPersistence(
-			resolvedViteConfig.root,
-			resolvedPluginConfig.persistState,
-		),
+		...getPersistence(resolvedViteConfig.root, persistState),
 		workers,
 	};
 }

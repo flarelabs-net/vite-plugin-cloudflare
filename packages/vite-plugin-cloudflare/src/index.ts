@@ -31,7 +31,11 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 
 	return {
 		name: 'vite-plugin-cloudflare',
-		config(userConfig) {
+		config(userConfig, env) {
+			if (env.isPreview) {
+				return { appType: 'custom' };
+			}
+
 			resolvedPluginConfig = resolvePluginConfig(pluginConfig, userConfig);
 
 			return {
@@ -248,7 +252,10 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 		},
 		configurePreviewServer(vitePreviewServer) {
 			const miniflare = new Miniflare(
-				getPreviewMiniflareOptions(resolvedPluginConfig, vitePreviewServer),
+				getPreviewMiniflareOptions(
+					vitePreviewServer,
+					pluginConfig.persistState ?? true,
+				),
 			);
 
 			const middleware = createMiddleware(({ request }) => {
