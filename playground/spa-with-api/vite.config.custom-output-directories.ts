@@ -1,4 +1,5 @@
 import { cloudflare } from '@flarelabs-net/vite-plugin-cloudflare';
+import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
@@ -6,17 +7,11 @@ export default defineConfig({
 		outDir: 'custom-root-output-directory',
 	},
 	environments: {
-		worker_b: {
+		client: {
 			build: {
-				outDir: 'custom-worker-output-directory',
+				outDir: 'custom-client-output-directory',
 			},
 		},
 	},
-	plugins: [
-		cloudflare({
-			configPath: './worker-a/wrangler.toml',
-			auxiliaryWorkers: [{ configPath: './worker-b/wrangler.toml' }],
-			persistState: false,
-		}),
-	],
+	plugins: [react(), cloudflare({ persistState: false })],
 });
