@@ -74,12 +74,14 @@ export function injectGlobalCode(
  * So instead we alias these to a virtual module, which are then handled with environment specific code in the `resolveId` handler
  */
 export function getNodeCompatAliases() {
-	return Object.fromEntries(
-		Object.keys(preset.alias).map((from) => [
-			from,
-			CLOUDFLARE_VIRTUAL_PREFIX + from,
-		]),
-	);
+	const aliases: Record<string, string> = {};
+	Object.keys(preset.alias).forEach((key) => {
+		// Don't create aliases for modules that are already marked as external
+		if (!preset.external.includes(key)) {
+			aliases[key] = CLOUDFLARE_VIRTUAL_PREFIX + key;
+		}
+	});
+	return aliases;
 }
 
 /**
@@ -97,12 +99,10 @@ export function resolveNodeAliases(source: string, workerConfig: WorkerConfig) {
 	const from = source.slice(CLOUDFLARE_VIRTUAL_PREFIX.length);
 	const alias = preset.alias[from];
 
-	if (alias) {
-		return {
-			id: alias,
-			external: preset.external.includes(alias),
-		};
+	if (alias && preset.external.includes(alias)) {
+		throw new Error(`Alias to external: ${source} -> ${alias}`);
 	}
+	return alias;
 }
 
 /**

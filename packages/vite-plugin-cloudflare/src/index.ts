@@ -109,16 +109,7 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 			}
 
 			const aliased = resolveNodeAliases(source, workerConfig);
-
-			if (!aliased) {
-				return;
-			}
-
-			if (aliased.external) {
-				return aliased.id;
-			} else {
-				return await this.resolve(aliased.id);
-			}
+			return aliased && (await this.resolve(aliased));
 		},
 		async transform(code, id) {
 			if (resolvedPluginConfig.type === 'assets-only') {
