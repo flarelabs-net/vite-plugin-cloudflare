@@ -1,0 +1,12 @@
+name = "ssr"
+main = "./entry.ssr.tsx"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+assets = { binding = "ASSETS" }
+
+[durable_objects]
+bindings = [{ name = "SERVER", class_name = "Server", script_name = "server" }]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["Server"]
