@@ -56,9 +56,9 @@ function reactServerDOM({
 	const serverModules = new Map<string, string>();
 	let clientOutput: vite.Rollup.RollupOutput | undefined;
 
-	const referencesServer = path.resolve('src/react/references.server.ts');
-	const referencesSsr = path.resolve('src/react/references.ssr.ts');
-	const referencesClient = path.resolve('src/react/references.client.ts');
+	const referencesServer = path.resolve('src/framework/references.server.ts');
+	const referencesSsr = path.resolve('src/framework/references.ssr.ts');
+	const referencesClient = path.resolve('src/framework/references.client.ts');
 
 	function generateId(
 		filename: string,
@@ -223,20 +223,6 @@ function reactServerDOM({
 			}
 		},
 		transform(code, id) {
-			if (
-				env.command === 'serve' &&
-				this.environment.name === clientEnvironment &&
-				clientEntries.has(id)
-			) {
-				const split = react.preambleCode
-					.replace('__BASE__', this.environment.config.base)
-					.split('\n');
-				code = `${split.slice(2).join('\n')};${code}`;
-				if (!code.includes('import RefreshRuntime')) {
-					code = split.slice(0, 2).join('\n') + code;
-				}
-			}
-
 			const ext = id.slice(id.lastIndexOf('.'));
 			if (EXTENSIONS_TO_TRANSFORM.has(ext)) {
 				if (serverEnvironments.has(this.environment.name)) {
@@ -263,11 +249,30 @@ function reactServerDOM({
 			return code;
 		},
 		resolveId(id) {
+			if (id === 'virtual:browser-entry') {
+				return '\0virtual:browser-entry';
+			}
 			if (id === 'virtual:react-manifest') {
 				return '\0virtual:react-manifest';
 			}
 		},
-		load(id) {
+		async load(id) {
+			if (id === '\0virtual:browser-entry') {
+				const inputs = rollupInputsToArray(
+					this.environment.config.build.rollupOptions.input,
+				);
+
+				const resolved = await this.resolve(inputs[0]!);
+				if (!resolved) {
+					throw new Error(`Could not resolve ${inputs[0]}`);
+				}
+
+				return `${react.preambleCode.replace(
+					'__BASE__',
+					this.environment.config.base,
+				)};import(${JSON.stringify(resolved.id)});`;
+			}
+
 			if (id === '\0virtual:react-manifest') {
 				if (env.command === 'serve') {
 					if (serverEnvironments.has(this.environment.name)) {
@@ -312,7 +317,7 @@ function reactServerDOM({
 					}
 
 					return `
-            ${ssrEnvironments.has(this.environment.name) ? `export const bootstrapModules = [${JSON.stringify(Array.from(clientEntries)[0])}];` : []}
+            ${ssrEnvironments.has(this.environment.name) ? `export const bootstrapModules = [${JSON.stringify('/@id/__x00__virtual:browser-entry')}];` : []}
 
             export const manifest = {
               resolveClientReference([id, name]) {

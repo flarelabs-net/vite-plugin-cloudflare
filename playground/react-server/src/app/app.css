@@ -1,0 +1,168 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+	:root {
+		--sidebar-width-mobile: 80%;
+		--sidebar-width-desktop: 16rem;
+
+		--background: white;
+		--foreground: black;
+		--foreground-muted: #666;
+		--border: black;
+		--primary: blue;
+		--primary-foreground: white;
+		--destructive: red;
+		--destructive-foreground: white;
+
+		@media (prefers-color-scheme: dark) {
+			--background: black;
+			--foreground: white;
+			--foreground-muted: #999;
+			--border: white;
+			--primary: blue;
+			--primary-foreground: white;
+			--destructive: red;
+			--destructive-foreground: white;
+		}
+	}
+
+	*:focus-visible {
+		@apply outline-primary;
+	}
+
+	html,
+	body {
+		@apply bg-background text-foreground subpixel-antialiased;
+
+		@media (prefers-color-scheme: dark) {
+			color-scheme: dark;
+		}
+	}
+}
+
+@layer components {
+	.typography {
+		@apply text-sm lg:text-base;
+	}
+
+	.typography hr,
+	.hr {
+		@apply border border-border my-6;
+	}
+
+	.typography h1,
+	.h1 {
+		@apply text-2xl md:text-3xl font-bold [&:not(:first-child)]:mt-10 mb-6;
+	}
+
+	.typography h2,
+	.h2 {
+		@apply text-xl md:text-2xl font-bold [&:not(:first-child)]:mt-10 mb-6;
+	}
+
+	.typography h3,
+	.h3 {
+		@apply text-lg md:text-xl font-bold [&:not(:first-child)]:mt-10 mb-6;
+	}
+
+	.typography h4,
+	.h4 {
+		@apply text-base md:text-lg font-bold [&:not(:first-child)]:mt-10 mb-6;
+	}
+
+	.typography h5,
+	.h5 {
+		@apply text-sm lg:text-base font-bold [&:not(:first-child)]:mt-10 mb-6;
+	}
+
+	.typography h6,
+	.h6 {
+		@apply text-xs lg:text-sm font-bold [&:not(:first-child)]:mt-10 mb-6;
+	}
+
+	.typography p,
+	.p {
+		@apply mb-6 [&:not(:first-child)]:mt-6;
+	}
+
+	.typography a,
+	.a {
+		@apply underline decoration-2;
+	}
+
+	.typography abbr,
+	.typography del,
+	.typography ins {
+		@apply decoration-2;
+	}
+
+	.typography ul {
+		@apply list-disc pl-4 mb-6 [&:not(:first-child)]:mt-6 space-y-2;
+	}
+
+	.typography ol {
+		@apply list-decimal pl-7 mb-6 [&:not(:first-child)]:mt-6 space-y-2;
+	}
+
+	.typography dl {
+		@apply space-y-2 space-y-2;
+	}
+
+	.typography dt {
+		@apply font-bold;
+	}
+
+	.typography dd {
+		@apply ml-4;
+	}
+
+	.typography ul ul,
+	.typography ol ul,
+	.typography ol ol,
+	.typography ul ol {
+		@apply my-0;
+	}
+
+	.typography blockquote {
+		@apply border-l-4 border-border pl-4 italic mb-6 [&:not(:first-child)]:mt-6;
+	}
+
+	.typography pre {
+		@apply mb-6 [&:not(:first-child)]:mt-6;
+	}
+
+	.typography pre:has(code) {
+		@apply overflow-x-auto p-4 border-2 border-border;
+	}
+
+	.typography code {
+		@apply font-mono text-base;
+	}
+
+	.typography table,
+	.table {
+		@apply w-full border-x-2 border-t-2 border-border mb-6 [&:not(:first-child)]:mt-6;
+	}
+
+	.typography thead,
+	.table thead {
+		@apply font-bold text-left;
+	}
+
+	.typography tr,
+	.table tr {
+		@apply border-b-2 border-border;
+	}
+
+	.typography th,
+	.table th {
+		@apply font-bold border-r-2 border-border p-2 align-top;
+	}
+
+	.typography td,
+	.table td {
+		@apply border-r-2 border-border p-2 align-top;
+	}
+}
