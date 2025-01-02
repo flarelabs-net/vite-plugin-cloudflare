@@ -6,6 +6,7 @@ import react from '@vitejs/plugin-react';
 import { clientTransform, serverTransform } from 'unplugin-rsc';
 import * as vite from 'vite';
 import { defineConfig } from 'vite';
+import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
 	environments: {
@@ -16,10 +17,9 @@ export default defineConfig({
 				},
 			},
 		},
-		// server: {},
-		// ssr: {},
 	},
 	plugins: [
+		tsconfigPaths({ configNames: ['tsconfig.client.json'] }),
 		react(),
 		reactServerDOM({
 			clientEnvironment: 'client',

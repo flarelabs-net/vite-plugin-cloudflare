@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState, useOptimistic } from 'react';
+import { Button } from './components/ui/button';
 
 export function Counter({
 	count,
@@ -20,7 +21,7 @@ export function Counter({
 
 	return (
 		<form action={actionIncrement}>
-			Count: {optimisticCount} <button type="submit">Increment</button>
+			Count: {optimisticCount} <Button type="submit">Increment</Button>
 		</form>
 	);
 }

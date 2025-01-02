@@ -7,6 +7,10 @@
 			"@types/dom-navigation",
 			"@types/node",
 			"vite/client"
-		]
+		],
+		"rootDir": ".",
+		"paths": {
+			"~/*": ["src/app/*"]
+		}
 	}
 }
