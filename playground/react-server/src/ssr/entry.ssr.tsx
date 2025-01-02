@@ -7,13 +7,12 @@ import { bootstrapModules, manifest } from 'virtual:react-manifest';
 import type { ServerPayload } from '../server/entry.server.js';
 
 type CloudflareEnv = {
-	SERVER: DurableObjectNamespace;
+	SERVER: Fetcher;
 };
 
 export default {
 	async fetch(request, { SERVER }) {
-		const stub = SERVER.get(SERVER.idFromName(''));
-		const serverResponse = await stub.fetch(request);
+		const serverResponse = await SERVER.fetch(request);
 
 		if (request.headers.get('Accept')?.match(/\btext\/x-component\b/)) {
 			return serverResponse;

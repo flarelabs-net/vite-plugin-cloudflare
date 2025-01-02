@@ -1,10 +1,16 @@
-import { getEnv } from './context';
+import { getEnv, getURL } from './context';
 import { Counter } from './counter';
 
 export async function App() {
 	const env = getEnv();
-	const stub = env.COUNTER.get(env.COUNTER.idFromName(''));
-	const count = await stub.getCounterValue();
+	const url = getURL();
+
+	const counterName = url.searchParams.get('name');
+
+	const stub = counterName
+		? env.COUNTER.get(env.COUNTER.idFromName(counterName))
+		: null;
+	const count = stub ? await stub.getCounterValue() : null;
 
 	return (
 		<html lang="en">
@@ -14,16 +20,26 @@ export async function App() {
 			</head>
 			<body>
 				<h1>Hello, World!</h1>
-				<Counter
-					count={count}
-					increment={async () => {
-						'use server';
+				{counterName && typeof count === 'number' ? (
+					<Counter
+						count={count}
+						increment={async () => {
+							'use server';
 
-						const env = getEnv();
-						const stub = env.COUNTER.get(env.COUNTER.idFromName(''));
-						await stub.increment();
-					}}
-				/>
+							const env = getEnv();
+							const stub = env.COUNTER.get(env.COUNTER.idFromName(counterName));
+							await stub.increment();
+						}}
+					/>
+				) : (
+					<form method="GET">
+						<label>
+							Counter Name:
+							<input name="name" />
+						</label>
+						<button type="submit">Activate Counter</button>
+					</form>
+				)}
 			</body>
 		</html>
 	);

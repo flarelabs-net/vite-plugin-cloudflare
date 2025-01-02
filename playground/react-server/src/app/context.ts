@@ -12,6 +12,7 @@ export type UNSAFE_Context = {
 		error?: unknown;
 	};
 	env: CloudflareEnv;
+	url: URL;
 };
 
 export const UNSAFE_ContextStorage = new AsyncLocalStorage<UNSAFE_Context>();
@@ -36,4 +37,8 @@ export function setActionState<T>(state: T) {
 
 export function getEnv() {
 	return ctx().env;
+}
+
+export function getURL() {
+	return ctx().url;
 }

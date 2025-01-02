@@ -8,29 +8,7 @@ import { UNSAFE_ContextStorage } from '../app/context';
 import type { CloudflareEnv, UNSAFE_Context } from '../app/context';
 import type { ReactFormState } from 'react-dom/client';
 
-export class Counter extends DurableObject {
-	async getCounterValue() {
-		let value = ((await this.ctx.storage.get('value')) as number) || 0;
-
-		return value;
-	}
-
-	async increment(amount = 1) {
-		let value = ((await this.ctx.storage.get('value')) as number) || 0;
-		value += amount;
-		await this.ctx.storage.put('value', value);
-
-		return value;
-	}
-
-	async decrement(amount = 1) {
-		let value = ((await this.ctx.storage.get('value')) as number) || 0;
-		value -= amount;
-		await this.ctx.storage.put('value', value);
-
-		return value;
-	}
-}
+export { Counter } from './counter';
 
 export type ServerPayload = {
 	formState?: ReactFormState;
@@ -38,10 +16,13 @@ export type ServerPayload = {
 	root: React.JSX.Element;
 };
 
-export class Server extends DurableObject<CloudflareEnv> {
-	override async fetch(request: Request) {
+export default {
+	async fetch(request, env) {
+		const url = new URL(request.url);
+
 		const ctx: UNSAFE_Context = {
-			env: this.env,
+			env,
+			url,
 		};
 
 		return await UNSAFE_ContextStorage.run(ctx, async () => {
@@ -110,14 +91,6 @@ export class Server extends DurableObject<CloudflareEnv> {
 					'Content-Type': 'text/x-component',
 				},
 			});
-		});
-	}
-}
-
-export default {
-	fetch(request) {
-		return new Response('Do not use this handler directly', {
-			status: 400,
 		});
 	},
 } satisfies ExportedHandler<CloudflareEnv>;

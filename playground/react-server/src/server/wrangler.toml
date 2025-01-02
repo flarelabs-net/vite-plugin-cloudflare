@@ -4,11 +4,8 @@ compatibility_date = "2024-12-05"
 compatibility_flags = ["nodejs_compat"]
 
 [durable_objects]
-bindings = [
-  { name = "COUNTER", class_name = "Counter" },
-  { name = "SERVER", class_name = "Server" }
-]
+bindings = [{ name = "COUNTER", class_name = "Counter" }]
 
 [[migrations]]
 tag = "v1"
-new_classes = ["Counter", "Server"]
+new_classes = ["Counter"]
