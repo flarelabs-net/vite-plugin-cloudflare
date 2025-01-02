@@ -8,10 +8,6 @@ import * as vite from 'vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-	builder: {
-		sharedConfigBuild: true,
-		sharedPlugins: true,
-	},
 	environments: {
 		client: {
 			build: {
@@ -24,12 +20,12 @@ export default defineConfig({
 		// ssr: {},
 	},
 	plugins: [
+		react(),
 		reactServerDOM({
 			clientEnvironment: 'client',
 			serverEnvironments: ['server'],
 			ssrEnvironments: ['ssr'],
 		}),
-		react(),
 		cloudflare({
 			persistState: false,
 			configPath: 'src/ssr/wrangler.toml',
@@ -99,6 +95,8 @@ function reactServerDOM({
 
 			return vite.mergeConfig<vite.UserConfig, vite.UserConfig>(userConfig, {
 				builder: {
+					sharedConfigBuild: true,
+					sharedPlugins: true,
 					async buildApp(builder) {
 						let needsRebuild = true;
 						let isFirstBuild = true;

@@ -2,6 +2,11 @@
 	"extends": ["@vite-plugin-cloudflare/typescript-config/react.json"],
 	"include": ["src"],
 	"compilerOptions": {
-		"types": ["@cloudflare/workers-types", "@types/node", "vite/client"]
+		"types": [
+			"@cloudflare/workers-types",
+			"@types/dom-navigation",
+			"@types/node",
+			"vite/client"
+		]
 	}
 }

@@ -295,6 +295,9 @@ importers:
       '@flarelabs-net/vite-plugin-cloudflare':
         specifier: workspace:*
         version: link:../../packages/vite-plugin-cloudflare
+      '@types/dom-navigation':
+        specifier: ^1.0.4
+        version: 1.0.4
       '@types/node':
         specifier: catalog:default
         version: 22.10.1
@@ -1630,6 +1633,9 @@ packages:
 
   '@types/cookie@0.6.0':
     resolution: {integrity: sha512-4Kh9a6B2bQciAhf7FSuMRRkUWecJgJu9nPnx3yzpsfXX/c50REIqpHY4C82bXP90qrLtXtkDxTZosYO3UpOwlA==}
+
+  '@types/dom-navigation@1.0.4':
+    resolution: {integrity: sha512-s4pCS4jogEzXQsqoPZdLU+GA/5Wq+GoFsgiN2VGI8tw5I2Y/CftGJpC76iVhyoD7JTTEo+p0w+eh8SItMaxmgg==}
 
   '@types/estree@1.0.5':
     resolution: {integrity: sha512-/kYRxGDLWzHOB7q+wtSUQlFrtcdUccpfy+X+9iMBpHK8QLLhx2wIPYuS5DYtR9Wa/YlZAbIovy7qVdB1Aq6Lyw==}
@@ -3969,6 +3975,8 @@ snapshots:
       '@babel/types': 7.25.8
 
   '@types/cookie@0.6.0': {}
+
+  '@types/dom-navigation@1.0.4': {}
 
   '@types/estree@1.0.5': {}
 
