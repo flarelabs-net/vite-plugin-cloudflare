@@ -1,0 +1,32 @@
+{
+	"name": "@playground/react-server",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "vite build --app",
+		"check:types": "tsc --build",
+		"dev": "vite dev",
+		"preview": "vite preview"
+	},
+	"dependencies": {
+		"@jacob-ebey/react-server-dom-vite": "19.0.0-experimental.14",
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "catalog:default",
+		"@flarelabs-net/vite-plugin-cloudflare": "workspace:*",
+		"@types/dom-navigation": "^1.0.4",
+		"@types/node": "catalog:default",
+		"@types/react": "^19.0.0",
+		"@types/react-dom": "^19.0.0",
+		"@vite-plugin-cloudflare/typescript-config": "workspace:*",
+		"@vitejs/plugin-react": "^4.3.4",
+		"rsc-html-stream": "0.0.4",
+		"typescript": "catalog:default",
+		"unenv": "catalog:default",
+		"unplugin-rsc": "0.0.11",
+		"vite": "catalog:default",
+		"wrangler": "catalog:default"
+	}
+}
