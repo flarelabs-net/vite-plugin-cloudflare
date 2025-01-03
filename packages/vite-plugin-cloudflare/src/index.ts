@@ -100,8 +100,6 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 								),
 							);
 						}
-
-						writeDeployConfig(resolvedPluginConfig, resolvedViteConfig);
 					},
 				},
 			};
@@ -222,6 +220,8 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 			}
 		},
 		async buildEnd() {
+			writeDeployConfig(resolvedPluginConfig, resolvedViteConfig);
+
 			if (miniflare) {
 				await miniflare.dispose();
 				miniflare = undefined;
