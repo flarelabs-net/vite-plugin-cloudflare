@@ -16,8 +16,8 @@ catalogs:
       specifier: ^5.7.2
       version: 5.7.2
     unenv:
-      specifier: npm:unenv-nightly@2.0.0-20241204-140205-a5d5190
-      version: 2.0.0-20241204-140205-a5d5190
+      specifier: npm:unenv-nightly@2.0.0-20241218-183400-5d6aec3
+      version: 2.0.0-20241218-183400-5d6aec3
     vite:
       specifier: 6.0.3
       version: 6.0.3
@@ -73,7 +73,7 @@ importers:
         version: 3.20241205.0
       unenv:
         specifier: catalog:default
-        version: unenv-nightly@2.0.0-20241204-140205-a5d5190
+        version: unenv-nightly@2.0.0-20241218-183400-5d6aec3
     devDependencies:
       '@cloudflare/workers-shared':
         specifier: ^0.7.0
@@ -2732,6 +2732,9 @@ packages:
   unenv-nightly@2.0.0-20241204-140205-a5d5190:
     resolution: {integrity: sha512-jpmAytLeiiW01pl5bhVn9wYJ4vtiLdhGe10oXlJBuQEX8mxjxO8BlEXGHU4vr4yEikjFP1wsomTHt/CLU8kUwg==}
 
+  unenv-nightly@2.0.0-20241218-183400-5d6aec3:
+    resolution: {integrity: sha512-7Xpi29CJRbOV1/IrC03DawMJ0hloklDLq/cigSe+J2jkcC+iDres2Cy0r4ltj5f0x7DqsaGaB4/dLuCPPFZnZA==}
+
   universal-user-agent@6.0.1:
     resolution: {integrity: sha512-yCzhz6FN2wU1NiiQRogkTQszlQSlpWaw8SvVegAc+bDxbzHgh1vX8uIe8OYyMH6DwH+sdTJsgMl36+mSMdRJIQ==}
 
@@ -4949,6 +4952,14 @@ snapshots:
   unenv-nightly@2.0.0-20241204-140205-a5d5190:
     dependencies:
       defu: 6.1.4
+      ohash: 1.1.4
+      pathe: 1.1.2
+      ufo: 1.5.4
+
+  unenv-nightly@2.0.0-20241218-183400-5d6aec3:
+    dependencies:
+      defu: 6.1.4
+      mlly: 1.7.3
       ohash: 1.1.4
       pathe: 1.1.2
       ufo: 1.5.4
