@@ -17,7 +17,7 @@ import {
 import {
 	getNodeCompatAliases,
 	injectGlobalCode,
-	resolveNodeAliases,
+	resolveNodeCompatId,
 } from './node-js-compat';
 import { resolvePluginConfig } from './plugin-config';
 import { getOutputDirectory, toMiniflareRequest } from './utils';
@@ -115,13 +115,11 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 			}
 
 			const workerConfig = resolvedPluginConfig.workers[this.environment.name];
-
 			if (!workerConfig) {
 				return;
 			}
 
-			const aliased = resolveNodeAliases(source, workerConfig);
-			return aliased && (await this.resolve(aliased));
+			return resolveNodeCompatId(this.environment, workerConfig, source);
 		},
 		async transform(code, id) {
 			if (resolvedPluginConfig.type === 'assets-only') {
