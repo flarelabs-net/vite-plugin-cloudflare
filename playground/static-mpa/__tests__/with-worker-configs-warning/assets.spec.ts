@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { serverLogs } from '../../../__test-utils__';
 
-test('worker configs warnings are present in the terminal', async () => {
+test('a worker configs warning is present in the terminal', async () => {
 	/**
 	 * Note: we always expect the warning once for both values of `isBuild`.
 	 *       For dev is obvious, for builds we do get the warning once because we get it when we

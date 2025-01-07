@@ -5,13 +5,13 @@
 	"scripts": {
 		"build": "vite build --app",
 		"build:custom-output-directories": "vite build --app -c ./vite.config.custom-output-directories.ts",
-		"build:with-wrangler-warning": "vite build --app -c vite.config.with-wrangler-warning.ts",
+		"build:with-worker-configs-warning": "vite build --app -c vite.config.with-worker-configs-warning.ts",
 		"check:types": "tsc --build",
 		"dev": "vite dev",
-		"dev:with-wrangler-warning": "vite dev -c vite.config.with-wrangler-warning.ts",
+		"dev:with-worker-configs-warning": "vite dev -c vite.config.with-worker-configs-warning.ts",
 		"preview": "vite preview",
 		"preview:custom-output-directories": "vite preview -c ./vite.config.custom-output-directories.ts",
-		"preview:with-wrangler-warning": "vite preview -c vite.config.with-wrangler-warning.ts"
+		"preview:with-worker-configs-warning": "vite preview -c vite.config.with-worker-configs-warning.ts"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "catalog:default",
