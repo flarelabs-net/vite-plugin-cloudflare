@@ -3,7 +3,6 @@ import * as path from 'node:path';
 import * as vite from 'vite';
 import { findWranglerConfig, getWorkerConfig } from './workers-configs';
 import type { WorkersConfigurations } from './workers-configs';
-import type { Unstable_Config } from 'wrangler';
 
 export type PersistState = boolean | { path: string };
 
