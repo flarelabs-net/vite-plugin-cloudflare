@@ -4,7 +4,6 @@ import * as path from 'node:path';
 import { createMiddleware } from '@hattip/adapter-node';
 import { Miniflare } from 'miniflare';
 import * as vite from 'vite';
-import ws from 'ws';
 import {
 	createCloudflareEnvironmentOptions,
 	initRunners,
@@ -21,11 +20,10 @@ import {
 	resolveNodeCompatId,
 } from './node-js-compat';
 import { resolvePluginConfig } from './plugin-config';
-import { UNKNOWN_HOST } from './shared';
 import { getOutputDirectory, toMiniflareRequest } from './utils';
+import { handleWebSocket } from './websockets';
 import { getWarningForWorkersConfigs } from './workers-configs';
 import type { PluginConfig, ResolvedPluginConfig } from './plugin-config';
-import type { IncomingMessage } from 'node:http';
 import type { Unstable_RawConfig } from 'wrangler';
 
 export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
@@ -234,6 +232,8 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 			}
 		},
 		async configureServer(viteDevServer) {
+			assert(viteDevServer.httpServer, 'Unexpected error: No Vite HTTP server');
+
 			const logger = viteDevServer.config.logger;
 
 			miniflare = new Miniflare(
@@ -246,84 +246,13 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 				miniflare,
 			);
 
-			const wss = new ws.Server({ noServer: true });
-
-			assert(viteDevServer.httpServer, 'Unexpected error: No Vite HTTP server');
-
-			viteDevServer.httpServer.on(
-				'upgrade',
-				async (request: IncomingMessage, socket, head) => {
-					const url = new URL(request.url ?? '', UNKNOWN_HOST);
-
-					// Ignore Vite HMR WebSockets
-					if (request.headers['sec-websocket-protocol']?.startsWith('vite')) {
-						return;
-					}
-
-					const headers = new Headers();
-
-					for (const [key, value] of Object.entries(request.headers)) {
-						if (typeof value === 'string') {
-							headers.append(key, value);
-						} else if (Array.isArray(value)) {
-							for (const item of value) {
-								headers.append(key, item);
-							}
-						}
-					}
-
-					const response = await entryWorker.fetch(url, {
-						headers,
-						method: request.method,
-					});
-					const workerWebSocket = response.webSocket;
-
-					if (!workerWebSocket) {
-						socket.destroy();
-						return;
-					}
-
-					wss.handleUpgrade(request, socket, head, async (clientWebSocket) => {
-						workerWebSocket.accept();
-
-						// Forward Worker events to client
-						workerWebSocket.addEventListener('message', (event) => {
-							clientWebSocket.send(event.data);
-						});
-						workerWebSocket.addEventListener('error', (event) => {
-							logger.error(
-								`WebSocket error:\n${event.error?.stack || event.error?.message}`,
-								{ error: event.error },
-							);
-						});
-						workerWebSocket.addEventListener('close', () => {
-							clientWebSocket.close();
-						});
-
-						// Forward client events to Worker
-						clientWebSocket.on('message', (event: ArrayBuffer | string) => {
-							workerWebSocket.send(event);
-						});
-						clientWebSocket.on('error', (error) => {
-							logger.error(
-								`WebSocket error:\n${error.stack || error.message}`,
-								{ error },
-							);
-						});
-						clientWebSocket.on('close', () => {
-							workerWebSocket.close();
-						});
-
-						wss.emit('connection', clientWebSocket, request);
-					});
-				},
-			);
-
 			const middleware = createMiddleware(({ request }) => {
 				return entryWorker.fetch(toMiniflareRequest(request), {
 					redirect: 'manual',
 				}) as any;
 			});
+
+			handleWebSocket(viteDevServer.httpServer, entryWorker.fetch, logger);
 
 			return () => {
 				viteDevServer.middlewares.use((req, res, next) => {
@@ -332,6 +261,8 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 			};
 		},
 		configurePreviewServer(vitePreviewServer) {
+			const logger = vitePreviewServer.config.logger;
+
 			const miniflare = new Miniflare(
 				getPreviewMiniflareOptions(
 					vitePreviewServer,
@@ -344,6 +275,12 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 					redirect: 'manual',
 				}) as any;
 			});
+
+			handleWebSocket(
+				vitePreviewServer.httpServer,
+				miniflare.dispatchFetch,
+				logger,
+			);
 
 			return () => {
 				vitePreviewServer.middlewares.use((req, res, next) => {
