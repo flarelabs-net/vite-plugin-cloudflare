@@ -39,6 +39,13 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 
 			resolvedPluginConfig = resolvePluginConfig(pluginConfig, userConfig);
 
+			const workersConfigsWarning = getWarningForWorkersConfigs(
+				resolvedPluginConfig.rawConfigs,
+			);
+			if (workersConfigsWarning) {
+				console.warn(workersConfigsWarning);
+			}
+
 			return {
 				appType: 'custom',
 				resolve: {
@@ -114,16 +121,6 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 		},
 		configResolved(config) {
 			resolvedViteConfig = config;
-			const runningPreview =
-				config.command === 'serve' && config.isProduction === true;
-			if (!runningPreview) {
-				const workersConfigsWarning = getWarningForWorkersConfigs(
-					resolvedPluginConfig.rawConfigs,
-				);
-				if (workersConfigsWarning) {
-					console.warn(workersConfigsWarning);
-				}
-			}
 		},
 		async resolveId(source) {
 			if (resolvedPluginConfig.type === 'assets-only') {
