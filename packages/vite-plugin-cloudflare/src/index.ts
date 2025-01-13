@@ -255,7 +255,8 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 				async (request: IncomingMessage, socket, head) => {
 					const url = new URL(request.url ?? '', UNKNOWN_HOST);
 
-					if (url.pathname === '/__vite_hmr') {
+					// Ignore Vite HMR WebSockets
+					if (request.headers['sec-websocket-protocol']?.startsWith('vite')) {
 						return;
 					}
 
@@ -290,7 +291,10 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 							clientWebSocket.send(event.data);
 						});
 						workerWebSocket.addEventListener('error', (event) => {
-							logger.error(`WebSocket error: ${event.error}`);
+							logger.error(
+								`WebSocket error:\n${event.error?.stack || event.error?.message}`,
+								{ error: event.error },
+							);
 						});
 						workerWebSocket.addEventListener('close', () => {
 							clientWebSocket.close();
@@ -301,7 +305,10 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 							workerWebSocket.send(event);
 						});
 						clientWebSocket.on('error', (error) => {
-							logger.error(`WebSocket error: ${error}`);
+							logger.error(
+								`WebSocket error:\n${error.stack || error.message}`,
+								{ error },
+							);
 						});
 						clientWebSocket.on('close', () => {
 							workerWebSocket.close();

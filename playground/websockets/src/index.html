@@ -6,11 +6,11 @@
 	</head>
 	<body>
 		<main>
-			<h1>WebSockets example</h1>
-			<button id="open">Open</button>
-			<button id="close">Close</button>
-			<button id="send">Send</button>
-			<h2 id="status">Disconnected</h2>
+			<h1>WebSockets playground</h1>
+			<button id="open" aria-label="Open WebSocket">Open</button>
+			<button id="close" aria-label="Close WebSocket">Close</button>
+			<button id="send" aria-label="Send message">Send</button>
+			<h2 id="status">WebSocket closed</h2>
 			<p id="message"></p>
 		</main>
 	</body>
@@ -42,12 +42,12 @@
 
 			ws.addEventListener('open', (event) => {
 				console.log('Client open');
-				statusText.textContent = 'Connected';
+				statusText.textContent = 'WebSocket open';
 			});
 
 			ws.addEventListener('close', (event) => {
 				console.log('Client close');
-				statusText.textContent = 'Disconnected';
+				statusText.textContent = 'WebSocket closed';
 			});
 		}
 
