@@ -112,7 +112,7 @@ export const nonApplicableWorkerConfigs = {
 } as const;
 
 /**
- * The non applicable configs that default to `undefined`
+ * The non applicable configs that can be and default to `undefined`
  */
 const nullableNonApplicable = [
 	'alias',
@@ -318,7 +318,7 @@ export function getWorkerConfig(
 		);
 
 		return {
-			raw: config,
+			raw,
 			type: 'assets-only',
 			config: { ...config, assets: config.assets },
 			nonApplicable,
