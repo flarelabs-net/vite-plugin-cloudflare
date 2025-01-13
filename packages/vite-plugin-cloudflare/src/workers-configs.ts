@@ -9,65 +9,68 @@ import type { Unstable_Config } from 'wrangler';
 
 type RawWorkerConfig = Unstable_Config;
 
-export namespace WorkersConfigurations {
-	export type Worker = AssetsOnlyWorker | WorkerWithServerLogic;
+export type WorkerResolvedConfig =
+	| AssetsOnlyWorkerResolvedConfig
+	| WorkerWithServerLogicResolvedConfig;
 
-	export type SanitizedWorkerConfig = Omit<
-		RawWorkerConfig,
-		keyof NonApplicable.All
-	>;
-
-	interface WorkerBase {
-		raw: RawWorkerConfig;
-		nonApplicable: NonApplicable.Map;
-	}
-
-	export interface AssetsOnlyWorker extends WorkerBase {
-		type: 'assets-only';
-		config: AssetsOnlyConfig;
-	}
-
-	export interface WorkerWithServerLogic extends WorkerBase {
-		type: 'worker';
-		config: WorkerConfig;
-	}
-
-	export namespace NonApplicable {
-		type NonApplicableWorkerConfigsInfo = typeof nonApplicableWorkerConfigs;
-
-		export type Map = {
-			replacedByVite: Set<
-				Extract<
-					keyof RawWorkerConfig,
-					keyof NonApplicableWorkerConfigsInfo['replacedByVite']
-				>
-			>;
-			notRelevant: Set<
-				Extract<
-					keyof RawWorkerConfig,
-					NonApplicableWorkerConfigsInfo['notRelevant'][number]
-				>
-			>;
-			overridden: Set<
-				Extract<
-					keyof RawWorkerConfig,
-					NonApplicableWorkerConfigsInfo['overridden'][number]
-				>
-			>;
-		};
-
-		export type All = ReplacedByVite | NotRelevant | Overridden;
-
-		export type ReplacedByVite =
-			keyof NonApplicableWorkerConfigsInfo['replacedByVite'];
-
-		export type NotRelevant =
-			NonApplicableWorkerConfigsInfo['notRelevant'][number];
-
-		export type Overridden =
-			NonApplicableWorkerConfigsInfo['overridden'][number];
-	}
+export interface AssetsOnlyWorkerResolvedConfig
+	extends WorkerBaseResolvedConfig {
+	type: 'assets-only';
+	config: AssetsOnlyConfig;
 }
+
+export interface WorkerWithServerLogicResolvedConfig
+	extends WorkerBaseResolvedConfig {
+	type: 'worker';
+	config: WorkerConfig;
+}
+
+interface WorkerBaseResolvedConfig {
+	raw: RawWorkerConfig;
+	nonApplicable: NonApplicableConfigMap;
+}
+
+export type SanitizedWorkerConfig = Omit<
+	RawWorkerConfig,
+	keyof NonApplicableConfig
+>;
+
+type NonApplicableConfigMap = {
+	replacedByVite: Set<
+		Extract<
+			keyof RawWorkerConfig,
+			keyof NonApplicableWorkerConfigsInfo['replacedByVite']
+		>
+	>;
+	notRelevant: Set<
+		Extract<
+			keyof RawWorkerConfig,
+			NonApplicableWorkerConfigsInfo['notRelevant'][number]
+		>
+	>;
+	overridden: Set<
+		Extract<
+			keyof RawWorkerConfig,
+			NonApplicableWorkerConfigsInfo['overridden'][number]
+		>
+	>;
+};
+
+type NonApplicableWorkerConfigsInfo = typeof nonApplicableWorkerConfigs;
+
+type NonApplicableConfig =
+	| NonApplicableConfigReplacedByVite
+	| NonApplicableConfigNotRelevant
+	| NonApplicableConfigOverridden;
+
+type NonApplicableConfigReplacedByVite =
+	keyof NonApplicableWorkerConfigsInfo['replacedByVite'];
+
+type NonApplicableConfigNotRelevant =
+	NonApplicableWorkerConfigsInfo['notRelevant'][number];
+
+type NonApplicableConfigOverridden =
+	NonApplicableWorkerConfigsInfo['overridden'][number];
 
 /**
  * Set of worker config options that are not applicable when using Vite
@@ -129,10 +132,10 @@ const nullableNonApplicable = [
 
 function readWorkerConfig(configPath: string): {
 	raw: RawWorkerConfig;
-	config: WorkersConfigurations.SanitizedWorkerConfig;
-	nonApplicable: WorkersConfigurations.NonApplicable.Map;
+	config: SanitizedWorkerConfig;
+	nonApplicable: NonApplicableConfigMap;
 } {
-	const nonApplicable: WorkersConfigurations.NonApplicable.Map = {
+	const nonApplicable: NonApplicableConfigMap = {
 		replacedByVite: new Set(),
 		notRelevant: new Set(),
 		overridden: new Set(),
@@ -174,23 +177,23 @@ function readWorkerConfig(configPath: string): {
 	if (config.rules.length > 0) {
 		nonApplicable.overridden.add('rules');
 	}
-	// Note: we cannot touch rules since Miniflare relies on this config being there
+	// Note: differently from above here we cannot delete `config['rules']` since Miniflare relies on this config being there
 
 	return {
 		raw,
 		nonApplicable,
-		config: config as WorkersConfigurations.SanitizedWorkerConfig,
+		config: config as SanitizedWorkerConfig,
 	};
 }
 
 export function getWarningForWorkersConfigs(
 	configs:
 		| {
-				entryWorker: WorkersConfigurations.AssetsOnlyWorker;
+				entryWorker: AssetsOnlyWorkerResolvedConfig;
 		  }
 		| {
-				entryWorker: WorkersConfigurations.WorkerWithServerLogic;
-				auxiliaryWorkers: WorkersConfigurations.Worker[];
+				entryWorker: WorkerWithServerLogicResolvedConfig;
+				auxiliaryWorkers: WorkerResolvedConfig[];
 		  },
 ): string | undefined {
 	if (
@@ -220,7 +223,7 @@ export function getWarningForWorkersConfigs(
 	const lines: string[] = [];
 
 	const processWorkerConfig = (
-		workerConfig: WorkersConfigurations.Worker,
+		workerConfig: WorkerResolvedConfig,
 		isEntryWorker = false,
 	) => {
 		const nonApplicableLines = getWorkerNonApplicableWarnLines(
@@ -251,7 +254,7 @@ export function getWarningForWorkersConfigs(
 }
 
 function getWorkerNonApplicableWarnLines(
-	workerConfig: WorkersConfigurations.Worker,
+	workerConfig: WorkerResolvedConfig,
 	linePrefix: string,
 ): string[] {
 	const lines: string[] = [];
@@ -280,19 +283,19 @@ function getWorkerNonApplicableWarnLines(
 
 function isReplacedByVite(
 	configName: string,
-): configName is WorkersConfigurations.NonApplicable.ReplacedByVite {
+): configName is NonApplicableConfigReplacedByVite {
 	return configName in nonApplicableWorkerConfigs['replacedByVite'];
 }
 
 function isNotRelevant(
 	configName: string,
-): configName is WorkersConfigurations.NonApplicable.NotRelevant {
+): configName is NonApplicableConfigNotRelevant {
 	return nonApplicableWorkerConfigs.notRelevant.includes(configName as any);
 }
 
 function isOverridden(
 	configName: string,
-): configName is WorkersConfigurations.NonApplicable.Overridden {
+): configName is NonApplicableConfigOverridden {
 	return nonApplicableWorkerConfigs.overridden.includes(configName as any);
 }
 
@@ -302,7 +305,7 @@ export function getWorkerConfig(
 		visitedConfigPaths?: Set<string>;
 		isEntryWorker?: boolean;
 	},
-): WorkersConfigurations.Worker {
+): WorkerResolvedConfig {
 	if (opts?.visitedConfigPaths?.has(configPath)) {
 		throw new Error(`Duplicate Wrangler config path found: ${configPath}`);
 	}

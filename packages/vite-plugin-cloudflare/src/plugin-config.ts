@@ -2,7 +2,12 @@ import assert from 'node:assert';
 import * as path from 'node:path';
 import * as vite from 'vite';
 import { findWranglerConfig, getWorkerConfig } from './workers-configs';
-import type { WorkersConfigurations } from './workers-configs';
+import type {
+	AssetsOnlyWorkerResolvedConfig,
+	SanitizedWorkerConfig,
+	WorkerResolvedConfig,
+	WorkerWithServerLogicResolvedConfig,
+} from './workers-configs';
 
 export type PersistState = boolean | { path: string };
 
@@ -18,13 +23,13 @@ export interface PluginConfig extends Partial<PluginWorkerConfig> {
 
 type Defined<T> = Exclude<T, undefined>;
 
-export type AssetsOnlyConfig = WorkersConfigurations.SanitizedWorkerConfig & {
-	assets: Defined<WorkersConfigurations.SanitizedWorkerConfig['assets']>;
+export type AssetsOnlyConfig = SanitizedWorkerConfig & {
+	assets: Defined<SanitizedWorkerConfig['assets']>;
 };
 
-export type WorkerConfig = WorkersConfigurations.SanitizedWorkerConfig & {
-	name: Defined<WorkersConfigurations.SanitizedWorkerConfig['name']>;
-	main: Defined<WorkersConfigurations.SanitizedWorkerConfig['main']>;
+export type WorkerConfig = SanitizedWorkerConfig & {
+	name: Defined<SanitizedWorkerConfig['name']>;
+	main: Defined<SanitizedWorkerConfig['main']>;
 };
 
 interface BasePluginConfig {
@@ -36,21 +41,21 @@ interface AssetsOnlyPluginConfig extends BasePluginConfig {
 	type: 'assets-only';
 	config: AssetsOnlyConfig;
 	rawConfigs: {
-		entryWorker: WorkersConfigurations.AssetsOnlyWorker;
+		entryWorker: AssetsOnlyWorkerResolvedConfig;
 	};
 }
 
-interface WorkersPluginConfig extends BasePluginConfig {
+interface WorkerPluginConfig extends BasePluginConfig {
 	type: 'workers';
 	workers: Record<string, WorkerConfig>;
 	entryWorkerEnvironmentName: string;
 	rawConfigs: {
-		entryWorker: WorkersConfigurations.WorkerWithServerLogic;
-		auxiliaryWorkers: WorkersConfigurations.Worker[];
+		entryWorker: WorkerWithServerLogicResolvedConfig;
+		auxiliaryWorkers: WorkerResolvedConfig[];
 	};
 }
 
-export type ResolvedPluginConfig = AssetsOnlyPluginConfig | WorkersPluginConfig;
+export type ResolvedPluginConfig = AssetsOnlyPluginConfig | WorkerPluginConfig;
 
 // Worker names can only contain alphanumeric characters and '-' whereas environment names can only contain alphanumeric characters and '$', '_'
 function workerNameToEnvironmentName(workerName: string) {
@@ -101,7 +106,7 @@ export function resolvePluginConfig(
 		[entryWorkerEnvironmentName]: entryWorkerConfig,
 	};
 
-	const auxiliaryWorkersResolvedConfigs: WorkersConfigurations.Worker[] = [];
+	const auxiliaryWorkersResolvedConfigs: WorkerResolvedConfig[] = [];
 
 	for (const auxiliaryWorker of pluginConfig.auxiliaryWorkers ?? []) {
 		const workerResolvedConfig = getWorkerConfig(
