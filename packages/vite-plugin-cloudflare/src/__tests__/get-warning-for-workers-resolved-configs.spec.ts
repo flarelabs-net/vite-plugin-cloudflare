@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { getWarningForWorkersConfigs } from '../workers-configs';
 import type { WorkerConfig } from '../plugin-config';
+import type { Unstable_Config as RawWorkerConfig } from 'wrangler';
 
 describe('getWarningForWorkersConfigs', () => {
 	describe('no warning needed', () => {
@@ -12,12 +13,8 @@ describe('getWarningForWorkersConfigs', () => {
 						name: 'entry-worker',
 						configPath: './wrangler.json',
 					} as Partial<WorkerConfig> as WorkerConfig,
-					nonApplicable: {
-						replacedByVite: new Set([]),
-						notRelevant: new Set([]),
-						overridden: new Set([]),
-					},
-					raw: {} as any,
+					nonApplicable: getEmptyNotApplicableMap(),
+					raw: getEmptyRawConfig(),
 				},
 				auxiliaryWorkers: [],
 			});
@@ -32,12 +29,8 @@ describe('getWarningForWorkersConfigs', () => {
 						name: 'entry-worker',
 						configPath: './wrangler.json',
 					} as Partial<WorkerConfig> as WorkerConfig,
-					nonApplicable: {
-						replacedByVite: new Set([]),
-						notRelevant: new Set([]),
-						overridden: new Set(),
-					},
-					raw: {} as any,
+					nonApplicable: getEmptyNotApplicableMap(),
+					raw: getEmptyRawConfig(),
 				},
 				auxiliaryWorkers: [
 					{
@@ -46,24 +39,16 @@ describe('getWarningForWorkersConfigs', () => {
 							name: 'worker-a',
 							configPath: './a/wrangler.json',
 						} as Partial<WorkerConfig> as WorkerConfig,
-						nonApplicable: {
-							replacedByVite: new Set([]),
-							notRelevant: new Set([]),
-							overridden: new Set(),
-						},
-						raw: {} as any,
+						nonApplicable: getEmptyNotApplicableMap(),
+						raw: getEmptyRawConfig(),
 					},
 					{
 						type: 'worker',
 						config: {
 							configPath: './b/wrangler.json',
 						} as Partial<WorkerConfig> as WorkerConfig,
-						nonApplicable: {
-							replacedByVite: new Set([]),
-							notRelevant: new Set([]),
-							overridden: new Set(),
-						},
-						raw: {} as any,
+						nonApplicable: getEmptyNotApplicableMap(),
+						raw: getEmptyRawConfig(),
 					},
 				],
 			});
@@ -88,7 +73,7 @@ describe('getWarningForWorkersConfigs', () => {
 					]),
 					overridden: new Set(['rules']),
 				},
-				raw: {} as any,
+				raw: getEmptyRawConfig(),
 			},
 
 			auxiliaryWorkers: [],
@@ -118,7 +103,7 @@ describe('getWarningForWorkersConfigs', () => {
 					notRelevant: new Set(['build']),
 					overridden: new Set(),
 				},
-				raw: {} as any,
+				raw: getEmptyRawConfig(),
 			},
 			auxiliaryWorkers: [
 				{
@@ -132,7 +117,7 @@ describe('getWarningForWorkersConfigs', () => {
 						notRelevant: new Set(['find_additional_modules', 'no_bundle']),
 						overridden: new Set(),
 					},
-					raw: {} as any,
+					raw: getEmptyRawConfig(),
 				},
 				{
 					type: 'worker',
@@ -144,7 +129,7 @@ describe('getWarningForWorkersConfigs', () => {
 						notRelevant: new Set(['site']),
 						overridden: new Set(),
 					},
-					raw: {} as any,
+					raw: getEmptyRawConfig(),
 				},
 			],
 		});
@@ -167,3 +152,15 @@ describe('getWarningForWorkersConfigs', () => {
 			`);
 	});
 });
+
+function getEmptyNotApplicableMap() {
+	return {
+		replacedByVite: new Set([]),
+		notRelevant: new Set([]),
+		overridden: new Set([]),
+	};
+}
+
+function getEmptyRawConfig() {
+	return {} as RawWorkerConfig;
+}
