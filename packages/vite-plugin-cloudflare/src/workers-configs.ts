@@ -5,9 +5,7 @@ import { unstable_readConfig } from 'wrangler';
 import { name } from '../package.json';
 import type { AssetsOnlyConfig, WorkerConfig } from './plugin-config';
 import type { Optional } from './utils';
-import type { Unstable_Config } from 'wrangler';
-
-type RawWorkerConfig = Unstable_Config;
+import type { Unstable_Config as RawWorkerConfig } from 'wrangler';
 
 export type WorkerResolvedConfig =
 	| AssetsOnlyWorkerResolvedConfig
@@ -140,9 +138,9 @@ function readWorkerConfig(configPath: string): {
 		notRelevant: new Set(),
 		overridden: new Set(),
 	};
-	const config: Optional<Unstable_Config, 'build' | 'define'> =
+	const config: Optional<RawWorkerConfig, 'build' | 'define'> =
 		unstable_readConfig({ config: configPath }, {});
-	const raw = structuredClone(config) as Unstable_Config;
+	const raw = structuredClone(config) as RawWorkerConfig;
 
 	nullableNonApplicable.forEach((prop) => {
 		if (config[prop] !== undefined) {
