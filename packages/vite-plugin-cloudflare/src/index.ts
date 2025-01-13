@@ -234,6 +234,8 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 			}
 		},
 		async configureServer(viteDevServer) {
+			const logger = viteDevServer.config.logger;
+
 			miniflare = new Miniflare(
 				getDevMiniflareOptions(resolvedPluginConfig, viteDevServer),
 			);
@@ -246,7 +248,7 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 
 			const wss = new ws.Server({ noServer: true });
 
-			assert(viteDevServer.httpServer, 'No HTTP server');
+			assert(viteDevServer.httpServer, 'Unexpected error: No Vite HTTP server');
 
 			viteDevServer.httpServer.on(
 				'upgrade',
@@ -273,25 +275,39 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 						headers,
 						method: request.method,
 					});
-					const webSocket = response.webSocket;
+					const workerWebSocket = response.webSocket;
 
-					if (!webSocket) {
+					if (!workerWebSocket) {
 						socket.destroy();
 						return;
 					}
 
-					wss.handleUpgrade(request, socket, head, async (ws) => {
-						webSocket.accept();
-						webSocket.addEventListener('message', (event) => {
-							console.log('Vite received server message');
-							ws.send(event.data);
+					wss.handleUpgrade(request, socket, head, async (clientWebSocket) => {
+						workerWebSocket.accept();
+
+						// Forward Worker events to client
+						workerWebSocket.addEventListener('message', (event) => {
+							clientWebSocket.send(event.data);
+						});
+						workerWebSocket.addEventListener('error', (event) => {
+							logger.error(`WebSocket error: ${event.error}`);
+						});
+						workerWebSocket.addEventListener('close', () => {
+							clientWebSocket.close();
 						});
 
-						ws.addEventListener('message', (event) => {
-							console.log('Vite received client message');
-							webSocket.send(event.data as any);
+						// Forward client events to Worker
+						clientWebSocket.on('message', (event: ArrayBuffer | string) => {
+							workerWebSocket.send(event);
 						});
-						wss.emit('connection', ws, request);
+						clientWebSocket.on('error', (error) => {
+							logger.error(`WebSocket error: ${error}`);
+						});
+						clientWebSocket.on('close', () => {
+							workerWebSocket.close();
+						});
+
+						wss.emit('connection', clientWebSocket, request);
 					});
 				},
 			);

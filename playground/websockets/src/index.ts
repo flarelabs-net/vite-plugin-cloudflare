@@ -6,28 +6,25 @@ interface Env {
 }
 
 export class WebSocketServer extends DurableObject {
-	#currentlyConnectedWebSockets = 0;
-
-	override async fetch(request: Request) {
+	override fetch() {
 		const { 0: client, 1: server } = new WebSocketPair();
 
-		server.accept();
-		this.#currentlyConnectedWebSockets += 1;
-
-		server.addEventListener('message', (event) => {
-			console.log('DO received client event', event);
-			server.send(
-				`[Durable Object] currentlyConnectedWebSockets: ${this.#currentlyConnectedWebSockets}`,
-			);
-		});
-
-		server.addEventListener('close', (event) => {
-			console.log('CLOSE');
-			this.#currentlyConnectedWebSockets -= 1;
-			server.close(event.code, 'Durable Object is closing WebSocket');
-		});
+		this.ctx.acceptWebSocket(server);
 
 		return new Response(null, { status: 101, webSocket: client });
+	}
+
+	override async webSocketMessage(ws: WebSocket, data: string | ArrayBuffer) {
+		const decoder = new TextDecoder();
+		const message = typeof data === 'string' ? data : decoder.decode(data);
+
+		console.log('message', message);
+
+		ws.send(`Durable Object received client message: '${message}'.`);
+	}
+
+	override webSocketClose(ws: WebSocket) {
+		ws.close();
 	}
 }
 
@@ -42,7 +39,7 @@ export default {
 				});
 			}
 
-			const id = env.WEBSOCKET_SERVER.idFromName('');
+			const id = env.WEBSOCKET_SERVER.idFromName('id');
 			const stub = env.WEBSOCKET_SERVER.get(id);
 
 			return stub.fetch(request);
