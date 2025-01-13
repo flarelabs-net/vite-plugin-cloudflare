@@ -456,8 +456,6 @@ export function getPreviewMiniflareOptions(
 	vitePreviewServer: vite.PreviewServer,
 	persistState: PersistState,
 ): MiniflareOptions {
-	const viteConfig = vitePreviewServer.config;
-
 	const resolvedViteConfig = vitePreviewServer.config;
 	const configPaths = getWorkerConfigPaths(resolvedViteConfig.root);
 	const workerConfigs = configPaths.map((configPath) =>
