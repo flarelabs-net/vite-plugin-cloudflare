@@ -4,9 +4,12 @@
 	"type": "module",
 	"scripts": {
 		"build": "vite build --app",
+		"build:with-worker-configs-warning": "vite build --app -c vite.config.with-worker-configs-warning.ts",
 		"check:types": "tsc --build",
 		"dev": "vite dev",
-		"preview": "vite preview"
+		"dev:with-worker-configs-warning": "vite dev -c vite.config.with-worker-configs-warning.ts",
+		"preview": "vite preview",
+		"preview:with-worker-configs-warning": "vite preview -c vite.config.with-worker-configs-warning.ts"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "catalog:default",

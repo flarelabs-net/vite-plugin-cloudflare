@@ -21,6 +21,7 @@ import {
 } from './node-js-compat';
 import { resolvePluginConfig } from './plugin-config';
 import { getOutputDirectory, toMiniflareRequest } from './utils';
+import { getWarningForWorkersConfigs } from './workers-configs';
 import type { PluginConfig, ResolvedPluginConfig } from './plugin-config';
 import type { Unstable_RawConfig } from 'wrangler';
 
@@ -28,6 +29,9 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 	let resolvedPluginConfig: ResolvedPluginConfig;
 	let resolvedViteConfig: vite.ResolvedConfig;
 	let miniflare: Miniflare | undefined;
+
+	// this flag is used to shown the workers configs warning only once
+	let workersConfigsWarningShown = false;
 
 	return {
 		name: 'vite-plugin-cloudflare',
@@ -37,6 +41,16 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 			}
 
 			resolvedPluginConfig = resolvePluginConfig(pluginConfig, userConfig);
+
+			if (!workersConfigsWarningShown) {
+				workersConfigsWarningShown = true;
+				const workersConfigsWarning = getWarningForWorkersConfigs(
+					resolvedPluginConfig.rawConfigs,
+				);
+				if (workersConfigsWarning) {
+					console.warn(workersConfigsWarning);
+				}
+			}
 
 			return {
 				appType: 'custom',

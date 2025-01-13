@@ -447,11 +447,11 @@ export function getPreviewMiniflareOptions(
 ): MiniflareOptions {
 	const resolvedViteConfig = vitePreviewServer.config;
 	const configPaths = getWorkerConfigPaths(resolvedViteConfig.root);
-	const configs = configPaths.map((configPath) =>
+	const workerConfigs = configPaths.map((configPath) =>
 		unstable_readConfig({ config: configPath }),
 	);
 
-	const workers: Array<WorkerOptions> = configs.map((config) => {
+	const workers: Array<WorkerOptions> = workerConfigs.map((config) => {
 		const miniflareWorkerOptions = unstable_getMiniflareWorkerOptions(config);
 
 		const { ratelimits, ...workerOptions } =
