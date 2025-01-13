@@ -81,7 +81,8 @@ export function resolvePluginConfig(
 
 	if (entryWorkerResolvedConfig.type === 'assets-only') {
 		return {
-			...entryWorkerResolvedConfig,
+			type: 'assets-only',
+			config: entryWorkerResolvedConfig.config,
 			configPaths,
 			persistState,
 			rawConfigs: {
