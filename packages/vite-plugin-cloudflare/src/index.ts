@@ -30,6 +30,9 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 	let resolvedViteConfig: vite.ResolvedConfig;
 	let miniflare: Miniflare | undefined;
 
+	// this flag is used to shown the workers configs warning only once
+	let workersConfigsWarningShown = false;
+
 	return {
 		name: 'vite-plugin-cloudflare',
 		config(userConfig, env) {
@@ -39,11 +42,14 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 
 			resolvedPluginConfig = resolvePluginConfig(pluginConfig, userConfig);
 
-			const workersConfigsWarning = getWarningForWorkersConfigs(
-				resolvedPluginConfig.rawConfigs,
-			);
-			if (workersConfigsWarning) {
-				console.warn(workersConfigsWarning);
+			if (!workersConfigsWarningShown) {
+				workersConfigsWarningShown = true;
+				const workersConfigsWarning = getWarningForWorkersConfigs(
+					resolvedPluginConfig.rawConfigs,
+				);
+				if (workersConfigsWarning) {
+					console.warn(workersConfigsWarning);
+				}
 			}
 
 			return {
@@ -76,11 +82,6 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 							}
 						: undefined,
 				builder: {
-					// Note: when running `vite build` our plugin is called once per environment, this is usually not
-					//       a problem, but if we present logs etc those would get duplicated, so in order to avoid such
-					//       duplication we set this flag, we can come up with some different solution for the duplicated
-					//       logs if this config becomes problematic for whatever reason
-					sharedConfigBuild: true,
 					async buildApp(builder) {
 						const clientEnvironment = builder.environments.client;
 						const defaultHtmlPath = path.resolve(
