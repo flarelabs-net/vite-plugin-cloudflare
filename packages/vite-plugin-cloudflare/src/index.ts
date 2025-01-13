@@ -4,6 +4,7 @@ import * as path from 'node:path';
 import { createMiddleware } from '@hattip/adapter-node';
 import { Miniflare } from 'miniflare';
 import * as vite from 'vite';
+import ws from 'ws';
 import {
 	createCloudflareEnvironmentOptions,
 	initRunners,
@@ -20,9 +21,11 @@ import {
 	resolveNodeCompatId,
 } from './node-js-compat';
 import { resolvePluginConfig } from './plugin-config';
+import { UNKNOWN_HOST } from './shared';
 import { getOutputDirectory, toMiniflareRequest } from './utils';
 import { getWarningForWorkersConfigs } from './workers-configs';
 import type { PluginConfig, ResolvedPluginConfig } from './plugin-config';
+import type { IncomingMessage } from 'node:http';
 import type { Unstable_RawConfig } from 'wrangler';
 
 export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
@@ -239,6 +242,58 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 			const entryWorker = await getDevEntryWorker(
 				resolvedPluginConfig,
 				miniflare,
+			);
+
+			const wss = new ws.Server({ noServer: true });
+
+			assert(viteDevServer.httpServer, 'No HTTP server');
+
+			viteDevServer.httpServer.on(
+				'upgrade',
+				async (request: IncomingMessage, socket, head) => {
+					const url = new URL(request.url ?? '', UNKNOWN_HOST);
+
+					if (url.pathname === '/__vite_hmr') {
+						return;
+					}
+
+					const headers = new Headers();
+
+					for (const [key, value] of Object.entries(request.headers)) {
+						if (typeof value === 'string') {
+							headers.append(key, value);
+						} else if (Array.isArray(value)) {
+							for (const item of value) {
+								headers.append(key, item);
+							}
+						}
+					}
+
+					const response = await entryWorker.fetch(url, {
+						headers,
+						method: request.method,
+					});
+					const webSocket = response.webSocket;
+
+					if (!webSocket) {
+						socket.destroy();
+						return;
+					}
+
+					wss.handleUpgrade(request, socket, head, async (ws) => {
+						webSocket.accept();
+						webSocket.addEventListener('message', (event) => {
+							console.log('Vite received server message');
+							ws.send(event.data);
+						});
+
+						ws.addEventListener('message', (event) => {
+							console.log('Vite received client message');
+							webSocket.send(event.data as any);
+						});
+						wss.emit('connection', ws, request);
+					});
+				},
 			);
 
 			const middleware = createMiddleware(({ request }) => {

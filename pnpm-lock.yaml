@@ -74,6 +74,9 @@ importers:
       unenv:
         specifier: catalog:default
         version: unenv-nightly@2.0.0-20241218-183400-5d6aec3
+      ws:
+        specifier: ^8.18.0
+        version: 8.18.0
     devDependencies:
       '@cloudflare/workers-shared':
         specifier: ^0.7.0
@@ -84,6 +87,9 @@ importers:
       '@types/node':
         specifier: catalog:default
         version: 22.10.1
+      '@types/ws':
+        specifier: ^8.5.13
+        version: 8.5.13
       '@vite-plugin-cloudflare/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
@@ -1623,6 +1629,9 @@ packages:
 
   '@types/react@19.0.1':
     resolution: {integrity: sha512-YW6614BDhqbpR5KtUYzTA+zlA7nayzJRA9ljz9CQoxthR0sDisYZLuvSMsil36t4EH/uAt8T52Xb4sVw17G+SQ==}
+
+  '@types/ws@8.5.13':
+    resolution: {integrity: sha512-osM/gWBTPKgHV8XkTunnegTRIsvF6owmf5w+JtAfOw472dptdm0dlGv4xCt6GwQRcC2XVOvvRE/0bAoQcL2QkA==}
 
   '@vitejs/plugin-react@4.3.4':
     resolution: {integrity: sha512-SCCPBJtYLdE8PX/7ZQAs1QAZ8Jqwih+0VBLum1EGqmCCQal+MIUqLCzj3ZUy8ufbC0cAM4LRlSTm7IQJwWT4ug==}
@@ -3867,6 +3876,10 @@ snapshots:
   '@types/react@19.0.1':
     dependencies:
       csstype: 3.1.3
+
+  '@types/ws@8.5.13':
+    dependencies:
+      '@types/node': 22.10.1
 
   '@vitejs/plugin-react@4.3.4(vite@6.0.7(@types/node@22.10.1))':
     dependencies:

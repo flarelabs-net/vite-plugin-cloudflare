@@ -1,3 +1,4 @@
+import html from './index.html?raw';
 import { DurableObject } from 'cloudflare:workers';
 
 interface Env {
@@ -14,12 +15,14 @@ export class WebSocketServer extends DurableObject {
 		this.#currentlyConnectedWebSockets += 1;
 
 		server.addEventListener('message', (event) => {
+			console.log('DO received client event', event);
 			server.send(
 				`[Durable Object] currentlyConnectedWebSockets: ${this.#currentlyConnectedWebSockets}`,
 			);
 		});
 
 		server.addEventListener('close', (event) => {
+			console.log('CLOSE');
 			this.#currentlyConnectedWebSockets -= 1;
 			server.close(event.code, 'Durable Object is closing WebSocket');
 		});
@@ -45,6 +48,6 @@ export default {
 			return stub.fetch(request);
 		}
 
-		return new Response(null, { status: 400 });
+		return new Response(html, { headers: { 'content-type': 'text/html' } });
 	},
 } satisfies ExportedHandler<Env>;

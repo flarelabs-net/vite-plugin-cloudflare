@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	</head>
+	<body>
+		<main>
+			<h1>WebSockets example</h1>
+			<button id="connect">Connect</button>
+			<button id="disconnect">Disconnect</button>
+		</main>
+	</body>
+	<script type="module">
+		let ws;
+
+		function connect() {
+			ws = new WebSocket(`${location.origin.replace(/^http/, 'ws')}/websocket`);
+
+			ws.addEventListener('message', (event) => {
+				console.log('Received server event', event.data);
+			});
+
+			ws.addEventListener('open', (event) => {
+				console.log('Client open');
+				ws.send('Client message');
+			});
+		}
+
+		function disconnect() {
+			ws.close();
+		}
+
+		const connectButton = document.querySelector('#connect');
+		const disconnectButton = document.querySelector('#disconnect');
+
+		connectButton.addEventListener('click', () => connect());
+		disconnectButton.addEventListener('click', () => disconnect());
+	</script>
+</html>
