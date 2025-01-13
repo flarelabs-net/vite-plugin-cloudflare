@@ -112,7 +112,7 @@ export const nonApplicableWorkerConfigs = {
 } as const;
 
 /**
- * The non applicable configs that can be and default to `undefined`
+ * The non applicable configs that default to `undefined`
  */
 const nullableNonApplicable = [
 	'alias',
