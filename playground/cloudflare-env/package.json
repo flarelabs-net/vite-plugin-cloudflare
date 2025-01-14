@@ -4,10 +4,12 @@
 	"type": "module",
 	"scripts": {
 		"build": "vite build --app",
+		"build:custom-env": "vite build --app -c vite.config.custom-env.ts",
 		"check:types": "tsc --build",
 		"dev": "vite dev",
 		"dev:custom-env": "vite dev -c vite.config.custom-env.ts",
-		"preview": "vite preview"
+		"preview": "vite preview",
+		"preview:custom-env": "vite preview -c vite.config.custom-env.ts"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "catalog:default",
