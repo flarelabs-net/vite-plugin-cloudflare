@@ -20,11 +20,6 @@ export class WebSocketServer extends DurableObject {
 
 		ws.send(`Durable Object received client message: '${message}'.`);
 	}
-
-	override webSocketClose(ws: WebSocket) {
-		console.log('DO close', ws.readyState);
-		ws.close();
-	}
 }
 
 export default {

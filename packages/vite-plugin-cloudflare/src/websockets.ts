@@ -11,7 +11,7 @@ export function handleWebSocket(
 	fetcher: ReplaceWorkersTypes<Fetcher>['fetch'],
 	logger: vite.Logger,
 ) {
-	const webSocketServer = new ws.Server({ noServer: true });
+	const nodeWebSocket = new ws.Server({ noServer: true });
 
 	httpServer.on(
 		'upgrade',
@@ -46,7 +46,7 @@ export function handleWebSocket(
 				return;
 			}
 
-			webSocketServer.handleUpgrade(
+			nodeWebSocket.handleUpgrade(
 				request,
 				socket,
 				head,
@@ -64,8 +64,7 @@ export function handleWebSocket(
 						);
 					});
 					workerWebSocket.addEventListener('close', () => {
-						console.log('Worker close');
-						// clientWebSocket.close();
+						clientWebSocket.close();
 					});
 
 					// Forward client events to Worker
@@ -78,12 +77,10 @@ export function handleWebSocket(
 						});
 					});
 					clientWebSocket.on('close', () => {
-						console.log('readyState', clientWebSocket.readyState);
-						console.log('Client close');
-						// workerWebSocket.close();
+						workerWebSocket.close();
 					});
 
-					webSocketServer.emit('connection', clientWebSocket, request);
+					nodeWebSocket.emit('connection', clientWebSocket, request);
 				},
 			);
 		},
