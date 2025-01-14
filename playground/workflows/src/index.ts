@@ -20,6 +20,8 @@ export class MyWorkflow extends WorkflowEntrypoint<Env> {
 				output: 'Second step result',
 			};
 		});
+
+		return 'Workflow output';
 	}
 }
 
