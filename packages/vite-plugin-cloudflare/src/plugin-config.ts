@@ -24,12 +24,16 @@ export interface PluginConfig extends Partial<PluginWorkerConfig> {
 type Defined<T> = Exclude<T, undefined>;
 
 export type AssetsOnlyConfig = SanitizedWorkerConfig & {
+	topLevelName: Defined<SanitizedWorkerConfig['topLevelName']>;
+	name: Defined<SanitizedWorkerConfig['name']>;
+	compatibility_date: Defined<SanitizedWorkerConfig['compatibility_date']>;
 	assets: Defined<SanitizedWorkerConfig['assets']>;
 };
 
 export type WorkerConfig = SanitizedWorkerConfig & {
 	topLevelName: Defined<SanitizedWorkerConfig['topLevelName']>;
 	name: Defined<SanitizedWorkerConfig['name']>;
+	compatibility_date: Defined<SanitizedWorkerConfig['compatibility_date']>;
 	main: Defined<SanitizedWorkerConfig['main']>;
 };
 

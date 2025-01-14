@@ -332,9 +332,15 @@ export function getWorkerConfig(
 		);
 
 		return {
-			raw,
 			type: 'assets-only',
-			config: { ...config, assets: config.assets },
+			raw,
+			config: {
+				...config,
+				topLevelName: config.topLevelName,
+				name: config.name,
+				compatibility_date: config.compatibility_date,
+				assets: config.assets,
+			},
 			nonApplicable,
 		};
 	}
@@ -348,6 +354,7 @@ export function getWorkerConfig(
 			...config,
 			topLevelName: config.topLevelName,
 			name: config.name,
+			compatibility_date: config.compatibility_date,
 			main: config.main,
 		},
 		nonApplicable,
