@@ -337,6 +337,8 @@ export function getWorkerConfig(
 
 	assert(config.main, `No main field provided in ${config.configPath}`);
 
+	console.log(config.compatibility_date);
+
 	return {
 		type: 'worker',
 		raw,

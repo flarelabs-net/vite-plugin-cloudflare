@@ -1,6 +1,6 @@
 name = "worker"
 main = "./src/index.ts"
-compatibility_date = "2024-09-09"
+compatibility_date = "2024-12-30"
 
 [[workflows]]
 name = "workflow"
