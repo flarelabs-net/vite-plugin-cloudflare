@@ -2,7 +2,7 @@ import assert from 'node:assert';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { unstable_readConfig } from 'wrangler';
-import { name } from '../package.json';
+import { name as packageName } from '../package.json';
 import type { AssetsOnlyConfig, WorkerConfig } from './plugin-config';
 import type { Optional } from './utils';
 import type { Unstable_Config as RawWorkerConfig } from 'wrangler';
@@ -139,7 +139,10 @@ function readWorkerConfig(configPath: string): {
 		overridden: new Set(),
 	};
 	const config: Optional<RawWorkerConfig, 'build' | 'define'> =
-		unstable_readConfig({ config: configPath }, {});
+		unstable_readConfig(
+			{ config: configPath, env: process.env.CLOUDFLARE_ENV },
+			{},
+		);
 	const raw = structuredClone(config) as RawWorkerConfig;
 
 	nullableNonApplicable.forEach((prop) => {
@@ -273,7 +276,7 @@ function getWorkerNonApplicableWarnLines(
 
 	if (overridden.size > 0)
 		lines.push(
-			`${linePrefix}${[...overridden].map((config) => `\`${config}\``).join(', ')} which ${overridden.size > 1 ? 'are' : 'is'} overridden by \`${name}\``,
+			`${linePrefix}${[...overridden].map((config) => `\`${config}\``).join(', ')} which ${overridden.size > 1 ? 'are' : 'is'} overridden by \`${packageName}\``,
 		);
 
 	return lines;
@@ -312,6 +315,12 @@ export function getWorkerConfig(
 
 	opts?.visitedConfigPaths?.add(configPath);
 
+	assert(
+		config.topLevelName,
+		`No top-level name field provided in ${config.configPath}`,
+	);
+	assert(config.name, `No name field provided in ${config.configPath}`);
+
 	if (opts?.isEntryWorker && !config.main) {
 		assert(
 			config.assets,
@@ -328,13 +337,12 @@ export function getWorkerConfig(
 
 	assert(config.main, `No main field provided in ${config.configPath}`);
 
-	assert(config.name, `No name field provided in ${config.configPath}`);
-
 	return {
 		type: 'worker',
 		raw,
 		config: {
 			...config,
+			topLevelName: config.topLevelName,
 			name: config.name,
 			main: config.main,
 		},

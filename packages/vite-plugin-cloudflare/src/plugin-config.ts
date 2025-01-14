@@ -28,6 +28,7 @@ export type AssetsOnlyConfig = SanitizedWorkerConfig & {
 };
 
 export type WorkerConfig = SanitizedWorkerConfig & {
+	topLevelName: Defined<SanitizedWorkerConfig['topLevelName']>;
 	name: Defined<SanitizedWorkerConfig['name']>;
 	main: Defined<SanitizedWorkerConfig['main']>;
 };
@@ -100,7 +101,7 @@ export function resolvePluginConfig(
 
 	const entryWorkerEnvironmentName =
 		pluginConfig.viteEnvironment?.name ??
-		workerNameToEnvironmentName(entryWorkerConfig.name);
+		workerNameToEnvironmentName(entryWorkerConfig.topLevelName);
 
 	const workers = {
 		[entryWorkerEnvironmentName]: entryWorkerConfig,
@@ -127,7 +128,7 @@ export function resolvePluginConfig(
 
 		const workerEnvironmentName =
 			auxiliaryWorker.viteEnvironment?.name ??
-			workerNameToEnvironmentName(workerConfig.name);
+			workerNameToEnvironmentName(workerConfig.topLevelName);
 
 		if (workers[workerEnvironmentName]) {
 			throw new Error(
