@@ -317,14 +317,18 @@ export function getWorkerConfig(
 
 	assert(
 		config.topLevelName,
-		`No top-level name field provided in ${config.configPath}`,
+		`No top-level 'name' field provided in ${config.configPath}`,
 	);
-	assert(config.name, `No name field provided in ${config.configPath}`);
+	assert(config.name, `No 'name' field provided in ${config.configPath}`);
+	assert(
+		config.compatibility_date,
+		`No 'compatibility_date' field provided in ${config.configPath}`,
+	);
 
 	if (opts?.isEntryWorker && !config.main) {
 		assert(
 			config.assets,
-			`No main or assets field provided in ${config.configPath}`,
+			`No 'main' or 'assets' field provided in ${config.configPath}`,
 		);
 
 		return {
@@ -335,9 +339,7 @@ export function getWorkerConfig(
 		};
 	}
 
-	assert(config.main, `No main field provided in ${config.configPath}`);
-
-	console.log(config.compatibility_date);
+	assert(config.main, `No 'main' field provided in ${config.configPath}`);
 
 	return {
 		type: 'worker',
