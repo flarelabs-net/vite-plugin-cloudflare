@@ -18,12 +18,11 @@ export class WebSocketServer extends DurableObject {
 		const decoder = new TextDecoder();
 		const message = typeof data === 'string' ? data : decoder.decode(data);
 
-		console.log('message', message);
-
 		ws.send(`Durable Object received client message: '${message}'.`);
 	}
 
 	override webSocketClose(ws: WebSocket) {
+		console.log('DO close', ws.readyState);
 		ws.close();
 	}
 }

@@ -64,7 +64,8 @@ export function handleWebSocket(
 						);
 					});
 					workerWebSocket.addEventListener('close', () => {
-						clientWebSocket.close();
+						console.log('Worker close');
+						// clientWebSocket.close();
 					});
 
 					// Forward client events to Worker
@@ -77,7 +78,9 @@ export function handleWebSocket(
 						});
 					});
 					clientWebSocket.on('close', () => {
-						workerWebSocket.close();
+						console.log('readyState', clientWebSocket.readyState);
+						console.log('Client close');
+						// workerWebSocket.close();
 					});
 
 					webSocketServer.emit('connection', clientWebSocket, request);
