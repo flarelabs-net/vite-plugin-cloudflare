@@ -6,6 +6,7 @@
 		"build": "vite build --app",
 		"check:types": "tsc --build",
 		"dev": "vite dev",
+		"dev:custom-env": "vite dev -c vite.config.custom-env.ts",
 		"preview": "vite preview"
 	},
 	"devDependencies": {

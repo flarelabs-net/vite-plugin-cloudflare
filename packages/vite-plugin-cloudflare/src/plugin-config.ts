@@ -67,6 +67,7 @@ export function resolvePluginConfig(
 	pluginConfig: PluginConfig,
 	userConfig: vite.UserConfig,
 ): ResolvedPluginConfig {
+	console.log('env', process.env.CLOUDFLARE_ENV);
 	const configPaths = new Set<string>();
 	const persistState = pluginConfig.persistState ?? true;
 	const root = userConfig.root ? path.resolve(userConfig.root) : process.cwd();
