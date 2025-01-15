@@ -21,6 +21,7 @@ import {
 } from './node-js-compat';
 import { resolvePluginConfig } from './plugin-config';
 import { getOutputDirectory, toMiniflareRequest } from './utils';
+import { handleWebSocket } from './websockets';
 import { getWarningForWorkersConfigs } from './workers-configs';
 import type { PluginConfig, ResolvedPluginConfig } from './plugin-config';
 import type { Unstable_RawConfig } from 'wrangler';
@@ -231,6 +232,8 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 			}
 		},
 		async configureServer(viteDevServer) {
+			assert(viteDevServer.httpServer, 'Unexpected error: No Vite HTTP server');
+
 			miniflare = new Miniflare(
 				getDevMiniflareOptions(resolvedPluginConfig, viteDevServer),
 			);
@@ -246,6 +249,12 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 					redirect: 'manual',
 				}) as any;
 			});
+
+			handleWebSocket(
+				viteDevServer.httpServer,
+				entryWorker.fetch,
+				viteDevServer.config.logger,
+			);
 
 			return () => {
 				viteDevServer.middlewares.use((req, res, next) => {
@@ -266,6 +275,12 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 					redirect: 'manual',
 				}) as any;
 			});
+
+			handleWebSocket(
+				vitePreviewServer.httpServer,
+				miniflare.dispatchFetch,
+				vitePreviewServer.config.logger,
+			);
 
 			return () => {
 				vitePreviewServer.middlewares.use((req, res, next) => {
