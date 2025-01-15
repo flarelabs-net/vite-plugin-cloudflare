@@ -5,7 +5,7 @@
 ## Intro
 
 The Cloudflare Vite plugin enables a full featured integration between Vite and the Workers runtime.
-Your Worker code runs inside [workerd](https://github.com/cloudflare/workerd), matching the production behaviour as closely as possible and providing confidence as you develop and deploy your applications.
+Your Worker code runs inside [workerd](https://github.com/cloudflare/workerd), matching the production behavior as closely as possible and providing confidence as you develop and deploy your applications.
 
 ### Features
 
