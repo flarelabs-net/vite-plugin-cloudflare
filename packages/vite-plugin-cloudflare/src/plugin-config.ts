@@ -11,31 +11,40 @@ import type {
 
 export type PersistState = boolean | { path: string };
 
-interface PluginWorkerConfig {
-	configPath: string;
+interface BaseWorkerConfig {
 	viteEnvironment?: { name?: string };
 }
 
-export interface PluginConfig extends Partial<PluginWorkerConfig> {
-	auxiliaryWorkers?: PluginWorkerConfig[];
+interface EntryWorkerConfig extends BaseWorkerConfig {
+	configPath?: string;
+}
+
+interface AuxiliaryWorkerConfig extends BaseWorkerConfig {
+	configPath: string;
+}
+
+export interface PluginConfig extends EntryWorkerConfig {
+	auxiliaryWorkers?: AuxiliaryWorkerConfig[];
 	persistState?: PersistState;
 }
 
 type Defined<T> = Exclude<T, undefined>;
 
-export type AssetsOnlyConfig = SanitizedWorkerConfig & {
+interface BaseConfig {
 	topLevelName: Defined<SanitizedWorkerConfig['topLevelName']>;
 	name: Defined<SanitizedWorkerConfig['name']>;
 	compatibility_date: Defined<SanitizedWorkerConfig['compatibility_date']>;
-	assets: Defined<SanitizedWorkerConfig['assets']>;
-};
+}
 
-export type WorkerConfig = SanitizedWorkerConfig & {
-	topLevelName: Defined<SanitizedWorkerConfig['topLevelName']>;
-	name: Defined<SanitizedWorkerConfig['name']>;
-	compatibility_date: Defined<SanitizedWorkerConfig['compatibility_date']>;
-	main: Defined<SanitizedWorkerConfig['main']>;
-};
+export type AssetsOnlyConfig = SanitizedWorkerConfig &
+	BaseConfig & {
+		assets: Defined<SanitizedWorkerConfig['assets']>;
+	};
+
+export type WorkerConfig = SanitizedWorkerConfig &
+	BaseConfig & {
+		main: Defined<SanitizedWorkerConfig['main']>;
+	};
 
 interface BasePluginConfig {
 	configPaths: Set<string>;
