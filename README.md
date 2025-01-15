@@ -116,7 +116,7 @@ Note that the [`directory`](https://developers.cloudflare.com/workers/static-ass
 The `directory` in the output configuration will automatically point to the client build output.
 
 > [!NOTE]
-> When using the Cloudflare Vite plugin, the Worker config (e.g. `wrangler.toml`) that you provide is the input configuration file.
+> When using the Cloudflare Vite plugin, the Worker config (for example, `wrangler.toml`) that you provide is the input configuration file.
 > A separate output `wrangler.json` file is created when you run `vite build`.
 > This output file is a snapshot of your configuration at the time of the build and is modified to reference your build artifacts.
 > It is the configuration that is used for preview and deployment.
