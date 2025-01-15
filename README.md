@@ -14,7 +14,7 @@ Your Worker code runs inside [workerd](https://github.com/cloudflare/workerd), m
 - Leverages Vite's hot module replacement for consistently fast updates
 - Supports `vite preview` for previewing your build output in the Workers runtime prior to deployment
 
-## Quick Start
+## Quick start
 
 ### Install the dependencies
 
