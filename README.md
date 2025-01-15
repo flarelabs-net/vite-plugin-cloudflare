@@ -109,7 +109,7 @@ assets = { not_found_handling = "single-page-application" }
 
 We have set the [`not_found_handling`](https://developers.cloudflare.com/workers/static-assets/routing/#not_found_handling--404-page--single-page-application--none) value to `single-page-application`.
 This means that all not found requests will serve the `index.html` file.
-With the Cloudflare plugin, the `assets` routing configuration is used in place of Vite's default behaviour.
+With the Cloudflare plugin, the `assets` routing configuration is used in place of Vite's default behavior.
 This ensures that your application's routing works the same way while developing and is it does when deployed to production.
 
 Note that the [`directory`](https://developers.cloudflare.com/workers/static-assets/binding/#directory) field is not used when configuring assets with Vite.
