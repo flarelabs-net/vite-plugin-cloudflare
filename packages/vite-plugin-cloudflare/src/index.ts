@@ -26,6 +26,10 @@ import { getWarningForWorkersConfigs } from './workers-configs';
 import type { PluginConfig, ResolvedPluginConfig } from './plugin-config';
 import type { Unstable_RawConfig } from 'wrangler';
 
+/**
+ * Cloudflare Vite plugin.
+ * Accepts an optional {@link PluginConfig} object.
+ */
 export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 	let resolvedPluginConfig: ResolvedPluginConfig;
 	let resolvedViteConfig: vite.ResolvedConfig;
