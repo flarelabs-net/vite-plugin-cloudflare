@@ -349,7 +349,7 @@ It accepts an optional `PluginConfig` parameter.
 
 > [!NOTE]
 > When running `wrangler deploy`, only your main (entry) Worker will be deployed.
-> If using multiple Workers, it is your responsibility to deploy them individually.
+> If using multiple Workers, each must be deployed individually.
 > You can inspect the `dist` directory and then run `wrangler deploy -c path-to-worker-output-config` for each.
 
 ### `interface AuxiliaryWorkerConfig`
