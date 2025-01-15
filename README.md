@@ -10,7 +10,7 @@ Your Worker code runs inside [workerd](https://github.com/cloudflare/workerd), m
 ### Features
 
 - Provides direct access to Workers runtime APIs and bindings
-- Supports Workers Assets, enabling you to build static sites, SPAs and full-stack applications
+- Supports Workers Assets, enabling you to build static sites, SPAs, and full-stack applications
 - Leverages Vite's hot module replacement for consistently fast updates
 - Supports `vite preview` for previewing your build output in the Workers runtime prior to deployment
 
