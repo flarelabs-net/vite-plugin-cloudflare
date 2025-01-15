@@ -57,7 +57,7 @@ export default {
 }
 ```
 
-You can now develop (`npm run dev`), build (`npm run build`), preview (`npm run preview`) and deploy (`npm run wrangler deploy`) your application.
+You can now develop (`npm run dev`), build (`npm run build`), preview (`npm run preview`) and deploy (`npm exec wrangler deploy`) your application.
 
 ## Tutorial
 
@@ -118,14 +118,14 @@ The `directory` in the output configuration will automatically point to the clie
 > [!NOTE]
 > When using the Cloudflare Vite plugin, the Worker config (e.g. `wrangler.toml`) that you provide is the input configuration file.
 > A separate output `wrangler.json` file is created when you run `vite build`.
-> This output file is a snapshot of your configuration at the time of the build that is been modified to reference your build artifacts.
-> It is the configuration used for preview and deployment.
+> This output file is a snapshot of your configuration at the time of the build and is modified to reference your build artifacts.
+> It is the configuration that is used for preview and deployment.
 
 #### Run the development server
 
 Run `npm run dev` to verify that your application is working as expected.
 
-For a purely front-end application, you could now proceed to build (`npm run build`), preview (`npm run preview`) and deploy (`npm run wrangler deploy`) your application.
+For a purely front-end application, you could now proceed to build (`npm run build`), preview (`npm run preview`) and deploy (`npm exec wrangler deploy`) your application.
 We're going to go a step further, however, and add an API Worker.
 
 ### Add an API Worker
@@ -201,7 +201,7 @@ export default {
 
 The Worker above will be invoked for any request not matching a static asset.
 It returns a JSON response if the `pathname` starts with `/api/` and otherwise passes the incoming request through to the asset binding.
-This means that for paths that do not start with `/api/`, the `not_found_handling` behaviour defined in the Worker config will be evaluated and the `index.html` file will be returned to enable SPA navigations.
+This means that for paths that do not start with `/api/`, the `not_found_handling` behaviour defined in the Worker config will be evaluated and the `index.html` file will be returned, enabling SPA navigations.
 
 #### Call the API from the client
 
@@ -269,7 +269,7 @@ export default App
 
 Now, if you click the button, it will display 'Name from API is: Cloudflare'.
 
-Let's see hot module reloading in action.
+Let's have a look at hot module reloading in action.
 Increment the counter to update the application state in the browser.
 Next, edit `api/index.ts` by changing the `name` it returns to `'Cloudflare Workers'`.
 If you now click the button again, it will display the new `name` while preserving the previously set counter value!
@@ -289,13 +289,13 @@ This command will run your build output locally in the Workers runtime, closely 
 
 #### Deploy to Cloudflare
 
-Run `wrangler deploy` to deploy your application to Cloudflare.
+Run `npm exec wrangler deploy` to deploy your application to Cloudflare.
 This command will automatically use the output `wrangler.json` that was included in the build output.
 
 ### Next steps
 
 In this tutorial, we created an SPA that could be deployed as a Worker with Workers Assets.
-We then added an API Worker that could be accessed from the front-end code.
+We then added an API Worker that could be accessed from the front-end code and deployed to Cloudflare.
 Possible next steps include:
 
 - Adding a binding to another Cloudflare service such as a [KV namespace](https://developers.cloudflare.com/kv/) or [D1 database](https://developers.cloudflare.com/d1/)
@@ -372,7 +372,8 @@ There are a few key differences to highlight:
 ### Input and output Worker config files
 
 In the Vite integration, your Worker config file (e.g. `wrangler.toml`) is the input configuration and a separate output configuration is created as part of the build.
-This output file is a snapshot of your configuration at the time of the build and is the configuration used for preview and deployment.
+This output file is a snapshot of your configuration at the time of the build and is modified to reference your build artifacts.
+It is the configuration that is used for preview and deployment.
 
 ### Redundant fields in the Wrangler config file
 
