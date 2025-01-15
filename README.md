@@ -272,7 +272,7 @@ Now, if you click the button, it will display 'Name from API is: Cloudflare'.
 Let's have a look at hot module reloading in action.
 Increment the counter to update the application state in the browser.
 Next, edit `api/index.ts` by changing the `name` it returns to `'Cloudflare Workers'`.
-If you now click the button again, it will display the new `name` while preserving the previously set counter value!
+If you click the button again, it will display the new `name` while preserving the previously set counter value.
 With Vite and the Cloudflare plugin, you can iterate on the client and server parts of your app quickly without losing UI state between edits.
 
 #### Build your application
