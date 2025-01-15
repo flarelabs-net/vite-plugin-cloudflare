@@ -4,14 +4,11 @@
 	"type": "module",
 	"scripts": {
 		"build": "vite build --app",
-		"build:custom-env": "vite build --app -c vite.config.custom-env.ts",
 		"build:custom-mode": "vite build --app -c vite.config.custom-mode.ts",
 		"check:types": "tsc --build",
 		"dev": "vite dev",
-		"dev:custom-env": "vite dev -c vite.config.custom-env.ts",
 		"dev:custom-mode": "vite dev -c vite.config.custom-mode.ts",
 		"preview": "vite preview",
-		"preview:custom-env": "vite preview -c vite.config.custom-env.ts",
 		"preview:custom-mode": "vite preview -c vite.config.custom-mode.ts"
 	},
 	"devDependencies": {
