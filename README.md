@@ -65,7 +65,7 @@ In this tutorial, we're going to create a React SPA that can be deployed as a Wo
 We'll then add an API Worker that can be accessed from the front-end code.
 We will develop, build and preview the application using Vite before finally deploying to Cloudflare.
 
-### Set up single page application
+### Set up and configure the React SPA
 
 #### Scaffold a Vite project
 
@@ -128,7 +128,7 @@ Run `npm run dev` to verify that your application is working as expected.
 For a purely front-end application, you could now proceed to build (`npm run build`), preview (`npm run preview`) and deploy (`npm run wrangler deploy`) your application.
 We're going to go a step further, however, and add an API Worker.
 
-### Add API Worker
+### Add an API Worker
 
 #### Configure TypeScript for your Worker code
 
