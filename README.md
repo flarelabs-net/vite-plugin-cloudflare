@@ -62,7 +62,7 @@ You can now develop (`npm run dev`), build (`npm run build`), preview (`npm run 
 ## Tutorial
 
 In this tutorial, you will create a React SPA that can be deployed as a Worker with Workers Assets.
-We'll then add an API Worker that can be accessed from the front-end code.
+Then, you will add an API Worker that can be accessed from the front-end code.
 We will develop, build and preview the application using Vite before finally deploying to Cloudflare.
 
 ### Set up and configure the React SPA
