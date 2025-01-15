@@ -433,7 +433,7 @@ importers:
         version: 5.7.2
       vite:
         specifier: catalog:default
-        version: 6.0.3(@types/node@22.10.1)
+        version: 6.0.7(@types/node@22.10.1)
       wrangler:
         specifier: catalog:default
         version: 3.94.0(@cloudflare/workers-types@4.20241205.0)
