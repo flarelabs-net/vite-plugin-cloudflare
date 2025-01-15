@@ -69,7 +69,7 @@ We will develop, build and preview the application using Vite before finally dep
 
 #### Scaffold a Vite project
 
-Let's start by creating a React TypeScript project with Vite.
+Start by creating a React TypeScript project with Vite.
 
 ```sh
 npm create vite@latest cloudflare-vite-tutorial -- --template react-ts
