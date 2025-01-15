@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { getTextResponse } from '../../../__test-utils__';
 
-test('returns the correct custom-env var when CLOUDFLARE_ENV=custom-env', async () => {
+test('returns the correct var when CLOUDFLARE_ENV is provided', async () => {
 	expect(await getTextResponse()).toEqual('Custom env var');
 });
