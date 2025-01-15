@@ -378,5 +378,5 @@ It is the configuration that is used for preview and deployment.
 ### Redundant fields in the Wrangler config file
 
 There are various options in the Worker config file that are ignored when using Vite, as they are either no longer applicable or are replaced by Vite equivalents.
-If these options are provided then warnings will be printed to the console with suggestions for how to proceed.
+If these options are provided, then warnings will be printed to the console with suggestions for how to proceed.
 Examples where the Vite configuration should be used instead include `alias` and `define`.
