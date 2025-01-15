@@ -8,7 +8,7 @@ import type { Duplex } from 'node:stream';
 import type * as vite from 'vite';
 
 /**
- *
+ * This function handles 'upgrade' requests to the Vite HTTP server and forwards WebSocket events between the client and Worker environments.
  */
 export function handleWebSocket(
 	httpServer: vite.HttpServer,
