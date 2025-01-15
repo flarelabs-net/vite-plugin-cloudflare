@@ -65,6 +65,8 @@ In this tutorial, we're going to create a React SPA that can be deployed as a Wo
 We'll then add an API Worker that can be accessed from the front-end code.
 We will develop, build and preview the application using Vite before finally deploying to Cloudflare.
 
+### Set up single page application
+
 #### Scaffold a Vite project
 
 Let's start by creating a React TypeScript project with Vite.
@@ -75,13 +77,13 @@ npm create vite@latest cloudflare-vite-tutorial -- --template react-ts
 
 Open the `cloudflare-vite-tutorial` directory in your editor of choice.
 
-### Add the Cloudflare dependencies
+#### Add the Cloudflare dependencies
 
 ```sh
 npm install @cloudflare/vite-plugin wrangler --save-dev
 ```
 
-### Add the plugin to your Vite config
+#### Add the plugin to your Vite config
 
 ```ts
 // vite.config.ts
@@ -95,7 +97,7 @@ export default defineConfig({
 })
 ```
 
-### Create your Worker config file
+#### Create your Worker config file
 
 ```toml
 # wrangler.toml
@@ -119,14 +121,16 @@ The `directory` in the output configuration will automatically point to the clie
 > This output file is a snapshot of your configuration at the time of the build that is been modified to reference your build artifacts.
 > It is the configuration used for preview and deployment.
 
-### Run the development server
+#### Run the development server
 
 Run `npm run dev` to verify that your application is working as expected.
 
 For a purely front-end application, you could now proceed to build (`npm run build`), preview (`npm run preview`) and deploy (`npm run wrangler deploy`) your application.
 We're going to go a step further, however, and add an API Worker.
 
-### Configure TypeScript for your Worker code
+### Add API Worker
+
+#### Configure TypeScript for your Worker code
 
 ```sh
 npm install @cloudflare/workers-types --save-dev
@@ -158,7 +162,7 @@ npm install @cloudflare/workers-types --save-dev
 }
 ```
 
-### Add to your Worker configuration
+#### Add to your Worker configuration
 
 ```toml
 # wrangler.toml
@@ -171,7 +175,7 @@ main = "./api/index.ts"
 
 The assets `binding` defined here will allow us to access the assets functionality from our Worker.
 
-### Add your API Worker
+#### Add your API Worker
 
 ```ts
 // api/index.ts
@@ -199,7 +203,7 @@ The Worker above will be invoked for any request not matching a static asset.
 It returns a JSON response if the `pathname` starts with `/api/` and otherwise passes the incoming request through to the asset binding.
 This means that for paths that do not start with `/api/`, the `not_found_handling` behaviour defined in the Worker config will be evaluated and the `index.html` file will be returned to enable SPA navigations.
 
-### Call the API from the client
+#### Call the API from the client
 
 Edit `src/App.tsx` so that it includes an additional button that calls the API and sets some state.
 You can replace the file contents with the following code.
@@ -271,19 +275,19 @@ Next, edit `api/index.ts` by changing the `name` it returns to `'Cloudflare Work
 If you now click the button again, it will display the new `name` while preserving the previously set counter value!
 With Vite and the Cloudflare plugin, you can iterate on the client and server parts of your app quickly without losing UI state between edits.
 
-### Build your application
+#### Build your application
 
 Run `vite build` to build your application.
 
 If you inspect the `dist` directory, you will see that it contains two subdirectories: `client` and `cloudflare-vite-tutorial`.
 The `cloudflare-vite-tutorial` directory contains your Worker code and the output `wrangler.json` configuration.
 
-### Preview your application
+#### Preview your application
 
 Run `vite preview` to validate that your application runs as expected.
 This command will run your build output locally in the Workers runtime, closely matching its behaviour in production.
 
-### Deploy to Cloudflare
+#### Deploy to Cloudflare
 
 Run `wrangler deploy` to deploy your application to Cloudflare.
 This command will automatically use the output `wrangler.json` that was included in the build output.
