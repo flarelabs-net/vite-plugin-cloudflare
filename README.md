@@ -65,7 +65,7 @@ In this tutorial, we're going to create a React SPA that can be deployed as a Wo
 We'll then add an API Worker that can be accessed from the front-end code.
 We will develop, build and preview the application using Vite before finally deploying to Cloudflare.
 
-### Scaffold a Vite project
+#### Scaffold a Vite project
 
 Let's start by creating a React TypeScript project with Vite.
 
@@ -126,7 +126,7 @@ Run `npm run dev` to verify that your application is working as expected.
 For a purely front-end application, you could now proceed to build (`npm run build`), preview (`npm run preview`) and deploy (`npm run wrangler deploy`) your application.
 We're going to go a step further, however, and add an API Worker.
 
-### Configure TypeScript
+### Configure TypeScript for your Worker code
 
 ```sh
 npm install @cloudflare/workers-types --save-dev
@@ -290,7 +290,7 @@ This command will automatically use the output `wrangler.json` that was included
 
 ### Next steps
 
-In this tutorial, we created an SPA that could be deployed using a Worker with Workers Assets.
+In this tutorial, we created an SPA that could be deployed as a Worker with Workers Assets.
 We then added an API Worker that could be accessed from the front-end code.
 Possible next steps include:
 
@@ -340,7 +340,8 @@ It accepts an optional `PluginConfig` parameter.
 
   An optional array of auxiliary workers.
   You can use [service bindings](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/) to call auxiliary workers from your main (entry) Worker.
-  During the build, each Worker is output in a separate subdirectory of `dist`.
+  All requests are routed through your entry Worker.
+  During the build, each Worker is output to a separate subdirectory of `dist`.
 
 > [!NOTE]
 > When running `wrangler deploy`, only your main (entry) Worker will be deployed.
