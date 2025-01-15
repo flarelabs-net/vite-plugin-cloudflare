@@ -57,7 +57,7 @@ export default {
 }
 ```
 
-You can now develop (`npm run dev`), build (`npm run build`), preview (`npm run preview`) and deploy (`npm exec wrangler deploy`) your application.
+You can now develop (`npm run dev`), build (`npm run build`), preview (`npm run preview`), and deploy (`npm exec wrangler deploy`) your application.
 
 ## Tutorial
 
