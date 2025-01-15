@@ -326,7 +326,7 @@ It accepts an optional `PluginConfig` parameter.
 - `configPath?: string`
 
   An optional path to your Worker config file.
-  By default, a `wrangler.toml`, `wrangler.json` or `wrangler.jsonc` file in the root of your application will be used as the Worker config.
+  By default, a `wrangler.toml`, `wrangler.json`, or `wrangler.jsonc` file in the root of your application will be used as the Worker config.
 
 - `viteEnvironment?: { name?: string }`
 
