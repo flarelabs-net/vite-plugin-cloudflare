@@ -2,7 +2,7 @@ import assert from 'node:assert';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { unstable_readConfig } from 'wrangler';
-import { name } from '../package.json';
+import { name as packageName } from '../package.json';
 import type { AssetsOnlyConfig, WorkerConfig } from './plugin-config';
 import type { Optional } from './utils';
 import type { Unstable_Config as RawWorkerConfig } from 'wrangler';
@@ -128,7 +128,10 @@ const nullableNonApplicable = [
 	'upload_source_maps',
 ] as const;
 
-function readWorkerConfig(configPath: string): {
+function readWorkerConfig(
+	configPath: string,
+	env: string | undefined,
+): {
 	raw: RawWorkerConfig;
 	config: SanitizedWorkerConfig;
 	nonApplicable: NonApplicableConfigMap;
@@ -139,7 +142,7 @@ function readWorkerConfig(configPath: string): {
 		overridden: new Set(),
 	};
 	const config: Optional<RawWorkerConfig, 'build' | 'define'> =
-		unstable_readConfig({ config: configPath }, {});
+		unstable_readConfig({ config: configPath, env }, {});
 	const raw = structuredClone(config) as RawWorkerConfig;
 
 	nullableNonApplicable.forEach((prop) => {
@@ -273,7 +276,7 @@ function getWorkerNonApplicableWarnLines(
 
 	if (overridden.size > 0)
 		lines.push(
-			`${linePrefix}${[...overridden].map((config) => `\`${config}\``).join(', ')} which ${overridden.size > 1 ? 'are' : 'is'} overridden by \`${name}\``,
+			`${linePrefix}${[...overridden].map((config) => `\`${config}\``).join(', ')} which ${overridden.size > 1 ? 'are' : 'is'} overridden by \`${packageName}\``,
 		);
 
 	return lines;
@@ -297,8 +300,17 @@ function isOverridden(
 	return nonApplicableWorkerConfigs.overridden.includes(configName as any);
 }
 
+function missingFieldErrorMessage(
+	field: string,
+	configPath: string,
+	env: string | undefined,
+) {
+	return `No ${field} field provided in '${configPath}'${env ? ` for '${env}' environment` : ''}`;
+}
+
 export function getWorkerConfig(
 	configPath: string,
+	env: string | undefined,
 	opts?: {
 		visitedConfigPaths?: Set<string>;
 		isEntryWorker?: boolean;
@@ -308,34 +320,50 @@ export function getWorkerConfig(
 		throw new Error(`Duplicate Wrangler config path found: ${configPath}`);
 	}
 
-	const { raw, config, nonApplicable } = readWorkerConfig(configPath);
+	const { raw, config, nonApplicable } = readWorkerConfig(configPath, env);
 
 	opts?.visitedConfigPaths?.add(configPath);
+
+	assert(
+		config.topLevelName,
+		missingFieldErrorMessage(`top-level 'name'`, configPath, env),
+	);
+	assert(config.name, missingFieldErrorMessage(`'name'`, configPath, env));
+	assert(
+		config.compatibility_date,
+		missingFieldErrorMessage(`'compatibility_date'`, configPath, env),
+	);
 
 	if (opts?.isEntryWorker && !config.main) {
 		assert(
 			config.assets,
-			`No main or assets field provided in ${config.configPath}`,
+			missingFieldErrorMessage(`'main' or 'assets'`, configPath, env),
 		);
 
 		return {
-			raw,
 			type: 'assets-only',
-			config: { ...config, assets: config.assets },
+			raw,
+			config: {
+				...config,
+				topLevelName: config.topLevelName,
+				name: config.name,
+				compatibility_date: config.compatibility_date,
+				assets: config.assets,
+			},
 			nonApplicable,
 		};
 	}
 
-	assert(config.main, `No main field provided in ${config.configPath}`);
-
-	assert(config.name, `No name field provided in ${config.configPath}`);
+	assert(config.main, missingFieldErrorMessage(`'main'`, configPath, env));
 
 	return {
 		type: 'worker',
 		raw,
 		config: {
 			...config,
+			topLevelName: config.topLevelName,
 			name: config.name,
+			compatibility_date: config.compatibility_date,
 			main: config.main,
 		},
 		nonApplicable,

@@ -8,7 +8,8 @@ test('creates a Workflow with an ID', async () => {
 		id: instanceId,
 		status: {
 			status: 'running',
-			output: [],
+			__LOCAL_DEV_STEP_OUTPUTS: [],
+			output: null,
 		},
 	});
 
@@ -16,7 +17,8 @@ test('creates a Workflow with an ID', async () => {
 		async () => {
 			expect(await getJsonResponse(`/get?id=${instanceId}`)).toEqual({
 				status: 'running',
-				output: [{ output: 'First step result' }],
+				__LOCAL_DEV_STEP_OUTPUTS: [{ output: 'First step result' }],
+				output: null,
 			});
 		},
 		{ timeout: 5000 },
@@ -26,10 +28,11 @@ test('creates a Workflow with an ID', async () => {
 		async () => {
 			expect(await getJsonResponse(`/get?id=${instanceId}`)).toEqual({
 				status: 'complete',
-				output: [
+				__LOCAL_DEV_STEP_OUTPUTS: [
 					{ output: 'First step result' },
 					{ output: 'Second step result' },
 				],
+				output: 'Workflow output',
 			});
 		},
 		{ timeout: 5000 },

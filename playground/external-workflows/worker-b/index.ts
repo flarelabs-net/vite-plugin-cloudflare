@@ -16,5 +16,7 @@ export class MyWorkflow extends WorkflowEntrypoint {
 				output: 'Second step result',
 			};
 		});
+
+		return 'Workflow output';
 	}
 }

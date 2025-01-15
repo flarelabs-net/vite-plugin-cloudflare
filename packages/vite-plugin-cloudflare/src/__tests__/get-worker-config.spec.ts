@@ -6,6 +6,7 @@ describe('getWorkerConfig', () => {
 	test('should return a simple raw config', () => {
 		const { raw } = getWorkerConfig(
 			fileURLToPath(new URL('fixtures/simple-wrangler.toml', import.meta.url)),
+			undefined,
 		);
 		expect(typeof raw).toEqual('object');
 
@@ -35,6 +36,7 @@ describe('getWorkerConfig', () => {
 	test('should return a simple config without non-applicable fields', () => {
 		const { config } = getWorkerConfig(
 			fileURLToPath(new URL('fixtures/simple-wrangler.toml', import.meta.url)),
+			undefined,
 		);
 		expect(typeof config).toEqual('object');
 
@@ -44,6 +46,7 @@ describe('getWorkerConfig', () => {
 	test("should not return any non-applicable config when there isn't any", () => {
 		const { nonApplicable } = getWorkerConfig(
 			fileURLToPath(new URL('fixtures/simple-wrangler.toml', import.meta.url)),
+			undefined,
 		);
 		expect(nonApplicable).toEqual({
 			replacedByVite: new Set(),
@@ -55,6 +58,7 @@ describe('getWorkerConfig', () => {
 	test('should read a simple wrangler.toml file', () => {
 		const { config, raw, nonApplicable } = getWorkerConfig(
 			fileURLToPath(new URL('fixtures/simple-wrangler.toml', import.meta.url)),
+			undefined,
 		);
 		expect(typeof config).toEqual('object');
 
@@ -91,6 +95,7 @@ describe('getWorkerConfig', () => {
 					import.meta.url,
 				),
 			),
+			undefined,
 		);
 
 		expect(typeof config).toEqual('object');
