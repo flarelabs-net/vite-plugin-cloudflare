@@ -79,10 +79,12 @@ function workerNameToEnvironmentName(workerName: string) {
 export function resolvePluginConfig(
 	pluginConfig: PluginConfig,
 	userConfig: vite.UserConfig,
+	viteEnv: vite.ConfigEnv,
 ): ResolvedPluginConfig {
 	const configPaths = new Set<string>();
 	const persistState = pluginConfig.persistState ?? true;
 	const root = userConfig.root ? path.resolve(userConfig.root) : process.cwd();
+	const { CLOUDFLARE_ENV } = vite.loadEnv(viteEnv.mode, root, '');
 
 	const configPath = pluginConfig.configPath
 		? path.resolve(root, pluginConfig.configPath)
@@ -93,10 +95,14 @@ export function resolvePluginConfig(
 		`Config not found. Have you created a wrangler.json(c) or wrangler.toml file?`,
 	);
 
-	const entryWorkerResolvedConfig = getWorkerConfig(configPath, {
-		visitedConfigPaths: configPaths,
-		isEntryWorker: true,
-	});
+	const entryWorkerResolvedConfig = getWorkerConfig(
+		configPath,
+		CLOUDFLARE_ENV,
+		{
+			visitedConfigPaths: configPaths,
+			isEntryWorker: true,
+		},
+	);
 
 	if (entryWorkerResolvedConfig.type === 'assets-only') {
 		return {
@@ -125,6 +131,7 @@ export function resolvePluginConfig(
 	for (const auxiliaryWorker of pluginConfig.auxiliaryWorkers ?? []) {
 		const workerResolvedConfig = getWorkerConfig(
 			path.resolve(root, auxiliaryWorker.configPath),
+			CLOUDFLARE_ENV,
 			{
 				visitedConfigPaths: configPaths,
 			},

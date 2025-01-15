@@ -41,7 +41,7 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin {
 				return { appType: 'custom' };
 			}
 
-			resolvedPluginConfig = resolvePluginConfig(pluginConfig, userConfig);
+			resolvedPluginConfig = resolvePluginConfig(pluginConfig, userConfig, env);
 
 			if (!workersConfigsWarningShown) {
 				workersConfigsWarningShown = true;
