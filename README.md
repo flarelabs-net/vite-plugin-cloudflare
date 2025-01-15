@@ -201,7 +201,7 @@ export default {
 
 The Worker above will be invoked for any request not matching a static asset.
 It returns a JSON response if the `pathname` starts with `/api/` and otherwise passes the incoming request through to the asset binding.
-This means that for paths that do not start with `/api/`, the `not_found_handling` behaviour defined in the Worker config will be evaluated and the `index.html` file will be returned, enabling SPA navigations.
+This means that for paths that do not start with `/api/`, the `not_found_handling` behavior defined in the Worker config will be evaluated and the `index.html` file will be returned, enabling SPA navigations.
 
 #### Call the API from the client
 
