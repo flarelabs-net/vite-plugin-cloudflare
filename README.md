@@ -1,6 +1,6 @@
 # `@cloudflare/vite-plugin`
 
-[Intro](#intro) | [Quick Start](#quick-start) | [Tutorial](#tutorial) | [API](#api) | [Migrating from `wrangler dev`](#migrating-from-wrangler-dev)
+[Intro](#intro) | [Quick start](#quick-start) | [Tutorial](#tutorial) | [API](#api) | [Migrating from `wrangler dev`](#migrating-from-wrangler-dev)
 
 ## Intro
 
@@ -63,7 +63,7 @@ You can now develop (`npm run dev`), build (`npm run build`), preview (`npm run 
 
 In this tutorial, you will create a React SPA that can be deployed as a Worker with Workers Assets.
 Then, you will add an API Worker that can be accessed from the front-end code.
-We will develop, build and preview the application using Vite before finally deploying to Cloudflare.
+You will develop, build, and preview the application using Vite before finally deploying to Cloudflare.
 
 ### Set up and configure the React SPA
 
@@ -107,7 +107,7 @@ compatibility_date = "2024-12-30"
 assets = { not_found_handling = "single-page-application" }
 ```
 
-We have set the [`not_found_handling`](https://developers.cloudflare.com/workers/static-assets/routing/#not_found_handling--404-page--single-page-application--none) value to `single-page-application`.
+The [`not_found_handling`](https://developers.cloudflare.com/workers/static-assets/routing/#not_found_handling--404-page--single-page-application--none) value has been set to `single-page-application`.
 This means that all not found requests will serve the `index.html` file.
 With the Cloudflare plugin, the `assets` routing configuration is used in place of Vite's default behavior.
 This ensures that your application's routing works the same way while developing as it does when deployed to production.
@@ -206,7 +206,7 @@ This means that for paths that do not start with `/api/`, the `not_found_handlin
 #### Call the API from the client
 
 Edit `src/App.tsx` so that it includes an additional button that calls the API and sets some state.
-You can replace the file contents with the following code.
+Replace the file contents with the following code:
 
 ```tsx
 // src/App.tsx
@@ -269,7 +269,6 @@ export default App
 
 Now, if you click the button, it will display 'Name from API is: Cloudflare'.
 
-Let's have a look at hot module reloading in action.
 Increment the counter to update the application state in the browser.
 Next, edit `api/index.ts` by changing the `name` it returns to `'Cloudflare Workers'`.
 If you click the button again, it will display the new `name` while preserving the previously set counter value.
@@ -366,7 +365,7 @@ It accepts an optional `PluginConfig` parameter.
 
 ## Migrating from `wrangler dev`
 
-Migrating from `wrangler dev` is straightforward and you can follow the instructions in the [Quick Start](#quick-start) to get started.
+Migrating from `wrangler dev` is a simple process and you can follow the instructions in the [Quick start](#quick-start) to get started.
 There are a few key differences to highlight:
 
 ### Input and output Worker config files
