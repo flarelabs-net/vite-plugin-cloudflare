@@ -125,7 +125,7 @@ The `directory` in the output configuration will automatically point to the clie
 
 Run `npm run dev` to verify that your application is working as expected.
 
-For a purely front-end application, you could now proceed to build (`npm run build`), preview (`npm run preview`) and deploy (`npm exec wrangler deploy`) your application.
+For a purely front-end application, you could now build (`npm run build`), preview (`npm run preview`), and deploy (`npm exec wrangler deploy`) your application.
 We're going to go a step further, however, and add an API Worker.
 
 ### Add an API Worker
