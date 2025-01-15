@@ -1,6 +1,6 @@
 # `@cloudflare/vite-plugin`
 
-[Intro](#intro) | [Quick Start](#quick-start) | [Tutorial](#tutorial) | [API](#api) | [Migrating](#migrating-from-wrangler-dev)
+[Intro](#intro) | [Quick Start](#quick-start) | [Tutorial](#tutorial) | [API](#api) | [Migrating from `wrangler dev`](#migrating-from-wrangler-dev)
 
 ## Intro
 
