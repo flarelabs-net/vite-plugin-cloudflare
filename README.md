@@ -173,7 +173,7 @@ assets = { not_found_handling = "single-page-application", binding = "ASSETS" }
 main = "./api/index.ts"
 ```
 
-The assets `binding` defined here will allow us to access the assets functionality from our Worker.
+The assets `binding` defined here will allow you to access the assets functionality from your Worker.
 
 #### Add your API Worker
 
