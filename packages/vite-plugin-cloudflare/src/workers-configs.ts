@@ -300,6 +300,14 @@ function isOverridden(
 	return nonApplicableWorkerConfigs.overridden.includes(configName as any);
 }
 
+function missingFieldErrorMessage(
+	field: string,
+	configPath: string,
+	env: string | undefined,
+) {
+	return `No ${field} field provided in '${configPath}'${env ? ` for '${env}' environment` : ''}`;
+}
+
 export function getWorkerConfig(
 	configPath: string,
 	env: string | undefined,
@@ -318,18 +326,18 @@ export function getWorkerConfig(
 
 	assert(
 		config.topLevelName,
-		`No top-level 'name' field provided in ${config.configPath}`,
+		missingFieldErrorMessage(`top-level 'name'`, configPath, env),
 	);
-	assert(config.name, `No 'name' field provided in ${config.configPath}`);
+	assert(config.name, missingFieldErrorMessage(`'name'`, configPath, env));
 	assert(
 		config.compatibility_date,
-		`No 'compatibility_date' field provided in ${config.configPath}`,
+		missingFieldErrorMessage(`'compatibility_date'`, configPath, env),
 	);
 
 	if (opts?.isEntryWorker && !config.main) {
 		assert(
 			config.assets,
-			`No 'main' or 'assets' field provided in ${config.configPath}`,
+			missingFieldErrorMessage(`'main' or 'assets'`, configPath, env),
 		);
 
 		return {
@@ -346,7 +354,7 @@ export function getWorkerConfig(
 		};
 	}
 
-	assert(config.main, `No 'main' field provided in ${config.configPath}`);
+	assert(config.main, missingFieldErrorMessage(`'main'`, configPath, env));
 
 	return {
 		type: 'worker',
