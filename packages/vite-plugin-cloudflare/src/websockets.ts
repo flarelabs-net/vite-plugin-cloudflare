@@ -1,11 +1,15 @@
 import ws from 'ws';
 import { UNKNOWN_HOST } from './shared';
+import { nodeHeadersToWebHeaders } from './utils';
 import type { Fetcher } from '@cloudflare/workers-types/experimental';
 import type { ReplaceWorkersTypes } from 'miniflare';
 import type { IncomingMessage } from 'node:http';
 import type { Duplex } from 'node:stream';
 import type * as vite from 'vite';
 
+/**
+ *
+ */
 export function handleWebSocket(
 	httpServer: vite.HttpServer,
 	fetcher: ReplaceWorkersTypes<Fetcher>['fetch'],
@@ -23,18 +27,7 @@ export function handleWebSocket(
 				return;
 			}
 
-			const headers = new Headers();
-
-			for (const [key, value] of Object.entries(request.headers)) {
-				if (typeof value === 'string') {
-					headers.append(key, value);
-				} else if (Array.isArray(value)) {
-					for (const item of value) {
-						headers.append(key, item);
-					}
-				}
-			}
-
+			const headers = nodeHeadersToWebHeaders(request.headers);
 			const response = await fetcher(url, {
 				headers,
 				method: request.method,
