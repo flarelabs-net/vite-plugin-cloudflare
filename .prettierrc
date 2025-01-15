@@ -36,6 +36,7 @@
 			"files": "*.md",
 			"options": {
 				"useTabs": false,
+				"semi": false,
 				"plugins": []
 			}
 		}

@@ -1,5 +1,7 @@
 # `@cloudflare/vite-plugin`
 
+[Intro](#intro) | [Quick Start](#quick-start) | [Tutorial](#tutorial) | [API](#api) | [Migrating](#migrating-from-wrangler-dev)
+
 ## Intro
 
 The Cloudflare Vite plugin enables a full featured integration between Vite and the Workers runtime.
@@ -9,14 +11,8 @@ Your Worker code runs inside [workerd](https://github.com/cloudflare/workerd), m
 
 - Provides direct access to Workers runtime APIs and bindings
 - Supports Workers Assets, enabling you to build static sites, SPAs and full-stack applications
-- Leverages Vite's hot-module reloading for consistently fast updates
+- Leverages Vite's hot module replacement for consistently fast updates
 - Supports `vite preview` for previewing your build output in the Workers runtime prior to deployment
-
-## Contents
-
-- [Quick Start](#quick-start)
-- [Tutorial](#tutorial)
-- [API](#api)
 
 ## Quick Start
 
@@ -31,12 +27,12 @@ npm install @cloudflare/vite-plugin wrangler --save-dev
 ```ts
 // vite.config.ts
 
-import { defineConfig } from 'vite';
-import { cloudflare } from '@cloudflare/vite-plugin';
+import { defineConfig } from 'vite'
+import { cloudflare } from '@cloudflare/vite-plugin'
 
 export default defineConfig({
   plugins: [cloudflare()],
-});
+})
 ```
 
 ### Create your Worker config file
@@ -45,8 +41,8 @@ export default defineConfig({
 # wrangler.toml
 
 name = "my-worker"
+compatibility_date = "2024-12-30"
 main = "./src/index.ts"
-compatibility_date = "2024-12-05"
 ```
 
 ### Create your Worker entry file
@@ -56,14 +52,16 @@ compatibility_date = "2024-12-05"
 
 export default {
   fetch() {
-    return new Response(`Running in ${navigator.userAgent}!`);
+    return new Response(`Running in ${navigator.userAgent}!`)
   },
-};
+}
 ```
+
+You can now develop (`npm run dev`), build (`npm run build`), preview (`npm run preview`) and deploy (`npm run wrangler deploy`) your application.
 
 ## Tutorial
 
-In this tutorial, we're going to create a React SPA that can be deployed to Workers Assets.
+In this tutorial, we're going to create a React SPA that can be deployed as a Worker with Workers Assets.
 We'll then add an API Worker that can be accessed from the front-end code.
 We will develop, build and preview the application using Vite before finally deploying to Cloudflare.
 
@@ -88,13 +86,13 @@ npm install @cloudflare/vite-plugin wrangler --save-dev
 ```ts
 // vite.config.ts
 
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import { cloudflare } from '@cloudflare/vite-plugin';
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import { cloudflare } from '@cloudflare/vite-plugin'
 
 export default defineConfig({
   plugins: [react(), cloudflare()],
-});
+})
 ```
 
 ### Create your Worker config file
@@ -102,36 +100,33 @@ export default defineConfig({
 ```toml
 # wrangler.toml
 
-assets = {}
+name = "cloudflare-vite-tutorial"
+compatibility_date = "2024-12-30"
+assets = { not_found_handling = "single-page-application" }
 ```
 
-The `directory` field is not used when configuring assets with Vite.
+We have set the [`not_found_handling`](https://developers.cloudflare.com/workers/static-assets/routing/#not_found_handling--404-page--single-page-application--none) value to `single-page-application`.
+This means that all not found requests will serve the `index.html` file.
+With the Cloudflare plugin, the `assets` routing configuration is used in place of Vite's default behaviour.
+This ensures that your application's routing works the same way while developing and is it does when deployed to production.
+
+Note that the [`directory`](https://developers.cloudflare.com/workers/static-assets/binding/#directory) field is not used when configuring assets with Vite.
 The `directory` in the output configuration will automatically point to the client build output.
 
 > [!NOTE]
 > When using the Cloudflare Vite plugin, the Worker config (e.g. `wrangler.toml`) that you provide is the input configuration file.
 > A separate output `wrangler.json` file is created when you run `vite build`.
-> This output file is a snapshot of your configuration at the time of the build and is the configuration used for preview and deployment.
+> This output file is a snapshot of your configuration at the time of the build that is been modified to reference your build artifacts.
+> It is the configuration used for preview and deployment.
 
-### Configure not found handling
+### Run the development server
 
-If you run `vite dev`, you will see that your app is running.
-If you navigate to a different path, however, you will get a 404 response.
-This is because the not found handling is now being handled by the Cloudflare plugin rather than Vite and replicates the production behaviour that is specified in your configuration.
-To make all not found requests direct to the `index.html` file, set the value to `single-page-application` in your Worker config.
+Run `npm run dev` to verify that your application is working as expected.
 
-```toml
-# wrangler.toml
-
-assets = { not_found_handling = "single-page-application" }
-```
-
-Now, if you navigate to a different path, you will still see your application.
-
-For a purely front-end application, you could now proceed to build and deploy your application.
+For a purely front-end application, you could now proceed to build (`npm run build`), preview (`npm run preview`) and deploy (`npm run wrangler deploy`) your application.
 We're going to go a step further, however, and add an API Worker.
 
-### Add the `@cloudflare/workers-types` dependency and configure TypeScript
+### Configure TypeScript
 
 ```sh
 npm install @cloudflare/workers-types --save-dev
@@ -168,10 +163,10 @@ npm install @cloudflare/workers-types --save-dev
 ```toml
 # wrangler.toml
 
-name = "api"
-main = "./api/index.ts"
-compatibility_date = "2024-12-05"
+name = "cloudflare-vite-tutorial"
+compatibility_date = "2024-12-30"
 assets = { not_found_handling = "single-page-application", binding = "ASSETS" }
+main = "./api/index.ts"
 ```
 
 The assets `binding` defined here will allow us to access the assets functionality from our Worker.
@@ -182,43 +177,44 @@ The assets `binding` defined here will allow us to access the assets functionali
 // api/index.ts
 
 interface Env {
-  ASSETS: Fetcher;
+  ASSETS: Fetcher
 }
 
 export default {
   fetch(request, env) {
-    const url = new URL(request.url);
+    const url = new URL(request.url)
 
     if (url.pathname.startsWith('/api/')) {
       return Response.json({
         name: 'Cloudflare',
-      });
+      })
     }
 
-    return env.ASSETS.fetch(request);
+    return env.ASSETS.fetch(request)
   },
-} satisfies ExportedHandler<Env>;
+} satisfies ExportedHandler<Env>
 ```
 
-The Worker above will be invoked for any not found path.
+The Worker above will be invoked for any request not matching a static asset.
 It returns a JSON response if the `pathname` starts with `/api/` and otherwise passes the incoming request through to the asset binding.
-This means that for paths that do not start with `/api/`, the `not_found_handling` behaviour defined in the Worker config will be evaluated and the `index.html` file will be returned.
+This means that for paths that do not start with `/api/`, the `not_found_handling` behaviour defined in the Worker config will be evaluated and the `index.html` file will be returned to enable SPA navigations.
 
 ### Call the API from the client
 
-Edit `src/App.tsx` so that it includes an additional button that calls the API and sets some state. You can replace the file contents with the following code.
+Edit `src/App.tsx` so that it includes an additional button that calls the API and sets some state.
+You can replace the file contents with the following code.
 
 ```tsx
 // src/App.tsx
 
-import { useState } from 'react';
-import reactLogo from './assets/react.svg';
-import viteLogo from '/vite.svg';
-import './App.css';
+import { useState } from 'react'
+import reactLogo from './assets/react.svg'
+import viteLogo from '/vite.svg'
+import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0);
-  const [name, setName] = useState('unknown');
+  const [count, setCount] = useState(0)
+  const [name, setName] = useState('unknown')
 
   return (
     <>
@@ -247,9 +243,9 @@ function App() {
           onClick={() => {
             fetch('/api/')
               .then((res) => res.json() as Promise<{ name: string }>)
-              .then((data) => setName(data.name));
+              .then((data) => setName(data.name))
           }}
-          aria-label="get-name"
+          aria-label="get name"
         >
           Name from API is: {name}
         </button>
@@ -261,28 +257,31 @@ function App() {
         Click on the Vite and React logos to learn more
       </p>
     </>
-  );
+  )
 }
 
-export default App;
+export default App
 ```
 
 Now, if you click the button, it will display 'Name from API is: Cloudflare'.
 
-Try incrementing the counter and then changing the `name` that is returned in `api/index.ts`.
-If you click the button again, it will display the new value while preserving the counter state.
+Let's see hot module reloading in action.
+Increment the counter to update the application state in the browser.
+Next, edit `api/index.ts` by changing the `name` it returns to `'Cloudflare Workers'`.
+If you now click the button again, it will display the new `name` while preserving the previously set counter value!
+With Vite and the Cloudflare plugin, you can iterate on the client and server parts of your app quickly without losing UI state between edits.
 
 ### Build your application
 
 Run `vite build` to build your application.
 
-If you inspect the `dist` directory, you will see that it contains two subdirectories: `client` and `api`.
-The `api` directory contains your Worker code and the output `wrangler.json` configuration.
+If you inspect the `dist` directory, you will see that it contains two subdirectories: `client` and `cloudflare-vite-tutorial`.
+The `cloudflare-vite-tutorial` directory contains your Worker code and the output `wrangler.json` configuration.
 
 ### Preview your application
 
 Run `vite preview` to validate that your application runs as expected.
-This command will run your build output locally in the Workers runtime.
+This command will run your build output locally in the Workers runtime, closely matching its behaviour in production.
 
 ### Deploy to Cloudflare
 
@@ -291,7 +290,7 @@ This command will automatically use the output `wrangler.json` that was included
 
 ### Next steps
 
-In this tutorial, we created an SPA that could be deployed using Workers Assets.
+In this tutorial, we created an SPA that could be deployed using a Worker with Workers Assets.
 We then added an API Worker that could be accessed from the front-end code.
 Possible next steps include:
 
@@ -308,12 +307,12 @@ The `cloudflare` plugin should be included in the Vite `plugins` array:
 ```ts
 // vite.config.ts
 
-import { defineConfig } from 'vite';
-import { cloudflare } from '@cloudflare/vite-plugin';
+import { defineConfig } from 'vite'
+import { cloudflare } from '@cloudflare/vite-plugin'
 
 export default defineConfig({
   plugins: [cloudflare()],
-});
+})
 ```
 
 It accepts an optional `PluginConfig` parameter.
@@ -334,13 +333,13 @@ It accepts an optional `PluginConfig` parameter.
 - `persistState?: boolean | { path: string }`
 
   An optional override for state persistence.
-  By default, state is persisted to `.wrangler/state/v3`.
+  By default, state is persisted to `.wrangler/state` in a `v3` subdirectory.
   A custom `path` can be provided or, alternatively, persistence can be disabled by setting the value to `false`.
 
 - `auxiliaryWorkers?: Array<AuxiliaryWorkerConfig>`
 
   An optional array of auxiliary workers.
-  You can use [service bindings](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/) to call auxiliary workers from your main Worker.
+  You can use [service bindings](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/) to call auxiliary workers from your main (entry) Worker.
   During the build, each Worker is output in a separate subdirectory of `dist`.
 
 > [!NOTE]
@@ -362,7 +361,8 @@ It accepts an optional `PluginConfig` parameter.
 
 ## Migrating from `wrangler dev`
 
-Migrating from `wrangler dev` should be straightforward but there are a few key differences to highlight:
+Migrating from `wrangler dev` is straightforward and you can follow the instructions in the [Quick Start](#quick-start) to get started.
+There are a few key differences to highlight:
 
 ### Input and output Worker config files
 
