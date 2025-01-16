@@ -276,14 +276,14 @@ With Vite and the Cloudflare plugin, you can iterate on the client and server pa
 
 #### Build your application
 
-Run `vite build` to build your application.
+Run `npm run build` to build your application.
 
 If you inspect the `dist` directory, you will see that it contains two subdirectories: `client` and `cloudflare-vite-tutorial`.
 The `cloudflare-vite-tutorial` directory contains your Worker code and the output `wrangler.json` configuration.
 
 #### Preview your application
 
-Run `vite preview` to validate that your application runs as expected.
+Run `npm run preview` to validate that your application runs as expected.
 This command will run your build output locally in the Workers runtime, closely matching its behaviour in production.
 
 #### Deploy to Cloudflare
