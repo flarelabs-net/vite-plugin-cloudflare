@@ -395,9 +395,14 @@ This is because the environment name is automatically appended to the top-level 
 > The default Vite environment name for a Worker is always the top-level name.
 > This enables you to reference the Worker consistently in your Vite config when using multiple environments.
 
-Running `vite dev` or `vite build` without providing `CLOUDFLARE_ENV` will use the default top-level environment.
-The value of `MY_VAR` will therefore be `'Top-level var'`.
-As Worker environments are applied at dev and build time, specifying `CLOUDFLARE_ENV` when running `vite preview` or `wrangler deploy` will have no effect.
+Worker environments can also be used in development.
+For example, you could run `CLOUDFLARE_ENV=development vite dev`.
+It is common to use the default top-level environment as the development environment and then add additional environments as necessary.
+
+> [!NOTE]
+> Running `vite dev` or `vite build` without providing `CLOUDFLARE_ENV` will use the default top-level environment.
+> The value of `MY_VAR` will therefore be `'Top-level var'`.
+> As Worker environments are applied at dev and build time, specifying `CLOUDFLARE_ENV` when running `vite preview` or `wrangler deploy` will have no effect.
 
 ### Combining Worker environments and Vite modes
 
