@@ -365,7 +365,7 @@ It accepts an optional `PluginConfig` parameter.
 
 ## Worker environments
 
-A Worker config file may contain configuration for multiple [environments](https://developers.cloudflare.com/workers/wrangler/environments/).
+A Worker config file may contain configuration for multiple [Worker environments](https://developers.cloudflare.com/workers/wrangler/environments/).
 With the Cloudflare Vite plugin, you select an environment at dev or build time by providing the `CLOUDFLARE_ENV` environment variable.
 Consider the following example `wrangler.toml` file:
 
