@@ -1,3 +1,7 @@
+> [!IMPORTANT]
+> This README contains preliminary documentation and the `@cloudflare/vite-plugin` package is not yet published.
+> In the meantime you can install the package from `https://pkg.pr.new/flarelabs-net/vite-plugin-cloudflare/@flarelabs-net/vite-plugin-cloudflare@main`
+
 # `@cloudflare/vite-plugin`
 
 [Intro](#intro) | [Quick start](#quick-start) | [Tutorial](#tutorial) | [API](#api) | [Worker environments](#worker-environments) | [Migrating from `wrangler dev`](#migrating-from-wrangler-dev)
