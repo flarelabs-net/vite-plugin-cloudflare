@@ -1,6 +1,6 @@
-> [!IMPORTANT]
-> This README contains preliminary documentation and the `@cloudflare/vite-plugin` package is not yet published.
-> In the meantime you can install the package from `https://pkg.pr.new/flarelabs-net/vite-plugin-cloudflare/@flarelabs-net/vite-plugin-cloudflare@main`
+> [!NOTE]
+> This README contains preliminary documentation.
+> The `@cloudflare/vite-plugin` package is not yet published but in the meantime you can install by running `npm install https://pkg.pr.new/flarelabs-net/vite-plugin-cloudflare/@flarelabs-net/vite-plugin-cloudflare@main --save-dev`
 
 # `@cloudflare/vite-plugin`
 
