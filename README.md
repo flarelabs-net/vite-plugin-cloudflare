@@ -435,7 +435,9 @@ CLOUDFLARE_ENV=staging
 CLOUDFLARE_ENV=production
 ```
 
-Now, if you run `vite build`, the 'production' mode will be used by default and the 'production' environment will be selected.
+By default, `vite build` uses the 'production' mode.
+Vite will therefore load the `.env.production` file to get the environment variables that are used in the build.
+Since the `.env.production` file contains `CLOUDFLARE_ENV=production`, the Cloudflare Vite plugin will select the 'production' Worker environment.
 The value of `MY_VAR` will therefore be `'Production var'`.
 If you run `vite build --mode staging` then the 'staging' mode will be used and the 'staging' environment will be selected.
 The value of `MY_VAR` will therefore be `'Staging var'`.
